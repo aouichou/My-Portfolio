@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 23 23 23;
+  }
+
+  .dark {
+    --background: 23 23 23;
+    --foreground: 255 255 255;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg 
+           hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors;
+  }
+  
+  .btn-outline {
+    @apply px-6 py-3 border-2 border-white text-white rounded-lg 
+           hover:bg-white hover:text-blue-900 dark:hover:text-gray-900 transition-colors;
+  }
+
+  .btn-primary-sm {
+    @apply px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-lg 
+           hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors;
+  }
+
+  .btn-outline-sm {
+    @apply px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 
+           text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors;
+  }
+
+  .badge-tech {
+    @apply px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 
+           text-sm rounded-full;
+  }
+}
+
+.prose {
+	@apply max-w-none;
+  }
+  
+  .prose img {
+	@apply rounded-lg shadow-md mx-auto;
+  }
+  
+  .prose h1,
+  .prose h2,
+  .prose h3 {
+	@apply dark:text-white;
+  }
+  
+  .prose code {
+	@apply bg-gray-100 dark:bg-gray-800 px-1 rounded;
+  }
+  
+  .prose pre {
+	@apply bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto;
+  }
+
+.markdown-body {
+  @apply prose-lg dark:prose-invert max-w-none;
+}
+
+.markdown-body pre {
+  @apply bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto;
+}
+
+.markdown-body code {
+  @apply bg-gray-100 dark:bg-gray-800 px-1 rounded font-mono text-sm;
+}
+
+.markdown-body img {
+  @apply mx-auto rounded-lg shadow-md;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  @apply dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-4;
+}
+
+.markdown-body a {
+  @apply text-blue-600 dark:text-blue-400 hover:underline;
+}
+
+.markdown-body blockquote {
+  @apply border-l-4 border-gray-200 dark:border-gray-700 pl-4 italic;
+}
+
+.markdown-body table {
+  @apply border-collapse table-auto w-full;
+}
+
+.markdown-body th,
+.markdown-body td {
+  @apply border dark:border-gray-700 p-2;
+}
+
+.markdown-body tr:nth-child(even) {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+.markdown-body p[align="center"] {
+  @apply flex justify-center items-center gap-2 flex-wrap my-6;
+}
+
+.markdown-body p[align="center"] img {
+  @apply h-6 w-auto inline-block;
+}
+
+.markdown-body h1[align="center"],
+.markdown-body h3[align="center"] {
+  @apply text-center w-full;
+}
+
+.markdown-body p[align="center"] img[src*="img.shields.io"] {
+  @apply h-6 w-auto inline-block mx-1;
+}
+
+.markdown-body p[align="center"] {
+  @apply flex justify-center items-center flex-wrap gap-2;
+}
+
+.prose-lg img[src*="img.shields.io"] {
+  @apply h-6 w-auto inline-block mx-1;
+}
+
+.prose-lg p[align="center"] {
+  @apply flex justify-center items-center flex-wrap gap-2;
+}
+
+.prose-lg a[href*="linkedin.com"] img,
+.prose-lg a[href*="github.com"] img {
+  @apply h-10 w-10 inline-block hover:opacity-80 transition-opacity;
+}
