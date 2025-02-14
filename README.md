@@ -1,4 +1,3 @@
-```markdown
 # My Portfolio  
 Modern full-stack developer portfolio showcasing projects, skills, and contact integration. Built with Django + Next.js 2025 stack.  
 
@@ -147,4 +146,4 @@ No License
   Crafted with ❤️ by <a href="https://github.com/aouichou">Amine</a><br/>
   Let's connect on <a href="https://linkedin.com/in/yourprofile">LinkedIn</a>!
 </p>
-```  
+ 
