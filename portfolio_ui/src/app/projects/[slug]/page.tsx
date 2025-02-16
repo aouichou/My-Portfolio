@@ -7,7 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import React from 'react';
-import { Metadata } from 'next';;
+import { Metadata } from 'next';
+import { ErrorBoundary } from 'react-error-boundary';
 
 type Props = {
   params: { slug: string };
@@ -21,41 +22,67 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+const ImageErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center rounded-lg">
+          <span className="text-gray-500">Failed to load image</span>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  );
+};
+
 const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
-	if (!src) return null;
-  
-	const isBadge = src.includes('img.shields.io/badge');
-	const isSocialIcon = src.includes('github-profile-readme-generator') || src.includes('icons/Social');
-  
-	if (isBadge || isSocialIcon) {
-	  return (
-		<Image
-		  src={src}
-		  alt={alt || ''}
-		  width={isBadge ? 24 : 40}
-		  height={isBadge ? 24 : 40}
-		  className={isBadge ? 'h-6 w-auto inline-block' : 'h-10 w-10 inline-block hover:opacity-80 transition-opacity'}
-		  style={{ margin: isBadge ? '0 4px' : '0 8px' }}
-		  unoptimized={true}
-		/>
-	  );
-	}
-  
-	const imageUrl = src.includes('/media/') ? src : `/media/projects/${src.split('/').pop()}`;
-  
-	return (
-	  <div className="relative w-full aspect-video">
-		<Image
-		  src={imageUrl}
-		  alt={alt || ''}
-		  fill
-		  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-		  className="rounded-lg shadow-md object-cover"
-		  priority={true}
-		/>
-	  </div>
-	);
-  };
+  if (!src) return null;
+
+  // Handle external badges and social icons
+  const isBadge = src.includes('img.shields.io/badge');
+  const isSocialIcon = src.includes('github-profile-readme-generator') || 
+                      src.includes('icons/Social');
+
+  if (isBadge || isSocialIcon) {
+    return (
+      <Image
+        src={src}  // Use original URL for external images
+        alt={alt || ''}
+        width={isBadge ? 24 : 40}
+        height={isBadge ? 24 : 40}
+        className={isBadge ? 'h-6 w-auto inline-block' : 'h-10 w-10 inline-block hover:opacity-80 transition-opacity'}
+        style={{ margin: isBadge ? '0 4px' : '0 8px' }}
+        unoptimized={true}
+      />
+    );
+  }
+
+  // Handle local project images
+  const imageUrl = src.startsWith('/media/') 
+    ? src 
+    : `/media/projects/${src.split('/').pop()}`;
+
+  return (
+    <ImageErrorBoundary>
+      <div className="relative w-full aspect-video">
+        <Image
+          src={imageUrl}
+          alt={alt || ''}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="rounded-lg shadow-md object-cover"
+          priority={true}
+          loading="eager"
+          onError={(e) => {
+            console.error(`Failed to load image: ${imageUrl}`);
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      </div>
+    </ImageErrorBoundary>
+  );
+};
 
 export default async function Page({ params }: Props) {
   const project = await getProjectBySlug(params.slug)
