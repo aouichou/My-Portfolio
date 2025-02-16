@@ -1,0 +1,72 @@
+# ./docker-compose.yml
+
+services:
+  frontend:
+    build: 
+      context: ./portfolio_ui
+      dockerfile: Dockerfile
+    # ports: ["3000:3000"]
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=/api
+      - NEXT_PUBLIC_MEDIA_URL=/media
+      # - NEXT_PUBLIC_ASSETS_URL=/media/projects
+    networks:
+      - app-network
+    depends_on: [backend]
+    restart: unless-stopped
+
+  backend:
+    build: 
+      context: ./portfolio_api
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+    volumes:
+      - ./portfolio_api/media:/app/media
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=portfolio_api.settings
+      - DEbug=false
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  reverse-proxy:
+    image: nginx:alpine
+    # ports: ["80:80", "443:443"]
+    ports: ["80:80"]
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./portfolio_api/media:/app/media:ro
+      # - ./modsec:/etc/nginx/modsec
+    networks:
+      - app-network
+    depends_on: [frontend, backend]
+    restart: unless-stopped
+
+  # waf:
+  #   image: owasp/modsecurity-crs:3.3
+  #   volumes:
+  #     - ./modsec/rules:/etc/modsecurity.d/rules
+
+  # vault:
+  #   image: vault:1.15
+  #   environment:
+  #     VAULT_DEV_ROOT_TOKEN_ID: "edu_vault_token"
+  #   ports: ["8200:8200"]
+
+  # elk:
+  #   image: sebp/elk:8.11
+  #   ports: ["5601:5601", "9200:9200", "5044:5044"]
+    
+  # monitoring:
+  #   image: prom/prometheus
+  #   ports: ["9090:9090"]
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+networks:
+  app-network:
+    driver: bridge

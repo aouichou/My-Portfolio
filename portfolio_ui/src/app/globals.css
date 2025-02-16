@@ -139,3 +139,11 @@
 .prose-lg a[href*="github.com"] img {
   @apply h-10 w-10 inline-block hover:opacity-80 transition-opacity;
 }
+
+@layer components {
+	input[type="text"],
+	input[type="email"],
+	textarea {
+	  @apply px-4 py-2 border rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white;
+	}
+  }

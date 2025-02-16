@@ -2,9 +2,8 @@
 
 'use client';
 
-import { useFeaturedProjects } from '../lib/queries';
+import { useFeaturedProjects } from '../library/queries';
 import Image from 'next/image';
-import type { Project } from '../lib/types';
 import Link from 'next/link';
 
 export default function ProjectsGrid() {

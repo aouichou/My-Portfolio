@@ -2,79 +2,65 @@
 
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getProjectBySlug } from '@/lib/api-client';
+import { getProjectBySlug } from '@/library/api-client';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import React from 'react';
-import type { Metadata } from 'next';
+import { Metadata } from 'next';;
 
 type Props = {
   params: { slug: string };
 };
 
-// Handle metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  if (!params?.slug) return { title: 'Project Not Found' };
-  
-  const project = await getProjectBySlug(String(params.slug));
+  const project = await getProjectBySlug(params.slug);
   return {
     title: project?.title || 'Project Not Found',
     description: project?.description || '',
   };
 }
 
-const imageComponent = ({ node, ...props }: any) => {
-  const src = props.src || '';
+const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
+	if (!src) return null;
   
-  // Handle different image types
-  const isBadge = src.includes('img.shields.io/badge');
-  const isSocialIcon = src.includes('github-profile-readme-generator') || 
-                      src.includes('icons/Social');
+	const isBadge = src.includes('img.shields.io/badge');
+	const isSocialIcon = src.includes('github-profile-readme-generator') || src.includes('icons/Social');
   
-  if (isBadge || isSocialIcon) {
-    return (
-      <img
-        {...props}
-        className={isBadge ? "h-6 w-auto inline-block" : "h-10 w-10 inline-block hover:opacity-80 transition-opacity"}
-        style={{ margin: isBadge ? '0 4px' : '0 8px' }}
-      />
-    );
-  }
+	if (isBadge || isSocialIcon) {
+	  return (
+		<Image
+		  src={src}
+		  alt={alt || ''}
+		  width={isBadge ? 24 : 40}
+		  height={isBadge ? 24 : 40}
+		  className={isBadge ? 'h-6 w-auto inline-block' : 'h-10 w-10 inline-block hover:opacity-80 transition-opacity'}
+		  style={{ margin: isBadge ? '0 4px' : '0 8px' }}
+		  unoptimized={true}
+		/>
+	  );
+	}
+  
+	const imageUrl = src.includes('/media/') ? src : `/media/projects/${src.split('/').pop()}`;
+  
+	return (
+	  <div className="relative w-full aspect-video">
+		<Image
+		  src={imageUrl}
+		  alt={alt || ''}
+		  fill
+		  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+		  className="rounded-lg shadow-md object-cover"
+		  priority={true}
+		/>
+	  </div>
+	);
+  };
 
-  // Handle relative image paths
-  let imgSrc = src;
-  if (src.startsWith('images/') || src.startsWith('media/')) {
-    // Use Django media URL for project images
-    imgSrc = `http://localhost:8000/media/projects/${src.split('/').pop()}`;
-  }
-
-  try {
-    // Validate URL before passing to Next.js Image
-    new URL(imgSrc);
-    return (
-      <Image
-        {...props}
-        src={imgSrc}
-        alt={props.alt || ''}
-        width={800}
-        height={400}
-        className="rounded-lg shadow-md mx-auto"
-        unoptimized={src.endsWith('.gif')} // Don't optimize GIFs
-      />
-    );
-  } catch {
-    // Fallback for invalid URLs
-    return <img {...props} src="/placeholder.jpg" alt={props.alt || 'Placeholder'} />;
-  }
-};
-
-export default async function ProjectPage({ params }: Props) {
-  if (!params?.slug) notFound();
-
-  const project = await getProjectBySlug(String(params.slug));
+export default async function Page({ params }: Props) {
+  const project = await getProjectBySlug(params.slug)
   if (!project) notFound();
-
+  
   return (
     <article className="max-w-4xl mx-auto px-4 py-12">
       <div className="prose-lg dark:prose-invert mx-auto">
@@ -82,18 +68,18 @@ export default async function ProjectPage({ params }: Props) {
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
           components={{
-            img: imageComponent,
-            p: ({ children, ...props }) => {
+            img: ImageComponent,
+            p: ({ children }) => {
               const hasOnlyImages = React.Children.toArray(children).every(
-                child => React.isValidElement(child) && child.type === 'img'
+                (child) => React.isValidElement(child) && child.type === 'img'
               );
-              
+  
               return hasOnlyImages ? (
-                <div className="flex flex-wrap justify-center gap-4 my-8" {...props}>
+                <div className="flex flex-wrap justify-center gap-4 my-8">
                   {children}
                 </div>
               ) : (
-                <p {...props}>{children}</p>
+                <p>{children}</p>
               );
             },
           }}
