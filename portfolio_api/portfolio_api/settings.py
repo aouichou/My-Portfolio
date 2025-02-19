@@ -21,14 +21,18 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 CORS_ALLOWED_ORIGINS = [
+	"http://localhost",
+	"http://localhost:80",
     "http://localhost:3000",
     "http://frontend:3000",
-    "http://backend:8000",
+    "http://backend:8080",
 ]
 CSRF_TRUSTED_ORIGINS = [
+	"http://localhost",
+	"http://localhost:80",
     "http://localhost:3000",
     "http://frontend:3000",
-    "http://backend:8000",
+    "http://backend:8080",
 ]
 
 # Rate Limiting Settings
@@ -80,7 +84,7 @@ CORS_ALLOW_CREDENTIALS = True
 ROOT_URLCONF = 'portfolio_api.urls'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 TEMPLATES = [
     {

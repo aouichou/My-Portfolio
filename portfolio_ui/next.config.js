@@ -4,25 +4,28 @@
 const nextConfig = {
   output: 'standalone',
   images: {
-    domains: ['localhost', '127.0.0.1', 'backend'],
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: '**',
-		port: '8000',
+        hostname: 'backend',
+		port: '8080',
         pathname: '/media/**',
-      }
+      },
     ],
     minimumCacheTTL: 60,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/media/:path*',
-        destination: 'http://backend:8000/media/:path*',
-      }
-    ];
-  },
+	async rewrites() {
+	return [
+		{
+		source: '/api/:path*',
+		destination: 'http://backend:8080/api/:path*',
+		},
+		{
+		source: '/media/:path*',
+		destination: 'http://backend:8080/media/:path*',
+		},
+	];
+	},
   typescript: {
     ignoreBuildErrors: true
   },

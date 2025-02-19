@@ -26,7 +26,7 @@ export default function ProjectsGrid() {
               href={`/projects/${project.slug}`}
               className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
             >
-              <Image
+              {<Image
                 src={project.thumbnail}
                 alt={project.title}
                 width={600}
@@ -38,7 +38,9 @@ export default function ProjectsGrid() {
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "/fallback-image.jpg";
                 }}
+				unoptimized
               />
+			  }
               <div className="p-6">
                 <h3 className="text-2xl font-bold mb-3 dark:text-white">
                   {project.title}

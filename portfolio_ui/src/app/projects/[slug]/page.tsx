@@ -1,12 +1,14 @@
 // portfolio_ui/src/app/projects/[slug]/page.tsx
 
+'use client;'
+
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getProjectBySlug } from '@/library/api-client';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import React from 'react';
+import React, { use } from 'react';
 import { Metadata } from 'next';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -53,7 +55,7 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
         height={isBadge ? 24 : 40}
         className={isBadge ? 'h-6 w-auto inline-block' : 'h-10 w-10 inline-block hover:opacity-80 transition-opacity'}
         style={{ margin: isBadge ? '0 4px' : '0 8px' }}
-        unoptimized={true}
+        unoptimized
       />
     );
   }
@@ -78,6 +80,7 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
             console.error(`Failed to load image: ${imageUrl}`);
             e.currentTarget.style.display = 'none';
           }}
+		  unoptimized
         />
       </div>
     </ImageErrorBoundary>

@@ -10,4 +10,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "portfolio_api.wsgi"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "portfolio_api.wsgi"]
