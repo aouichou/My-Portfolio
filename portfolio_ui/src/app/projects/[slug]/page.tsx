@@ -1,6 +1,5 @@
 // portfolio_ui/src/app/projects/[slug]/page.tsx
 
-'use client;'
 
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -11,6 +10,7 @@ import rehypeRaw from 'rehype-raw';
 import React, { use } from 'react';
 import { Metadata } from 'next';
 import { ErrorBoundary } from 'react-error-boundary';
+import ClientImage from '@/components/ClientImage';
 
 type Props = {
   params: { slug: string };
@@ -68,7 +68,7 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   return (
     <ImageErrorBoundary>
       <div className="relative w-full aspect-video">
-        <Image
+        <ClientImage
           src={imageUrl}
           alt={alt || ''}
           fill

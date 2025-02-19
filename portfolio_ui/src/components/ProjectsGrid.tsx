@@ -5,6 +5,7 @@
 import { useFeaturedProjects } from '../library/queries';
 import Image from 'next/image';
 import Link from 'next/link';
+import ClientImage from './ClientImage';
 
 export default function ProjectsGrid() {
   const { data: projects, isLoading } = useFeaturedProjects();
@@ -26,7 +27,7 @@ export default function ProjectsGrid() {
               href={`/projects/${project.slug}`}
               className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
             >
-              {<Image
+              {<ClientImage
                 src={project.thumbnail}
                 alt={project.title}
                 width={600}
