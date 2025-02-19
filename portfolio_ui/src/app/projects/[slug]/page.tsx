@@ -1,6 +1,5 @@
 // portfolio_ui/src/app/projects/[slug]/page.tsx
 
-
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getProjectBySlug } from '@/library/api-client';
@@ -43,13 +42,13 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
 
   // Handle external badges and social icons
   const isBadge = src.includes('img.shields.io/badge');
-  const isSocialIcon = src.includes('github-profile-readme-generator') || 
-                      src.includes('icons/Social');
+  const isSocialIcon = src.includes('github-profile-readme-generator') ||
+    src.includes('icons/Social');
 
   if (isBadge || isSocialIcon) {
     return (
       <Image
-        src={src}  // Use original URL for external images
+        src={src} // Use original URL for external images
         alt={alt || ''}
         width={isBadge ? 24 : 40}
         height={isBadge ? 24 : 40}
@@ -61,8 +60,8 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   }
 
   // Handle local project images
-  const imageUrl = src.startsWith('/media/') 
-    ? src 
+  const imageUrl = src.startsWith('/media/')
+    ? src
     : `/media/projects/${src.split('/').pop()}`;
 
   return (
@@ -76,11 +75,7 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
           className="rounded-lg shadow-md object-cover"
           priority={true}
           loading="eager"
-          onError={(e) => {
-            console.error(`Failed to load image: ${imageUrl}`);
-            e.currentTarget.style.display = 'none';
-          }}
-		  unoptimized
+          unoptimized
         />
       </div>
     </ImageErrorBoundary>
