@@ -71,6 +71,8 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
           src={imageUrl}
           alt={alt || ''}
           fill
+		  width={1200}
+		  height={675}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="rounded-lg shadow-md object-cover"
           priority={true}
