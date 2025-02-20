@@ -20,11 +20,11 @@ spec:
     http:
       paths:
       # Add this rule FIRST (higher priority)
-      - path: /.well-known/acme-challenge/
+      - path: /.well-known/acme-challenge
         pathType: Prefix
         backend:
           service:
-            name: frontend-service  # This is intentional! See note below.
+            name: frontend-service
             port:
               number: 80
       - path: /
