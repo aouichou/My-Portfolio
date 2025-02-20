@@ -6,72 +6,84 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Create Kubernetes Secrets
-      env:
-        DB_NAME: ${{ secrets.DB_NAME }}
-        DB_USER: ${{ secrets.DB_USER }}
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        DB_HOST: ${{ secrets.DB_HOST }}
-      run: |
-        kubectl create secret generic database-credentials \
-          --from-literal=DB_NAME=$DB_NAME \
-          --from-literal=DB_USER=$DB_USER \
-          --from-literal=DB_PASSWORD=$DB_PASSWORD \
-          --from-literal=DB_HOST=$DB_HOST \
-          --dry-run=client -o yaml | kubectl apply -f -
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Setup Nginx Ingress
-      run: |
-        helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-        helm repo update
-        helm install ingress-nginx ingress-nginx/ingress-nginx \
-          --namespace ingress-nginx \
-          --create-namespace \
-          --set controller.replicaCount=2 \
-          --set controller.nodeSelector."kubernetes\.io/os"=linux \
-          --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
-    
-    - name: Log in to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v2
+        with:
+          resource-group: ${{ secrets.RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
-    - name: Build and push frontend
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ secrets.ACR_NAME }}.azurecr.io
-        username: ${{ secrets.ACR_USERNAME }}
-        password: ${{ secrets.ACR_PASSWORD }}
-    - run: |
-        docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest ./portfolio_ui
-        docker push ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest
+      - name: Create Kubernetes Secrets
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+        run: |
+          kubectl create secret generic database-credentials \
+            --from-literal=DB_NAME=$DB_NAME \
+            --from-literal=DB_USER=$DB_USER \
+            --from-literal=DB_PASSWORD=$DB_PASSWORD \
+            --from-literal=DB_HOST=$DB_HOST \
+            --dry-run=client -o yaml | kubectl apply -f -
 
-    - name: Build and push backend
-      run: |
-        docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest ./portfolio_api
-        docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest
+      - name: Setup Nginx Ingress
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          helm install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            --set controller.replicaCount=2 \
+            --set controller.nodeSelector."kubernetes\.io/os"=linux \
+            --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push frontend
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest ./portfolio_ui
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest
+
+      - name: Build and push backend
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest ./portfolio_api
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest
 
   deploy:
     needs: build-push
     runs-on: ubuntu-latest
     steps:
-    - uses: azure/aks-set-context@v2
-      with:
-        resource-group: ${{ secrets.RESOURCE_GROUP }}
-        cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy to AKS
-      run: |
-        kubectl apply -f kubernetes/
-        kubectl rollout restart deployment frontend
-        kubectl rollout restart deployment backend
+      - uses: azure/aks-set-context@v2
+        with:
+          resource-group: ${{ secrets.RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
-    - name: Verify Deployment
-      run: |
-        kubectl rollout status deployment/frontend --timeout=300s
-        kubectl rollout status deployment/backend --timeout=300s
-        kubectl get pods -o wide
-        kubectl get services
-        kubectl get ingress
+      - name: Deploy to AKS
+        run: |
+          kubectl apply -f kubernetes/
+          kubectl rollout restart deployment frontend
+          kubectl rollout restart deployment backend
+
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/frontend --timeout=300s
+          kubectl rollout status deployment/backend --timeout=300s
+          kubectl get pods -o wide
+          kubectl get services
+          kubectl get ingress
