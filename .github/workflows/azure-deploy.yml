@@ -92,6 +92,10 @@ jobs:
     needs: build-push
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
@@ -107,6 +111,10 @@ jobs:
           pwd
           echo "Repository contents:"
           ls -la
+          echo "All directories:"
+          find . -type d
+          echo "All files:"
+          find . -type f
           echo "Kubernetes directory contents:"
           find . -type d -name "kubernetes" -print -exec ls -la {} \;
 
@@ -121,6 +129,12 @@ jobs:
             kubectl rollout restart deployment backend
           else
             echo "Error: kubernetes/ directory not found!"
+            echo "Current working directory:"
+            pwd
+            echo "Contents of current directory:"
+            ls -la
+            echo "All directories in the repository:"
+            find . -type d
             exit 1
           fi
 
@@ -131,3 +145,4 @@ jobs:
           kubectl get pods -o wide
           kubectl get services
           kubectl get ingress
+
