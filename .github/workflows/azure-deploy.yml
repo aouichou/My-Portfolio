@@ -1,0 +1,44 @@
+name: Azure Deployment
+
+on: [push]
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build and push frontend
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - run: |
+        docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest ./portfolio_ui
+        docker push ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest
+
+    - name: Build and push backend
+      run: |
+        docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest ./portfolio_api
+        docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest
+
+  deploy:
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+    - uses: azure/aks-set-context@v2
+      with:
+        resource-group: ${{ secrets.RESOURCE_GROUP }}
+        cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+    - name: Deploy to AKS
+      run: |
+        kubectl apply -f kubernetes/
+        kubectl rollout restart deployment frontend
+        kubectl rollout restart deployment backend
