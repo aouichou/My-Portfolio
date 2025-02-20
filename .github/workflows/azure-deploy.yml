@@ -108,11 +108,33 @@ jobs:
       - name: Deploy to AKS
         run: |
           echo "Applying Kubernetes manifests..."
-          kubectl apply -f kubernetes/
-          
+          kubectl apply -f kubernetes/frontend-config.yaml
+          kubectl apply -f kubernetes/frontend-deployment.yaml
+          kubectl apply -f kubernetes/backend-deployment.yaml
+          kubectl apply -f kubernetes/service.yaml
+          kubectl apply -f kubernetes/ingress.yaml
+          kubectl apply -f kubernetes/pvc.yaml
+        
           echo "Restarting deployments..."
           kubectl rollout restart deployment frontend
           kubectl rollout restart deployment backend
+
+      - name: Verify Deployment
+        run: |
+          echo "Waiting for frontend deployment..."
+          kubectl rollout status deployment/frontend --timeout=300s
+        
+          echo "Waiting for backend deployment..."
+          kubectl rollout status deployment/backend --timeout=300s
+        
+          echo "Getting pod information..."
+          kubectl get pods -o wide
+        
+          echo "Getting services..."
+          kubectl get services
+        
+          echo "Getting ingress..."
+          kubectl get ingress
 
       - name: Debug Deployments
         run: |
@@ -130,23 +152,6 @@ jobs:
           echo "Checking backend pod logs..."
           kubectl logs -l app=backend --tail=100
 
-      - name: Verify Deployment
-        run: |
-          echo "Waiting for frontend deployment..."
-          kubectl rollout status deployment/frontend --timeout=600s
-          
-          echo "Waiting for backend deployment..."
-          kubectl rollout status deployment/backend --timeout=600s
-          
-          echo "Getting pod information..."
-          kubectl get pods -o wide
-          
-          echo "Getting services..."
-          kubectl get services
-          
-          echo "Getting ingress..."
-          kubectl get ingress
-
       - name: Check Node Resources
         run: |
           echo "Checking node resources..."
@@ -159,4 +164,3 @@ jobs:
         run: |
           echo "Checking recent cluster events..."
           kubectl get events --sort-by='.lastTimestamp' --all-namespaces
-
