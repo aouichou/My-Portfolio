@@ -97,7 +97,7 @@ portfolio/
    ```
    Access at:  
    - Frontend: `http://localhost:3000`  
-   - Django Admin: `http://localhost:8000/admin`  
+   - Django Admin: `http://localhost:8080/admin`  
 
 4. **Local Development**  
    ```bash
