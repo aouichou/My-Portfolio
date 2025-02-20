@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  NEXT_PUBLIC_API_URL: "/api"
+  NEXT_PUBLIC_MEDIA_URL: "/media"
+  # Add other frontend environment variables here

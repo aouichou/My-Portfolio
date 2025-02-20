@@ -16,7 +16,7 @@ spec:
       - name: frontend
         image: aouichou.azurecr.io/frontend:latest
         ports:
-        - containerPort: 3000
-        envFrom:
-        - configMapRef:
-            name: frontend-config
+      - containerPort: 3000
+      envFrom:
+      - configMapRef:
+        name: frontend-config
