@@ -105,44 +105,58 @@ jobs:
           resource-group: ${{ secrets.RESOURCE_GROUP }}
           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
-      - name: Debug Repository Structure
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Repository contents:"
-          ls -la
-          echo "All directories:"
-          find . -type d
-          echo "All files:"
-          find . -type f
-          echo "Kubernetes directory contents:"
-          find . -type d -name "kubernetes" -print -exec ls -la {} \;
-
       - name: Deploy to AKS
         run: |
           echo "Applying Kubernetes manifests..."
-          if [ -d "kubernetes" ]; then
-            echo "Kubernetes directory found. Contents:"
-            ls -la kubernetes/
-            kubectl apply -f kubernetes/
-            kubectl rollout restart deployment frontend
-            kubectl rollout restart deployment backend
-          else
-            echo "Error: kubernetes/ directory not found!"
-            echo "Current working directory:"
-            pwd
-            echo "Contents of current directory:"
-            ls -la
-            echo "All directories in the repository:"
-            find . -type d
-            exit 1
-          fi
+          kubectl apply -f kubernetes/
+          
+          echo "Restarting deployments..."
+          kubectl rollout restart deployment frontend
+          kubectl rollout restart deployment backend
+
+      - name: Debug Deployments
+        run: |
+          echo "Debugging frontend deployment..."
+          kubectl describe deployment frontend
+          echo "Debugging backend deployment..."
+          kubectl describe deployment backend
+          
+          echo "Checking pod status..."
+          kubectl get pods
+          
+          echo "Checking frontend pod logs..."
+          kubectl logs -l app=frontend --tail=100
+          
+          echo "Checking backend pod logs..."
+          kubectl logs -l app=backend --tail=100
 
       - name: Verify Deployment
         run: |
-          kubectl rollout status deployment/frontend --timeout=300s
-          kubectl rollout status deployment/backend --timeout=300s
+          echo "Waiting for frontend deployment..."
+          kubectl rollout status deployment/frontend --timeout=600s
+          
+          echo "Waiting for backend deployment..."
+          kubectl rollout status deployment/backend --timeout=600s
+          
+          echo "Getting pod information..."
           kubectl get pods -o wide
+          
+          echo "Getting services..."
           kubectl get services
+          
+          echo "Getting ingress..."
           kubectl get ingress
+
+      - name: Check Node Resources
+        run: |
+          echo "Checking node resources..."
+          kubectl describe nodes
+          
+          echo "Checking pod resource usage..."
+          kubectl top pods
+
+      - name: Check Cluster Events
+        run: |
+          echo "Checking recent cluster events..."
+          kubectl get events --sort-by='.lastTimestamp' --all-namespaces
 
