@@ -8,4 +8,4 @@ spec:
   storageClassName: azurefile  # Example: Azure Files storage class
   resources:
     requests:
-      storage: 5Gi
+      storage: 5Gi 
