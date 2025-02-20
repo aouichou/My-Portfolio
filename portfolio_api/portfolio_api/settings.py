@@ -20,20 +20,20 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CORS_ALLOWED_ORIGINS = [
-	"http://localhost",
-	"http://localhost:80",
-    "http://localhost:3000",
-    "http://frontend:3000",
-    "http://backend:8080",
-]
-CSRF_TRUSTED_ORIGINS = [
-	"http://localhost",
-	"http://localhost:80",
-    "http://localhost:3000",
-    "http://frontend:3000",
-    "http://backend:8080",
-]
+# CORS_ALLOWED_ORIGINS = [
+# 	"http://localhost",
+# 	"http://localhost:80",
+#     "http://localhost:3000",
+#     "http://frontend:3000",
+#     "http://backend:8080",
+# ]
+# CSRF_TRUSTED_ORIGINS = [
+# 	"http://localhost",
+# 	"http://localhost:80",
+#     "http://localhost:3000",
+#     "http://frontend:3000",
+#     "http://backend:8080",
+# ]
 
 # Rate Limiting Settings
 
@@ -156,3 +156,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = ['https://aouichou.me']

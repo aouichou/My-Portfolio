@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: aouichou.azurecr.io/backend:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /app/media
+          name: media-volume
+        envFrom:
+        - secretRef:
+            name: database-credentials
+      volumes:
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: media-pvc
