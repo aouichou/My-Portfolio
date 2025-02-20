@@ -8,6 +8,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Create Kubernetes Secrets
+      env:
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+      run: |
+        kubectl create secret generic database-credentials \
+          --from-literal=DB_NAME=$DB_NAME \
+          --from-literal=DB_USER=$DB_USER \
+          --from-literal=DB_PASSWORD=$DB_PASSWORD \
+          --from-literal=DB_HOST=$DB_HOST \
+          --dry-run=client -o yaml | kubectl apply -f -
+    
     - name: Log in to Azure
       uses: azure/login@v1
       with:
