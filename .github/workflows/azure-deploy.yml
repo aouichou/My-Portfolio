@@ -99,6 +99,17 @@ jobs:
           resource-group: ${{ secrets.RESOURCE_GROUP }}
           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
+      - name: List Kubernetes Manifests
+        run: |
+          echo "Repository structure:"
+          find . -type d -name "kubernetes" -print -exec ls -la {} \;
+
+      - name: Deploy Manifests to AKS
+        run: |
+          cd kubernetes
+          kubectl apply -f .
+        working-directory: ./kubernetes
+
       - name: Verify Kubernetes Directory
         run: |
           echo "Current directory:"
