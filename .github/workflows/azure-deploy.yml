@@ -12,6 +12,14 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+          allow-no-subscriptions: false
+
+      - name: Debug Azure Context
+        run: |
+          az account show
+          az group list
+          az aks list
 
       - name: Set AKS Context
         uses: azure/aks-set-context@v2
