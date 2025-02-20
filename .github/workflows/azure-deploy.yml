@@ -136,31 +136,36 @@ jobs:
           echo "Getting ingress..."
           kubectl get ingress
 
-      - name: Debug Deployments
+      - name: Debug Backend Deployment
+        if: failure()
         run: |
-          echo "Debugging frontend deployment..."
-          kubectl describe deployment frontend
-          echo "Debugging backend deployment..."
+          echo "Describing backend deployment..."
           kubectl describe deployment backend
           
-          echo "Checking pod status..."
-          kubectl get pods
-          
-          echo "Checking frontend pod logs..."
-          kubectl logs -l app=frontend --tail=100
+          echo "Checking backend pod status..."
+          kubectl get pods -l app=backend
           
           echo "Checking backend pod logs..."
-          kubectl logs -l app=backend --tail=100
-
-      - name: Check Node Resources
-        run: |
+          for pod in $(kubectl get pods -l app=backend -o jsonpath='{.items[*].metadata.name}'); do
+            echo "Logs for $pod:"
+            kubectl logs $pod
+          done
+          
+          echo "Checking backend pod events..."
+          for pod in $(kubectl get pods -l app=backend -o jsonpath='{.items[*].metadata.name}'); do
+            echo "Events for $pod:"
+            kubectl get events --field-selector involvedObject.name=$pod
+          done
+          
           echo "Checking node resources..."
           kubectl describe nodes
           
-          echo "Checking pod resource usage..."
-          kubectl top pods
+          echo "Checking persistent volume claims..."
+          kubectl get pvc
+          kubectl describe pvc media-pvc
 
       - name: Check Cluster Events
+        if: failure()
         run: |
           echo "Checking recent cluster events..."
           kubectl get events --sort-by='.lastTimestamp' --all-namespaces
