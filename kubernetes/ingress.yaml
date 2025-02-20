@@ -1,16 +1,19 @@
 # kubernetes/ingress.yaml
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: portfolio-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - aouichou.me
+    - www.aouichou.me
     secretName: portfolio-tls
   rules:
   - host: aouichou.me
@@ -29,11 +32,4 @@ spec:
           service:
             name: backend-service
             port:
-              number: 8000
-      - path: /media
-        pathType: Prefix
-        backend:
-          service:
-            name: backend-service
-            port:
-              number: 8000
+              number: 8080  # Changed from 8000 to match service
