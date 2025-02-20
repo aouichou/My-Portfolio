@@ -99,32 +99,28 @@ jobs:
           resource-group: ${{ secrets.RESOURCE_GROUP }}
           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
-      - name: List Kubernetes Manifests
-        run: |
-          echo "Repository structure:"
-          find . -type d -name "kubernetes" -print -exec ls -la {} \;
-
-      - name: Deploy Manifests to AKS
-        run: |
-          cd kubernetes
-          kubectl apply -f .
-        working-directory: ./kubernetes
-
-      - name: Verify Kubernetes Directory
+      - name: Debug Repository Structure
         run: |
           echo "Current directory:"
           pwd
           echo "Repository contents:"
           ls -la
           echo "Kubernetes directory contents:"
-          ls -la kubernetes/
+          find . -type d -name "kubernetes" -print -exec ls -la {} \;
 
       - name: Deploy to AKS
         run: |
           echo "Applying Kubernetes manifests..."
-          kubectl apply -f kubernetes/
-          kubectl rollout restart deployment frontend
-          kubectl rollout restart deployment backend
+          if [ -d "kubernetes" ]; then
+            echo "Kubernetes directory found. Contents:"
+            ls -la kubernetes/
+            kubectl apply -f kubernetes/
+            kubectl rollout restart deployment frontend
+            kubectl rollout restart deployment backend
+          else
+            echo "Error: kubernetes/ directory not found!"
+            exit 1
+          fi
 
       - name: Verify Deployment
         run: |
