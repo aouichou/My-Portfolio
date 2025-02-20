@@ -4,7 +4,8 @@ metadata:
   name: media-pvc
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteMany  # Ensure this matches the initial creation
+  storageClassName: azurefile  # Example: Azure Files storage class
   resources:
     requests:
       storage: 5Gi

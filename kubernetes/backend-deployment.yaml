@@ -12,16 +12,6 @@ spec:
       labels:
         app: backend
     spec:
-      affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - backend
-            topologyKey: "kubernetes.io/hostname"
       containers:
       - name: backend
         image: aouichou.azurecr.io/backend:latest
@@ -37,3 +27,4 @@ spec:
       - name: media-volume
         persistentVolumeClaim:
           claimName: media-pvc
+
