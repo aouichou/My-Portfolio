@@ -45,12 +45,29 @@ jobs:
         run: |
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           helm repo update
-          helm install ingress-nginx ingress-nginx/ingress-nginx \
-            --namespace ingress-nginx \
-            --create-namespace \
-            --set controller.replicaCount=2 \
-            --set controller.nodeSelector."kubernetes\.io/os"=linux \
-            --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
+          
+          # Check if ingress-nginx is already installed
+          if helm list -n ingress-nginx | grep -q ingress-nginx; then
+            echo "Upgrading existing ingress-nginx installation"
+            helm upgrade ingress-nginx ingress-nginx/ingress-nginx \
+              --namespace ingress-nginx \
+              --set controller.replicaCount=2 \
+              --set controller.nodeSelector."kubernetes\.io/os"=linux \
+              --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
+          else
+            echo "Installing new ingress-nginx"
+            helm install ingress-nginx ingress-nginx/ingress-nginx \
+              --namespace ingress-nginx \
+              --create-namespace \
+              --set controller.replicaCount=2 \
+              --set controller.nodeSelector."kubernetes\.io/os"=linux \
+              --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
+          fi
+
+      - name: Check Existing Ingress
+        run: |
+          helm list -A
+          kubectl get pods -n ingress-nginx
 
       - name: Login to Azure Container Registry
         uses: azure/docker-login@v1
