@@ -19,14 +19,6 @@ spec:
   - host: aouichou.me
     http:
       paths:
-      # Add this rule FIRST (higher priority)
-      - path: /.well-known/acme-challenge
-        pathType: Prefix
-        backend:
-          service:
-            name: frontend-service
-            port:
-              number: 80
       - path: /
         pathType: Prefix
         backend:
