@@ -99,8 +99,18 @@ jobs:
           resource-group: ${{ secrets.RESOURCE_GROUP }}
           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
+      - name: Verify Kubernetes Directory
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Repository contents:"
+          ls -la
+          echo "Kubernetes directory contents:"
+          ls -la kubernetes/
+
       - name: Deploy to AKS
         run: |
+          echo "Applying Kubernetes manifests..."
           kubectl apply -f kubernetes/
           kubectl rollout restart deployment frontend
           kubectl rollout restart deployment backend
