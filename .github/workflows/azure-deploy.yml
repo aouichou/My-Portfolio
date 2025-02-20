@@ -108,12 +108,12 @@ jobs:
       - name: Deploy to AKS
         run: |
           echo "Applying Kubernetes manifests..."
+          kubectl apply -f kubernetes/pvc.yaml
           kubectl apply -f kubernetes/frontend-config.yaml
           kubectl apply -f kubernetes/frontend-deployment.yaml
           kubectl apply -f kubernetes/backend-deployment.yaml
           kubectl apply -f kubernetes/service.yaml
           kubectl apply -f kubernetes/ingress.yaml
-          kubectl apply -f kubernetes/pvc.yaml
         
           echo "Restarting deployments..."
           kubectl rollout restart deployment frontend
