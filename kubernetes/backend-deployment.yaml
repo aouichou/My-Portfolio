@@ -23,8 +23,9 @@ spec:
         envFrom:
         - secretRef:
             name: database-credentials
+        - secretRef:
+            name: django-secrets
       volumes:
       - name: media-volume
         persistentVolumeClaim:
           claimName: media-pvc
-
