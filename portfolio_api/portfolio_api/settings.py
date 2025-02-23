@@ -19,23 +19,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-# CORS_ALLOWED_ORIGINS = [
-# 	"http://localhost",
-# 	"http://localhost:80",
-#     "http://localhost:3000",
-#     "http://frontend:3000",
-#     "http://backend:8080",
-# ]
-# CSRF_TRUSTED_ORIGINS = [
-# 	"http://localhost",
-# 	"http://localhost:80",
-#     "http://localhost:3000",
-#     "http://frontend:3000",
-#     "http://backend:8080",
-# ]
-
-# Rate Limiting Settings
+DEBUG = False
+ALLOWED_HOSTS = ['aouichou.me', 'www.aouichou.me']
 
 CACHES = {
     'default': {
@@ -77,6 +62,8 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+	"https://aouichou.me",
+    "https://www.aouichou.me",
 ]  # Next.js default port
 
 CORS_ALLOW_CREDENTIALS = True

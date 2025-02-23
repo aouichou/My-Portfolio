@@ -1,4 +1,4 @@
-# letsencrypt-issuer.yaml
+# kubernetes/letsencrypt-issuer.yaml
 
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -7,10 +7,17 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: your-email@aouichou.me  # Replace with your email
+    email: aouichou@aouichou.me
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
-    - http01:
-        ingress:
-          class: nginx
+    - dns01:
+        azureDNS:
+          subscriptionID: "eeb1facd-cf7e-46a2-97ba-d873a7f3bc6c"
+          resourceGroupName: PortfolioGroup
+          hostedZoneName: aouichou.me
+          clientID: "fd51966c-5525-4049-aeea-76241e059ec1"
+          tenantID: "9d46113f-97bd-4135-877c-d0627db5a3db"
+          clientSecretSecretRef:
+            name: azure-dns-secret
+            key: client-secret
