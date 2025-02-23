@@ -4,6 +4,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+COPY media/* /app/media_src
+
 COPY requirements.txt .
 
 RUN pip install -r requirements.txt
