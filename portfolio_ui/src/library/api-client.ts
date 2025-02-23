@@ -36,3 +36,36 @@ export async function getProjects() {
     return [];
   }
 }
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
+const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || "/media"
+
+export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const url = endpoint.startsWith("http") ? endpoint : `${API_URL}${endpoint}`
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`)
+    }
+
+    return response.json()
+  } catch (error) {
+    console.error("API request error:", error)
+    throw error
+  }
+}
+
+export function getMediaUrl(path: string): string {
+  if (!path) return "/placeholder.svg"
+  if (path.startsWith("http")) return path
+  return `${MEDIA_URL}${path.startsWith("/") ? path : `/${path}`}`
+}
+
