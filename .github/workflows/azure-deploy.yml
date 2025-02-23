@@ -114,10 +114,13 @@ jobs:
           kubectl apply -f kubernetes/backend-deployment.yaml
           kubectl apply -f kubernetes/service.yaml
           kubectl apply -f kubernetes/ingress.yaml
-        
+
           echo "Restarting deployments..."
-          kubectl rollout restart deployment frontend
-          kubectl rollout restart deployment backend
+          kubectl rollout restart deployment/frontend
+          kubectl rollout restart deployment/backend
+
+          echo "Delaying for 60 seconds to allow PVC binding and init container completion..."
+          sleep 60
 
       - name: Verify Deployment
         run: |

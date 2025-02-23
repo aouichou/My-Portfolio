@@ -12,19 +12,34 @@ spec:
       labels:
         app: backend
     spec:
+      # Init container to prepopulate media if the PVC is empty.
+      initContainers:
+      - name: init-media
+        image: busybox
+        command:
+          - sh
+          - -c
+          - |
+            # Check if /app/media is empty and copy prepackaged data if needed
+            if [ -z "$(ls -A /app/media)" ]; then
+              cp -R /app/media_src/* /app/media/;
+            fi
+        volumeMounts:
+          - name: media-volume
+            mountPath: /app/media
       containers:
       - name: backend
         image: aouichou.azurecr.io/backend:latest
         ports:
-        - containerPort: 8080
+          - containerPort: 8080
         volumeMounts:
-        - mountPath: /app/media
-          name: media-volume
+          - mountPath: /app/media
+            name: media-volume
         envFrom:
-        - secretRef:
-            name: database-credentials
-        - secretRef:
-            name: django-secrets
+          - secretRef:
+              name: database-credentials
+          - secretRef:
+              name: django-secrets
       volumes:
       - name: media-volume
         persistentVolumeClaim:
