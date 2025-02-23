@@ -5,9 +5,9 @@ kind: Ingress
 metadata:
   name: portfolio-ingress
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
     kubernetes.io/ingress.class: "nginx"  # Explicitly set if needed
 spec:
   ingressClassName: nginx
