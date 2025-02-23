@@ -24,7 +24,7 @@ var/
 *.log
 *.pot
 *.pyc
-db.sqlite3
+# db.sqlite3
 # media/
 static/
 local_settings.py
