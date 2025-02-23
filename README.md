@@ -139,11 +139,9 @@ Secret Rotation               🔜 Q3 2025
 ```text
 System Components              Version
 ==================             =======
-Kubernetes Cluster             v1.30
-Django                         v4.2.10
-Next.js                        v14.2
-PostgreSQL                     v16.1
-Redis                          v7.2
+Kubernetes Cluster             v1.32.0
+Django                         v5.0.11
+Next.js                        v15.1.6
 ```
 
 ---
