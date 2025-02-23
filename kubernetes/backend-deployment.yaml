@@ -12,7 +12,6 @@ spec:
       labels:
         app: backend
     spec:
-      # Init container to prepopulate media if the PVC is empty.
       initContainers:
       - name: init-media
         image: busybox
@@ -20,9 +19,9 @@ spec:
           - sh
           - -c
           - |
-            # Check if /app/media is empty and copy prepackaged data if needed
+            # Prepopulate /app/media only if it is empty.
             if [ -z "$(ls -A /app/media)" ]; then
-              cp -R /app/media_src/* /app/media/;
+              cp -R /app/prepopulated_media/* /app/media/;
             fi
         volumeMounts:
           - name: media-volume

@@ -4,7 +4,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY media/* /app/media_src
+# Copy the media files into a directory that will be used only for prepopulation
+COPY media /app/prepopulated_media
 
 COPY requirements.txt .
 
