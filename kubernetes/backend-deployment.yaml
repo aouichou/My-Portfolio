@@ -14,7 +14,7 @@ spec:
     spec:
       initContainers:
       - name: init-media
-        image: busybox
+        image: aouichou.azurecr.io/backend:latest
         command:
           - sh
           - -c
