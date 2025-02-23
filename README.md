@@ -130,7 +130,6 @@ WAF Rules                     🚧 Testing
 Secret Rotation               🔜 Q3 2025
 ```
 
-
 ---
 
 <details>
@@ -143,15 +142,40 @@ Kubernetes Cluster             v1.32.0
 Django                         v5.0.11
 Next.js                        v15.1.6
 ```
+</details>
 
 ---
-## License  
 
-No License
+## 📬 Let's Connect!
 
----  
 <p align="center">
-  Crafted with ❤️ by <a href="https://github.com/aouichou">Amine</a><br/>
-  Let's connect on <a href="https://linkedin.com/in/yourprofile">LinkedIn</a>!
+  <a href="https://www.linkedin.com/in/amine-ouichou-168236345" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+  </a>
+  <a href="mailto:amine@aouichou.me">
+    <img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email">
+  </a>
+  <a href="https://aouichou.me">
+    <img src="https://img.shields.io/badge/Portfolio-FF4088?style=for-the-badge&logo=react&logoColor=white" alt="Portfolio">
+  </a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/aouichou">
+    <img src="https://komarev.com/ghpvc/?username=aouichou&label=Profile%20Views&color=0e75b6&style=flat" alt="Profile Views">
+  </a>
+  <a href="https://github.com/aouichou?tab=repositories">
+    <img src="https://img.shields.io/badge/Open_Source-181717?style=flat&logo=github&logoColor=white" alt="Open Source">
+  </a>
+  <a href="https://aouichou.me/blog">
+    <img src="https://img.shields.io/badge/Technical_Writing-4285F4?style=flat&logo=google-docs&logoColor=white" alt="Technical Writing">
+  </a>
+</p>
+
+<p align="center">
+  <em>"Building robust systems from kernel to cloud"</em>
+</p>
+
+<p align="center">
+  © 2024 Amine Ouichou | <a href="https://aouichou.me/privacy">Privacy Policy</a> | <a href="https://aouichou.me/terms">Terms of Use</a>
+</p>
