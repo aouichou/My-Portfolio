@@ -3,7 +3,6 @@
 'use client';
 
 import { useFeaturedProjects } from '../library/queries';
-import Image from 'next/image';
 import Link from 'next/link';
 import ClientImage from './ClientImage';
 
