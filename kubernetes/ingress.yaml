@@ -34,3 +34,10 @@ spec:
             name: backend-service
             port:
               number: 8080
+      - path: /media
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 8080
