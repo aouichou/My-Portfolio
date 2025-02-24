@@ -18,9 +18,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-DEBUG = False
-ALLOWED_HOSTS = ['aouichou.me', 'www.aouichou.me']
+ALLOWED_HOSTS = []
 
 CACHES = {
     'default': {
