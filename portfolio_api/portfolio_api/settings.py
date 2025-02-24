@@ -17,8 +17,12 @@ load_dotenv(os.path.join(BASE_DIR, '..', '..', '.env'))
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+DEBUG = False
+ALLOWED_HOSTS = ['aouichou.me', 'www.aouichou.me']
+# Possibly also:
+CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/app/media'
 
 CACHES = {
     'default': {
@@ -67,9 +71,6 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'portfolio_api.urls'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 TEMPLATES = [
     {
