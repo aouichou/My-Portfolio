@@ -18,7 +18,14 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['aouichou.me', 'www.aouichou.me']
+ALLOWED_HOSTS = [
+    'aouichou.me',
+    'www.aouichou.me',
+    'backend-service',  # Kubernetes service name
+    'backend-service.default.svc.cluster.local'  # Full cluster DNS
+	'nginx-service',  # Kubernetes service name
+	'nginx-service.default.svc.cluster.local'  # Full cluster DNS
+]
 # Possibly also:
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
 MEDIA_URL = '/media/'
