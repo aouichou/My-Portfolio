@@ -127,11 +127,16 @@ jobs:
         
       - name: Deploy to AKS
         run: |
-            # kubectl apply ...
-            if [[ "${{ needs.build-push.outputs.frontend-changes }}" == "true" ]]; then
-            # Restart frontend
-            fi
-            if [[ "${{ needs.build-push.outputs.backend-changes }}" == "true" ]]; then
-            # Restart backend
-            fi
-            sleep 30
+          # Apply Kubernetes manifests
+          kubectl apply -f kubernetes/
+      
+          # Restart deployments if changes detected
+          if [[ "${{ needs.build-push.outputs.frontend-changes }}" == "true" ]]; then
+          kubectl rollout restart deployment/frontend
+          fi
+      
+          if [[ "${{ needs.build-push.outputs.backend-changes }}" == "true" ]]; then
+          kubectl rollout restart deployment/backend
+          fi
+      
+          sleep 30
