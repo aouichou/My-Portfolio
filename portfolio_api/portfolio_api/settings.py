@@ -7,10 +7,6 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 load_dotenv(os.path.join(BASE_DIR, '..', '..', '.env'))
 
@@ -56,7 +52,6 @@ INSTALLED_APPS = [
 	'rest_framework',
     'corsheaders',
     'projects',
-	# 'projects.apps.ProjectsConfig',
 ]
 
 MIDDLEWARE = [
@@ -76,7 +71,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 	"https://aouichou.me",
     "https://www.aouichou.me",
-]  # Next.js default port
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -154,3 +149,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me']
+
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.azurecomm.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('AZURE_EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.getenv('AZURE_EMAIL_KEY')
+CONTACT_RECIPIENT = os.getenv('CONTACT_RECIPIENT', 'your@email.com')

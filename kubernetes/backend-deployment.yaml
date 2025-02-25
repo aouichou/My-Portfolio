@@ -37,8 +37,18 @@ spec:
         envFrom:
           - secretRef:
               name: database-credentials
-          - secretRef:
-              name: django-secrets
+        env:
+          - name: AZURE_EMAIL_KEY
+            valueFrom:
+            secretKeyRef:
+              name: email-config
+              key: AZURE_EMAIL_KEY
+          - name: CONTACT_RECIPIENT
+            valueFrom:
+            secretKeyRef:
+              name: email-config
+              key: CONTACT_RECIPIENT
+
       volumes:
       - name: media-volume
         persistentVolumeClaim:
