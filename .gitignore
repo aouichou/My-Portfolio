@@ -80,3 +80,4 @@ __snapshots__/
 .env.development.local
 .env.test.local
 .env.production.local
+portfolio_api/test.py
