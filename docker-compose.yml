@@ -5,6 +5,7 @@ services:
     build: 
       context: ./portfolio_ui
     environment:
+      - NEXT_PUBLIC_API_URL=https://aouichou.me/api
       - NEXT_PUBLIC_MEDIA_URL=/media
     networks:
       - app-network

@@ -2,27 +2,11 @@
 
 import axios from "axios"
 
-// const baseURL = typeof window === "undefined"
-//   ? "http://backend:8080/api"  // server-side calls
-//   : "/api";                    // client-side rewrites
-
-// export const api = axios.create({
-//   baseURL,
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// })
-
 const baseURL = typeof window === "undefined"
-  ? "http://backend-service:8080/api"  // server-side calls
-  : "/api";  // client-side rewrites
+  ? "http://backend-service:8080/api"  // Kubernetes service name
+  : process.env.NEXT_PUBLIC_API_URL || "/api";  // Client-side URL
 
-export const api = axios.create({
-  baseURL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const api = axios.create({ baseURL });
 
 export const mediaURL = typeof window === "undefined" 
   ? "http://reverse-proxy/media"  // 👈 Server-side through proxy
