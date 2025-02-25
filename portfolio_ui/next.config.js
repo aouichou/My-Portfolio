@@ -31,6 +31,21 @@ const nextConfig = {
 	eslint: {
 	  ignoreDuringBuilds: true,
 	},
+	experimental: {
+		optimizeFonts: true,
+		optimizeCss: true,
+	  },
+	headers: async () => [
+	{
+	  source: '/(.*)',
+	  headers: [
+		{
+		  key: 'Link',
+		  value: '<https://aouichou.me/fonts/...>; rel=preload; as=font',
+		},
+	  ],
+	 },
+	]
   };
   
   module.exports = nextConfig;

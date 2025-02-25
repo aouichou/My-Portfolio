@@ -60,9 +60,9 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   }
 
   // Handle local project images
-  const imageUrl = src.startsWith('/media/')
-    ? src
-    : `/media/projects/${src.split('/').pop()}`;
+  const imageUrl = src?.startsWith('/media/')
+    ? src.replace('/media/', '/')  // Remove duplicate media prefix
+    : `/projects/${src?.split('/').pop()}`;
 
   return (
     <ImageErrorBoundary>

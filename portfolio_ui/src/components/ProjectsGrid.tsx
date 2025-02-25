@@ -5,13 +5,15 @@
 import { useFeaturedProjects } from '../library/queries';
 import Link from 'next/link';
 import ClientImage from './ClientImage';
+import { useEffect, useState } from 'react';
 
 export default function ProjectsGrid() {
-  const { data: projects, isLoading } = useFeaturedProjects();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+	const [isMounted, setIsMounted] = useState(false);
+	const { data: projects, isLoading } = useFeaturedProjects();
+  
+	useEffect(() => {
+	  setIsMounted(true);
+	}, []);
 
   return (
     <section id="projects" className="py-20 bg-gray-50 dark:bg-gray-800">

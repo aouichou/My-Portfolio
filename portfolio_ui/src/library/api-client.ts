@@ -59,7 +59,13 @@ export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {
 }
 
 export function getMediaUrl(path: string): string {
-  if (!path) return "/placeholder.svg"
-  if (path.startsWith("http")) return path.replace("http://", "https://")
-  return `${MEDIA_URL}${path.startsWith("/") ? path : `/${path}`}`
-}
+	if (!path) return "/placeholder.svg";
+	if (path.startsWith("http")) return path.replace("http://", "https://");
+	
+	// Remove duplicate media prefix
+	const cleanPath = path.startsWith("/media/") 
+	  ? path.replace(/^\/media/, '')
+	  : path;
+  
+	return `${MEDIA_URL}${cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`}`;
+  }

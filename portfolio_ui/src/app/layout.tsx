@@ -3,6 +3,14 @@ import "./globals.css";
 import ClientLayout from './ClientLayout';
 import { metadata } from './metadata';
 import { Toaster } from 'sonner';
+import { Inter } from 'next/font/google';
+import FontLoader from '@/components/FontLoader';
+
+const inter = Inter({
+	subsets: ['latin'],
+	display: 'swap',
+	preload: true,
+  });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,18 +25,19 @@ const geistMono = Geist_Mono({
 export { metadata };
 
 export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ClientLayout>
-          {children}
-          <Toaster position="top-center" />
-        </ClientLayout>
-      </body>
-    </html>
-  );
-}
+	children,
+  }: {
+	children: React.ReactNode;
+  }) {
+	return (
+	  <html lang="en" suppressHydrationWarning>
+		<body className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+		  <FontLoader />
+		  <ClientLayout>
+			{children}
+			<Toaster position="top-center" />
+		  </ClientLayout>
+		</body>
+	  </html>
+	);
+  }
