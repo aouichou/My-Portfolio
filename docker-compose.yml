@@ -4,13 +4,8 @@ services:
   frontend:
     build: 
       context: ./portfolio_ui
-    # ports: ["3000:3000"]
-    # env_file: .env
     environment:
-      # - NODE_ENV=production
-      # - NEXT_PUBLIC_API_URL=/api
       - NEXT_PUBLIC_MEDIA_URL=/media
-      # - NEXT_PUBLIC_ASSETS_URL=/media/projects
     networks:
       - app-network
     volumes:
@@ -39,7 +34,6 @@ services:
     volumes:
       - media_volume:/app/media:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      # - ./portfolio_api/media:/app/media:ro
       # - ./modsec:/etc/nginx/modsec
     networks:
       - app-network

@@ -1,0 +1,31 @@
+# kubernetes/configmap.yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+        client_max_body_size 20M;
+
+        server {
+            listen 80;
+            server_name localhost;
+
+            location /healthz {
+                return 200;
+            }
+
+            location /media/ {
+                alias /app/media/;
+                autoindex on;
+            }
+        }
+    }
