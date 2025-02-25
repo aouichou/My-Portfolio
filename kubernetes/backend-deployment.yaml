@@ -1,3 +1,4 @@
+# backend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,7 +20,6 @@ spec:
           - sh
           - -c
           - |
-            # Prepopulate /app/media only if it is empty.
             if [ -z "$(ls -A /app/media)" ]; then
               cp -R /app/prepopulated_media/* /app/media/;
             fi
@@ -40,15 +40,19 @@ spec:
         env:
           - name: AZURE_EMAIL_KEY
             valueFrom:
-            secretKeyRef:
-              name: email-config
-              key: AZURE_EMAIL_KEY
+              secretKeyRef:
+                name: email-config
+                key: AZURE_EMAIL_KEY
           - name: CONTACT_RECIPIENT
             valueFrom:
-            secretKeyRef:
-              name: email-config
-              key: CONTACT_RECIPIENT
-
+              secretKeyRef:
+                name: email-config
+                key: CONTACT_RECIPIENT
+          - name: AZURE_EMAIL_USER
+            valueFrom:
+              secretKeyRef:
+                name: email-config
+                key: AZURE_EMAIL_USER
       volumes:
       - name: media-volume
         persistentVolumeClaim:
