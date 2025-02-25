@@ -7,71 +7,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check for Frontend Changes
+        id: frontend-changes
+        uses: dorny/paths-filter@v2
         with:
-          fetch-depth: 0
+          filters: |
+            frontend:
+              - 'portfolio_ui/**'
+
+      - name: Check for Backend Changes
+        id: backend-changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            backend:
+              - 'portfolio_api/**'
 
       - name: Log in to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
-          allow-no-subscriptions: false
-
-      - name: Debug Azure Context
-        run: |
-          az account show
-          az group list
-          az aks list
-
-      - name: Set AKS Context
-        uses: azure/aks-set-context@v2
-        with:
-          resource-group: ${{ secrets.RESOURCE_GROUP }}
-          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-
-      - name: Create Kubernetes Secrets
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-        run: |
-          kubectl create secret generic database-credentials \
-            --from-literal=DB_NAME=$DB_NAME \
-            --from-literal=DB_USER=$DB_USER \
-            --from-literal=DB_PASSWORD=$DB_PASSWORD \
-            --from-literal=DB_HOST=$DB_HOST \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Setup Nginx Ingress
-        run: |
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm repo update
-          
-          # Check if ingress-nginx is already installed
-          if helm list -n ingress-nginx | grep -q ingress-nginx; then
-            echo "Upgrading existing ingress-nginx installation"
-            helm upgrade ingress-nginx ingress-nginx/ingress-nginx \
-              --namespace ingress-nginx \
-              --set controller.replicaCount=2 \
-              --set controller.nodeSelector."kubernetes\.io/os"=linux \
-              --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
-          else
-            echo "Installing new ingress-nginx"
-            helm install ingress-nginx ingress-nginx/ingress-nginx \
-              --namespace ingress-nginx \
-              --create-namespace \
-              --set controller.replicaCount=2 \
-              --set controller.nodeSelector."kubernetes\.io/os"=linux \
-              --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
-          fi
-
-      - name: Check Existing Ingress
-        run: |
-          helm list -A
-          kubectl get pods -n ingress-nginx
 
       - name: Login to Azure Container Registry
+        if: steps.frontend-changes.outputs.frontend == 'true' || steps.backend-changes.outputs.backend == 'true'
         uses: azure/docker-login@v1
         with:
           login-server: ${{ secrets.ACR_NAME }}.azurecr.io
@@ -79,11 +38,13 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push frontend
+        if: steps.frontend-changes.outputs.frontend == 'true'
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest ./portfolio_ui
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest
 
       - name: Build and push backend
+        if: steps.backend-changes.outputs.backend == 'true'
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest ./portfolio_api
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest
@@ -93,8 +54,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: azure/login@v1
         with:
@@ -105,70 +64,37 @@ jobs:
           resource-group: ${{ secrets.RESOURCE_GROUP }}
           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
+      - name: Setup Nginx Ingress
+        if: contains(github.event.commits[0].message, '[ingress]')
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          helm upgrade ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --set controller.replicaCount=2 \
+            --set controller.nodeSelector."kubernetes\.io/os"=linux \
+            --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
+
       - name: Deploy to AKS
         run: |
           echo "Applying Kubernetes manifests..."
           kubectl apply -f kubernetes/pvc.yaml
           kubectl apply -f kubernetes/frontend-config.yaml
-          kubectl apply -f kubernetes/frontend-deployment.yaml
-          kubectl apply -f kubernetes/backend-deployment.yaml
+          kubectl apply -f kubernetes/backend-config.yaml
           kubectl apply -f kubernetes/service.yaml
           kubectl apply -f kubernetes/ingress.yaml
 
-          echo "Restarting deployments..."
-          kubectl rollout restart deployment/frontend
-          kubectl rollout restart deployment/backend
+          if [[ "${{ needs.build-push.outputs.frontend-changes }}" == "true" ]]; then
+            echo "Restarting frontend deployment..."
+            kubectl apply -f kubernetes/frontend-deployment.yaml
+            kubectl rollout restart deployment/frontend
+          fi
 
-          echo "Delaying for 60 seconds to allow PVC binding and init container completion..."
-          sleep 60
+          if [[ "${{ needs.build-push.outputs.backend-changes }}" == "true" ]]; then
+            echo "Restarting backend deployment..."
+            kubectl apply -f kubernetes/backend-deployment.yaml
+            kubectl rollout restart deployment/backend
+          fi
 
-      - name: Verify Deployment
-        run: |
-          echo "Waiting for frontend deployment..."
-          kubectl rollout status deployment/frontend --timeout=300s
-        
-          echo "Waiting for backend deployment..."
-          kubectl rollout status deployment/backend --timeout=300s
-        
-          echo "Getting pod information..."
-          kubectl get pods -o wide
-        
-          echo "Getting services..."
-          kubectl get services
-        
-          echo "Getting ingress..."
-          kubectl get ingress
-
-      - name: Debug Backend Deployment
-        if: failure()
-        run: |
-          echo "Describing backend deployment..."
-          kubectl describe deployment backend
-          
-          echo "Checking backend pod status..."
-          kubectl get pods -l app=backend
-          
-          echo "Checking backend pod logs..."
-          for pod in $(kubectl get pods -l app=backend -o jsonpath='{.items[*].metadata.name}'); do
-            echo "Logs for $pod:"
-            kubectl logs $pod
-          done
-          
-          echo "Checking backend pod events..."
-          for pod in $(kubectl get pods -l app=backend -o jsonpath='{.items[*].metadata.name}'); do
-            echo "Events for $pod:"
-            kubectl get events --field-selector involvedObject.name=$pod
-          done
-          
-          echo "Checking node resources..."
-          kubectl describe nodes
-          
-          echo "Checking persistent volume claims..."
-          kubectl get pvc
-          kubectl describe pvc media-pvc
-
-      - name: Check Cluster Events
-        if: failure()
-        run: |
-          echo "Checking recent cluster events..."
-          kubectl get events --sort-by='.lastTimestamp' --all-namespaces
+          echo "Delaying for 30 seconds to allow PVC binding and init container completion..."
+          sleep 30
