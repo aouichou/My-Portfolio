@@ -37,6 +37,8 @@ spec:
         envFrom:
           - secretRef:
               name: database-credentials
+          - secretRef:
+              name: django-secrets
         env:
           - name: AZURE_EMAIL_KEY
             valueFrom:
