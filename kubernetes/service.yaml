@@ -28,10 +28,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nginx-service
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
 spec:
   type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 80
+    - port: 80
+      targetPort: 80
   selector:
-    app: nginx 
+    app: nginx
