@@ -1,15 +1,16 @@
 // portfolio_ui/src/app/projects/[slug]/page.tsx
 
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
 import { getProjectBySlug } from '@/library/api-client';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
-import React, { use } from 'react';
+import {Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/tabs';
+import FeatureCard from '@/components/FeatureCard';
+import ImageCarousel from '@/components/ImageCarousel';
+import React from 'react';
 import { Metadata } from 'next';
 import { ErrorBoundary } from 'react-error-boundary';
 import ClientImage from '@/components/ClientImage';
+import { Project } from '@/library/types';
 
 type Props = {
   params: { slug: string };
@@ -84,36 +85,73 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   );
 };
 
+
 export default async function Page({ params }: Props) {
-  const project = await getProjectBySlug(params.slug)
-  if (!project) notFound();
+	const project = await getProjectBySlug(params.slug) as Project;
+	
+	return (
+	  <article className="max-w-6xl mx-auto px-4 py-12">
+		{/* Hero Section */}
+		<div className="mb-16">
+		  <h1 className="text-5xl font-bold mb-6 dark:text-white">
+			{project.title}
+		  </h1>
+		  <div className="flex gap-2 flex-wrap mb-6">
+			{project.tech_stack.map((tech: string) => (
+			  <span key={tech} className="badge-tech">
+				{tech}
+			  </span>
+			))}
+		  </div>
+		</div>
   
-  return (
-    <article className="max-w-4xl mx-auto px-4 py-12">
-      <div className="prose-lg dark:prose-invert mx-auto">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw]}
-          components={{
-            img: ImageComponent,
-            p: ({ children }) => {
-              const hasOnlyImages = React.Children.toArray(children).every(
-                (child) => React.isValidElement(child) && child.type === 'img'
-              );
+		{/* Interactive Tabs */}
+		<Tabs defaultValue="overview" className="w-full">
+		  <TabsList className="grid w-full grid-cols-4">
+			<TabsTrigger value="overview">Overview</TabsTrigger>
+			<TabsTrigger value="features">Features</TabsTrigger>
+			<TabsTrigger value="architecture">Architecture</TabsTrigger>
+			<TabsTrigger value="challenges">Challenges</TabsTrigger>
+		  </TabsList>
   
-              return hasOnlyImages ? (
-                <div className="flex flex-wrap justify-center gap-4 my-8">
-                  {children}
-                </div>
-              ) : (
-                <p>{children}</p>
-              );
-            },
-          }}
-        >
-          {project.readme || ''}
-        </ReactMarkdown>
-      </div>
-    </article>
-  );
-}
+		  <TabsContent value="overview">
+			<ReactMarkdown>{project.description}</ReactMarkdown>
+		  </TabsContent>
+  
+		  <TabsContent value="features">
+			<div className="grid md:grid-cols-2 gap-6">
+			  {project.features.map((feature, index) => (
+				<FeatureCard key={index} feature={feature} index={index} />
+			  ))}
+			</div>
+		  </TabsContent>
+  
+		  <TabsContent value="architecture">
+			<ClientImage
+			  src={project.architecture_diagram}
+			  alt="Architecture Diagram"
+			  className="rounded-xl border"
+			/>
+		  </TabsContent>
+  
+		  <TabsContent value="challenges">
+			<div className="prose-lg dark:prose-invert">
+			  <h3 className="text-2xl font-bold mb-4">Technical Challenges</h3>
+			  <p>{project.challenges}</p>
+			  
+			  <h3 className="text-2xl font-bold mt-8 mb-4">Key Learnings</h3>
+			  <p>{project.lessons}</p>
+			</div>
+		  </TabsContent>
+		</Tabs>
+  
+		{/* Interactive Gallery */}
+		{project.gallery?.length > 0 && (
+		  <section className="my-16">
+			<h2 className="text-3xl font-bold mb-8">Project Gallery</h2>
+			<ImageCarousel images={project.gallery} />
+		  </section>
+		)}
+	  </article>
+	);
+  }

@@ -1,14 +1,25 @@
-// src/lib/types.ts
+// library/types.ts
 
-export interface Project {
-  id: number;
-  title: string;
-  slug: string;
-  description: string;
-  thumbnail: string;
-  tech_stack: string[];
-  live_url?: string;
-  code_url?: string;
-  readme: string;
-  score?: number;
-}
+// types.ts
+export type ProjectImage = {
+	image: string;
+	caption?: string;
+	order?: number;
+  };
+  
+export type Project = {
+	id: string;
+	title: string;
+	slug: string;
+	description: string;
+	tech_stack: string[];
+	features: string[];
+	challenges: string;
+	lessons: string;
+	gallery: ProjectImage[];
+	architecture_diagram: string;
+	video_url?: string;
+	thumbnail: string;
+	live_url?: string;
+	code_url?: string;
+  };

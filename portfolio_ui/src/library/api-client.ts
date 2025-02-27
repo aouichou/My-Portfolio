@@ -1,6 +1,7 @@
 // src/lib/api-client.ts
 
 import axios from "axios"
+import { Project } from "./types"
 
 const baseURL = typeof window === "undefined"
   ? "http://backend-service:8080/api"  // Kubernetes service name
@@ -12,15 +13,15 @@ export const mediaURL = typeof window === "undefined"
   ? "http://reverse-proxy/media"  // 👈 Server-side through proxy
   : "/media";  // Client-side relative path
 
-export async function getProjectBySlug(slug: string) {
-  try {
-    const response = await api.get(`/projects/${slug}/`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching project:', error);
-    return null;
+export async function getProjectBySlug(slug: string): Promise<Project> {
+	try {
+	  const response = await api.get<Project>(`/v1/projects/${slug}/`);
+	  return response.data;
+	} catch (error) {
+	  console.error('Error fetching project:', error);
+	  throw new Error('Failed to fetch project details');
+	}
   }
-}
 
 export async function getProjects() {
   try {

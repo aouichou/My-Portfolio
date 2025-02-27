@@ -17,6 +17,10 @@ DEBUG = False
 # Enable proxy header handling
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+
 ALLOWED_HOSTS = [
     'aouichou.me',
     'www.aouichou.me',
@@ -153,8 +157,8 @@ CSRF_TRUSTED_ORIGINS = ['https://aouichou.me']
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.azurecomm.net'
-EMAIL_PORT = 587
+EMAIL_HOST = 'smtp.eu.mailgun.org'
+EMAIL_PORT = 465
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('AZURE_EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('AZURE_EMAIL_KEY')

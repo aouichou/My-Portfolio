@@ -19,23 +19,27 @@ class ProjectList(generics.ListAPIView):
 	serializer_class = ProjectSerializer
 
 class ProjectDetail(generics.RetrieveAPIView):
-	queryset = Project.objects.all()
-	serializer_class = ProjectSerializer
-	lookup_field = 'slug'
+    queryset = Project.objects.prefetch_related('gallery')
+    serializer_class = ProjectSerializer
+    lookup_field = 'slug'
 
 @api_view(['GET', 'POST'])
+@ratelimit(key='ip', rate='60/m')
 def project_by_slug(request):
-	if request.method == 'POST':
-		slug = request.data.get('slug')
-	else:
-		slug = request.GET.get('slug')
-	
-	if not slug:
-		return Response({'error': 'Slug is required'}, status=400)
-	
-	project = get_object_or_404(Project, slug=slug)
-	serializer = ProjectSerializer(project, context={'request': request})
-	return Response(serializer.data)
+    if request.method == 'POST':
+        slug = request.data.get('slug')
+    else:
+        slug = request.GET.get('slug')
+    
+    if not slug:
+        return Response({'error': 'Slug is required'}, status=400)
+    
+    project = get_object_or_404(
+        Project.objects.prefetch_related('gallery'), 
+        slug=slug
+    )
+    serializer = ProjectSerializer(project, context={'request': request})
+    return Response(serializer.data)
 
 class ContactSubmissionView(APIView):
     @method_decorator(ratelimit(key='ip', rate='5/m', method=['POST']))

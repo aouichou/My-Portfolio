@@ -81,3 +81,4 @@ __snapshots__/
 .env.test.local
 .env.production.local
 portfolio_api/test.py
+nginx.local.conf

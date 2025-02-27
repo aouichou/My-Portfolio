@@ -21,7 +21,7 @@ services:
       - "8080"
     volumes:
       - ./portfolio_api/media:/app/media
-    env_file: .env
+    env_file: portfolio_api/.env
     environment:
       - DJANGO_SETTINGS_MODULE=portfolio_api.settings
     networks:
@@ -34,8 +34,12 @@ services:
     ports: ["80:80"]
     volumes:
       - media_volume:/app/media:ro
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./nginx.conf:/etc/nginx/nginx.conf:ro
       # - ./modsec:/etc/nginx/modsec
+
+      #for testing purposes, Desactivate the following lines in production
+      - ./nginx.local.conf:/etc/nginx/nginx.conf:ro
+      - ./local_certs/letsencrypt/live/aouichou.me:/etc/letsencrypt/live/aouichou.me:ro
     networks:
       - app-network
     depends_on: [frontend, backend]
