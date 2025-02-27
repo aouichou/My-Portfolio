@@ -13,6 +13,7 @@ export const mediaURL = typeof window === "undefined"
   ? "http://reverse-proxy/media"  // 👈 Server-side through proxy
   : "/media";  // Client-side relative path
 
+// api-client.ts
 export async function getProjectBySlug(slug: string): Promise<Project> {
 	try {
 	  const response = await api.get<Project>(`/v1/projects/${slug}/`);
@@ -22,16 +23,16 @@ export async function getProjectBySlug(slug: string): Promise<Project> {
 	  throw new Error('Failed to fetch project details');
 	}
   }
-
-export async function getProjects() {
-  try {
-    const response = await api.get('/projects/');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching projects:', error);
-    return [];
+  
+  export async function getProjects() {
+	try {
+	  const response = await api.get('/v1/projects/');
+	  return response.data;
+	} catch (error) {
+	  console.error('Error fetching projects:', error);
+	  return [];
+	}
   }
-}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
 const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || "/media"
@@ -61,12 +62,14 @@ export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {
 
 export function getMediaUrl(path: string): string {
 	if (!path) return "/placeholder.svg";
-	if (path.startsWith("http")) return path.replace("http://", "https://");
 	
-	// Remove duplicate media prefix
+	// Handle absolute URLs
+	if (path.startsWith("http")) return path;
+	
+	// Handle Kubernetes media paths
 	const cleanPath = path.startsWith("/media/") 
-	  ? path.replace(/^\/media/, '')
+	  ? path.replace('/media/', '/')
 	  : path;
   
-	return `${MEDIA_URL}${cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`}`;
+	return `${MEDIA_URL}${cleanPath}`;
   }

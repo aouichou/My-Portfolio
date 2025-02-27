@@ -19,7 +19,7 @@ class ProjectList(generics.ListAPIView):
 	serializer_class = ProjectSerializer
 
 class ProjectDetail(generics.RetrieveAPIView):
-    queryset = Project.objects.prefetch_related('gallery')
+    queryset = Project.objects.prefetch_related('project_gallery')
     serializer_class = ProjectSerializer
     lookup_field = 'slug'
 

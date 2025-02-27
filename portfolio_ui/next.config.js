@@ -35,17 +35,20 @@ const nextConfig = {
 		optimizeFonts: true,
 		optimizeCss: true,
 	  },
-	headers: async () => [
-	{
-	  source: '/(.*)',
-	  headers: [
+	  headers: async () => [
 		{
-		  key: 'Link',
-		  value: '<https://aouichou.me/fonts/...>; rel=preload; as=font',
+		  source: '/(.*)',
+		  headers: [
+			{
+			  key: 'Link',
+			  value: [
+				'</_next/static/css/(.*).css>; rel=preload; as=style',
+				'</_next/static/media/(.*).woff2>; rel=preload; as=font; crossorigin=anonymous'
+			  ].join(', ')
+			}
+		  ],
 		},
-	  ],
-	 },
-	]
+	  ]
   };
   
   module.exports = nextConfig;

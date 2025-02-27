@@ -87,71 +87,85 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
 
 
 export default async function Page({ params }: Props) {
-	const project = await getProjectBySlug(params.slug) as Project;
+	try {
+		const project = await getProjectBySlug(params.slug);
 	
-	return (
-	  <article className="max-w-6xl mx-auto px-4 py-12">
-		{/* Hero Section */}
-		<div className="mb-16">
-		  <h1 className="text-5xl font-bold mb-6 dark:text-white">
-			{project.title}
-		  </h1>
-		  <div className="flex gap-2 flex-wrap mb-6">
-			{project.tech_stack.map((tech: string) => (
-			  <span key={tech} className="badge-tech">
-				{tech}
-			  </span>
-			))}
-		  </div>
-		</div>
-  
-		{/* Interactive Tabs */}
-		<Tabs defaultValue="overview" className="w-full">
-		  <TabsList className="grid w-full grid-cols-4">
-			<TabsTrigger value="overview">Overview</TabsTrigger>
-			<TabsTrigger value="features">Features</TabsTrigger>
-			<TabsTrigger value="architecture">Architecture</TabsTrigger>
-			<TabsTrigger value="challenges">Challenges</TabsTrigger>
-		  </TabsList>
-  
-		  <TabsContent value="overview">
-			<ReactMarkdown>{project.description}</ReactMarkdown>
-		  </TabsContent>
-  
-		  <TabsContent value="features">
-			<div className="grid md:grid-cols-2 gap-6">
-			  {project.features.map((feature, index) => (
-				<FeatureCard key={index} feature={feature} index={index} />
-			  ))}
+		return (
+		<article className="max-w-6xl mx-auto px-4 py-12">
+			{/* Hero Section */}
+			<div className="mb-16">
+			<h1 className="text-5xl font-bold mb-6 dark:text-white">
+				{project.title}
+			</h1>
+			<div className="flex gap-2 flex-wrap mb-6">
+				{project.tech_stack.map((tech: string) => (
+				<span key={tech} className="badge-tech">
+					{tech}
+				</span>
+				))}
 			</div>
-		  </TabsContent>
-  
-		  <TabsContent value="architecture">
-			<ClientImage
-			  src={project.architecture_diagram}
-			  alt="Architecture Diagram"
-			  className="rounded-xl border"
-			/>
-		  </TabsContent>
-  
-		  <TabsContent value="challenges">
-			<div className="prose-lg dark:prose-invert">
-			  <h3 className="text-2xl font-bold mb-4">Technical Challenges</h3>
-			  <p>{project.challenges}</p>
-			  
-			  <h3 className="text-2xl font-bold mt-8 mb-4">Key Learnings</h3>
-			  <p>{project.lessons}</p>
 			</div>
-		  </TabsContent>
-		</Tabs>
-  
-		{/* Interactive Gallery */}
-		{project.gallery?.length > 0 && (
-		  <section className="my-16">
-			<h2 className="text-3xl font-bold mb-8">Project Gallery</h2>
-			<ImageCarousel images={project.gallery} />
-		  </section>
-		)}
-	  </article>
-	);
-  }
+	
+			{/* Interactive Tabs */}
+			<Tabs defaultValue="overview" className="w-full">
+			<TabsList className="grid w-full grid-cols-4">
+				<TabsTrigger value="overview">Overview</TabsTrigger>
+				<TabsTrigger value="features">Features</TabsTrigger>
+				<TabsTrigger value="architecture">Architecture</TabsTrigger>
+				<TabsTrigger value="challenges">Challenges</TabsTrigger>
+			</TabsList>
+	
+			<TabsContent value="overview">
+				<ReactMarkdown>{project.description}</ReactMarkdown>
+			</TabsContent>
+	
+			<TabsContent value="features">
+				<div className="grid md:grid-cols-2 gap-6">
+				{project.features.map((feature, index) => (
+					<FeatureCard key={index} feature={feature} index={index} />
+				))}
+				</div>
+			</TabsContent>
+	
+			<TabsContent value="architecture">
+				<ClientImage
+				src={project.architecture_diagram}
+				alt="Architecture Diagram"
+				className="rounded-xl border"
+				/>
+			</TabsContent>
+	
+			<TabsContent value="challenges">
+				<div className="prose-lg dark:prose-invert">
+				<h3 className="text-2xl font-bold mb-4">Technical Challenges</h3>
+				<p>{project.challenges}</p>
+				
+				<h3 className="text-2xl font-bold mt-8 mb-4">Key Learnings</h3>
+				<p>{project.lessons}</p>
+				</div>
+			</TabsContent>
+			</Tabs>
+	
+			{/* Interactive Gallery */}
+			{project.gallery?.length > 0 && (
+			<section className="my-16">
+				<h2 className="text-3xl font-bold mb-8">Project Gallery</h2>
+				<ImageCarousel images={project.gallery} />
+			</section>
+			)}
+		</article>
+		);
+  		} catch (error) {
+			console.error('Project page error:', error);
+			return (
+			  <div className="min-h-screen flex items-center justify-center">
+				<div className="text-center">
+				  <h1 className="text-4xl font-bold mb-4">Project Not Found</h1>
+				  <p className="text-lg text-gray-600">
+					The requested project could not be loaded
+				  </p>
+				</div>
+			  </div>
+			);
+		  }
+}
