@@ -62,14 +62,8 @@ export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {
 
 export function getMediaUrl(path: string): string {
 	if (!path) return "/placeholder.svg";
-	
-	// Handle absolute URLs
 	if (path.startsWith("http")) return path;
 	
-	// Handle Kubernetes media paths
-	const cleanPath = path.startsWith("/media/") 
-	  ? path.replace('/media/', '/')
-	  : path;
-  
-	return `${MEDIA_URL}${cleanPath}`;
+	// Preserve media prefix for Kubernetes
+	return `${MEDIA_URL}${path.startsWith('/') ? path : `/${path}`}`;
   }

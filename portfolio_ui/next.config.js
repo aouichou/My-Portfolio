@@ -31,24 +31,25 @@ const nextConfig = {
 	eslint: {
 	  ignoreDuringBuilds: true,
 	},
-	experimental: {
-		optimizeFonts: true,
-		optimizeCss: true,
-	  },
-	  headers: async () => [
-		{
-		  source: '/(.*)',
-		  headers: [
+	optimizeFonts: true,
+  		experimental: {
+    	optimizeCss: true,
+ 	 },
+ 	 headers: async () => [
+  	  {
+    	  source: '/(.*)',
+    	  headers: [
 			{
-			  key: 'Link',
-			  value: [
-				'</_next/static/css/(.*).css>; rel=preload; as=style',
-				'</_next/static/media/(.*).woff2>; rel=preload; as=font; crossorigin=anonymous'
-			  ].join(', ')
+			key: 'Link',
+			value: '</_next/static/css/[contenthash].css>; rel=preload; as=style'
+			},
+			{
+			key: 'Link', 
+			value: '</_next/static/media/[contenthash].woff2>; rel=preload; as=font; crossorigin=anonymous'
 			}
-		  ],
+		],
 		},
-	  ]
-  };
+	]
+};
   
   module.exports = nextConfig;

@@ -35,7 +35,7 @@ def project_by_slug(request):
         return Response({'error': 'Slug is required'}, status=400)
     
     project = get_object_or_404(
-        Project.objects.prefetch_related('gallery'), 
+        Project.objects.prefetch_related('project_gallery'),
         slug=slug
     )
     serializer = ProjectSerializer(project, context={'request': request})
