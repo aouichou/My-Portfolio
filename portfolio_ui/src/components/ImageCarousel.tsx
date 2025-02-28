@@ -1,11 +1,25 @@
 // components/ImageCarousel.tsx
+
 'use client';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ClientImage from './ClientImage'
 
 export default function ImageCarousel({ images }: { images: Array<{ image: string; caption?: string }> }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+      } else if (e.key === 'ArrowRight') {
+        setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [images.length]);
 
   return (
     <div className="relative group">

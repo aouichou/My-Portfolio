@@ -2,10 +2,12 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: media-pvc
+  annotations:
+    volume.beta.kubernetes.io/storage-class: azurefile
 spec:
   accessModes:
-    - ReadWriteMany  # Ensure this matches the initial creation
-  storageClassName: azurefile  # Example: Azure Files storage class
+    - ReadWriteMany
+  storageClassName: azurefile
   resources:
     requests:
       storage: 5Gi

@@ -1,13 +1,18 @@
 // library/types.ts
 
-// types.ts
-export type ProjectImage = {
+export type GalleryImage = {
 	image: string;
 	caption?: string;
 	order?: number;
   };
   
-export type Project = {
+  export type Gallery = {
+	name: string;
+	description?: string;
+	images: GalleryImage[];
+  };
+  
+  export type Project = {
 	id: string;
 	title: string;
 	slug: string;
@@ -16,9 +21,8 @@ export type Project = {
 	features: string[];
 	challenges: string;
 	lessons: string;
-	gallery: ProjectImage[];
+	galleries: Gallery[];
 	architecture_diagram: string;
-	video_url?: string;
 	thumbnail: string;
 	live_url?: string;
 	code_url?: string;

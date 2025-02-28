@@ -13,8 +13,7 @@ export const mediaURL = typeof window === "undefined"
   ? "http://reverse-proxy/media"  // 👈 Server-side through proxy
   : "/media";  // Client-side relative path
 
-// api-client.ts
-export async function getProjectBySlug(slug: string): Promise<Project> {
+  export async function getProjectBySlug(slug: string): Promise<Project> {
 	try {
 	  const response = await api.get<Project>(`/v1/projects/${slug}/`);
 	  return response.data;

@@ -8,7 +8,7 @@ export const useFeaturedProjects = () => {
   return useQuery<Project[]>({
     queryKey: ['projects'],
     queryFn: async () => {
-      const { data } = await api.get('/v1/projects/');
+      const { data } = await api.get('/projects/');
       return data;
     },
   });

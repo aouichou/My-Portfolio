@@ -10,7 +10,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import { ErrorBoundary } from 'react-error-boundary';
 import ClientImage from '@/components/ClientImage';
-import { Project } from '@/library/types';
+import { Project, Gallery, GalleryImage } from '@/library/types';
 
 type Props = {
   params: { slug: string };
@@ -60,16 +60,12 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
     );
   }
 
-  // Handle local project images
-  const imageUrl = src?.startsWith('/media/')
-    ? src.replace('/media/', '/')  // Remove duplicate media prefix
-    : `/projects/${src?.split('/').pop()}`;
 
   return (
     <ImageErrorBoundary>
       <div className="relative w-full aspect-video">
         <ClientImage
-          src={imageUrl}
+          src={src}
           alt={alt || ''}
           fill
 		  width={1200}
@@ -147,11 +143,20 @@ export default async function Page({ params }: Props) {
 			</Tabs>
 	
 			{/* Interactive Gallery */}
-			{project.gallery?.length > 0 && (
-			<section className="my-16">
-				<h2 className="text-3xl font-bold mb-8">Project Gallery</h2>
-				<ImageCarousel images={project.gallery} />
+			{project.galleries?.map((gallery) => (
+			<section key={gallery.name} className="my-16">
+				<h2 className="text-3xl font-bold mb-8">{gallery.name}</h2>
+				{gallery.description && (
+				<p className="text-lg mb-6">{gallery.description}</p>
+				)}
+				<ImageCarousel 
+				images={gallery.images.map(img => ({
+					image: img.image,
+					caption: img.caption
+				}))}
+				/>
 			</section>
+			)
 			)}
 		</article>
 		);

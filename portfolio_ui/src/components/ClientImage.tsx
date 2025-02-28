@@ -19,17 +19,20 @@ export default function ClientImage(props: ImageProps) {
     )
   }
 
-  const src = typeof props.src === "string" ? getMediaUrl(props.src) : props.src
+  const finalSrc = typeof props.src === 'string' 
+    ? getMediaUrl(props.src)
+    : props.src;
+
+  console.log('Loading image:', finalSrc);
 
   return (
     <Image
       {...props}
-      src={src || "/placeholder.svg"}
+      src={finalSrc || '/placeholder.svg'}
       onError={(e) => {
-        console.error(`Failed to load image: ${src}`)
-        setError(true)
+        console.error('Image load failed:', finalSrc);
+        setError(true);
       }}
     />
   )
 }
-

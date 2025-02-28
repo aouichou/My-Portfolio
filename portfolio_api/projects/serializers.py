@@ -1,47 +1,47 @@
-# projects/serializers.py
+# portfolio_api/projects/serializers.py
 
 from rest_framework import serializers
-from .models import ContactSubmission
-from .models import Project, ProjectImage
+from .models import Project, Gallery, GalleryImage, ContactSubmission
 
-class ProjectImageSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-
+class GalleryImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
     class Meta:
-        model = ProjectImage
-        fields = ['image', 'caption', 'order']
-
-    def get_image(self, obj):
+        model = GalleryImage
+        depth = 1
+        fields = ['id', 'image', 'caption', 'order']
+    
+    def get_image_url(self, obj):
         request = self.context.get('request')
         return request.build_absolute_uri(obj.image.url) if obj.image else None
 
-class ProjectSerializer(serializers.ModelSerializer):
-    thumbnail = serializers.SerializerMethodField()
-    gallery = ProjectImageSerializer(
-        many=True, 
-        read_only=True,
-        source='project_gallery'
-    )
-    tech_stack = serializers.JSONField()
+class GallerySerializer(serializers.ModelSerializer):
+    images = GalleryImageSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Gallery
+        fields = ['id', 'name', 'description', 'order', 'images']
 
+class ProjectSerializer(serializers.ModelSerializer):
+    thumbnail_url = serializers.SerializerMethodField()
+    galleries = GallerySerializer(many=True, read_only=True, source='galleries.all')
+    tech_stack = serializers.JSONField()
+    
     class Meta:
         model = Project
-        fields = ['id', 'title', 'slug', 'description', 'thumbnail', 
+        fields = ['id', 'title', 'slug', 'description', 'thumbnail_url', 
                  'tech_stack', 'live_url', 'code_url', 'readme', 'score',
-                 'features', 'challenges', 'lessons', 'gallery', 
-                 'video_url', 'architecture_diagram', 'is_featured']
+                 'features', 'challenges', 'lessons', 'galleries', 
+                 'video_url', 'architecture_diagram', 'is_featured', 'architecture_diagram']
         extra_kwargs = {
-            'tech_stack': {'allow_null': False},
-            'features': {'allow_null': False}
+            'architecture_diagram': {'write_only': True}
         }
-
-    def validate_tech_stack(self, value):
-        if not isinstance(value, list):
-            raise serializers.ValidationError("Tech stack must be a list of strings")
-        return value
+    
+    def get_thumbnail_url(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.thumbnail.url) if obj.thumbnail else None
 
 class ContactSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactSubmission
         fields = ['name', 'email', 'message']
-

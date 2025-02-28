@@ -5,7 +5,7 @@ services:
     build: 
       context: ./portfolio_ui
     environment:
-      - NEXT_PUBLIC_API_URL=https://aouichou.me/v1/api
+      - NEXT_PUBLIC_API_URL=https://aouichou.me/api
       - NEXT_PUBLIC_MEDIA_URL=/media
     networks:
       - app-network
@@ -34,15 +34,22 @@ services:
     ports: ["80:80"]
     volumes:
       - media_volume:/app/media:ro
-      # - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
       # - ./modsec:/etc/nginx/modsec
-
-      #for testing purposes, Desactivate the following lines in production
-      - ./nginx.local.conf:/etc/nginx/nginx.conf:ro
-      - ./local_certs/letsencrypt/live/aouichou.me:/etc/letsencrypt/live/aouichou.me:ro
     networks:
       - app-network
     depends_on: [frontend, backend]
+    restart: unless-stopped
+
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file: portfolio_api/.env
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
     restart: unless-stopped
 
   # waf:
@@ -72,4 +79,6 @@ networks:
 
 volumes:
   media_volume:
+    driver: local
+  postgres_data:
     driver: local

@@ -1,4 +1,4 @@
-// portfolio_ui/src/components/page.tsx
+// portfolio_ui/src/app/page.tsx
 
 import Hero from "../components/Hero";
 import ProjectsGrid from "../components/ProjectsGrid";

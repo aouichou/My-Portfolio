@@ -6,10 +6,15 @@ import { useFeaturedProjects } from '../library/queries';
 import Link from 'next/link';
 import ClientImage from './ClientImage';
 import { useEffect, useState } from 'react';
+import ErrorBoundary from './error/boundary';
+import LoadingSkeleton from './LoadingSkeleton';
 
 export default function ProjectsGrid() {
 	const [isMounted, setIsMounted] = useState(false);
-	const { data: projects, isLoading } = useFeaturedProjects();
+	const { data: projects, isLoading, error } = useFeaturedProjects();
+
+	if (error) return <ErrorBoundary error={error} reset={() => window.location.reload()} />;
+	if (isLoading) return <LoadingSkeleton />;
   
 	useEffect(() => {
 	  setIsMounted(true);
@@ -48,18 +53,12 @@ export default function ProjectsGrid() {
                   {project.title}
                 </h3>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {Array.isArray(project.tech_stack) ? (
-                    project.tech_stack.map((tech: string) => (
-                      <span key={tech} className="badge-tech">
-                        {tech}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="badge-tech">
-                      {String(project.tech_stack)}
-                    </span>
-                  )}
-                </div>
+					{project.tech_stack?.map((tech: string) => (
+						<span key={tech} className="badge-tech">
+						{tech}
+						</span>
+					))}
+				</div>
                 <div className="flex gap-4 mt-4">
                   <button
                     onClick={(e) => {

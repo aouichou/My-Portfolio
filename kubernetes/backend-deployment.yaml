@@ -1,4 +1,4 @@
-# backend-deployment.yaml
+# kubernetes/backend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,19 +13,6 @@ spec:
       labels:
         app: backend
     spec:
-      initContainers:
-      - name: init-media
-        image: aouichou.azurecr.io/backend:latest
-        command:
-          - sh
-          - -c
-          - |
-            if [ -z "$(ls -A /app/media)" ]; then
-              cp -R /app/prepopulated_media/* /app/media/;
-            fi
-        volumeMounts:
-          - name: media-volume
-            mountPath: /app/media
       containers:
       - name: backend
         image: aouichou.azurecr.io/backend:latest
@@ -55,6 +42,26 @@ spec:
               secretKeyRef:
                 name: email-config
                 key: AZURE_EMAIL_USER
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 45
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+
       volumes:
       - name: media-volume
         persistentVolumeClaim:

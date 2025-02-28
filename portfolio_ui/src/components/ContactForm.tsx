@@ -19,12 +19,12 @@ export default function ContactForm() {
     setIsSubmitting(true);
 
     try {
-      await api.post('/contact/', formData);
+      await api.post('/v1/contact/', formData);
       toast.success('Message Sent!', {
         description: "Thank you for reaching out. I'll respond shortly.",
       });
       setFormData({ name: '', email: '', message: '' });
-    } catch {
+    } catch (error) {
       toast.error('Error', {
         description: "Failed to send message. Please try again later.",
       });

@@ -1,73 +1,59 @@
-name: Azure Deployment
+# .github/workflows/azure-deploy.yml
+name: Azure Kubernetes Service Deployment
 
-on: [push]
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-push:
     runs-on: ubuntu-latest
     outputs:
-      frontend-changes: ${{ steps.frontend-changes.outputs.frontend }}
-      backend-changes: ${{ steps.backend-changes.outputs.backend }}
+      backend-changes: ${{ steps.filter.outputs.backend }}
+    
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Check for Frontend Changes
-        id: frontend-changes
+      - uses: actions/checkout@v3
+      
+      # Add filter step to detect changes in backend code
+      - name: Filter for backend changes
         uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            frontend:
-              - 'portfolio_ui/**'
-
-      - name: Check for Backend Changes
-        id: backend-changes
-        uses: dorny/paths-filter@v2
+        id: filter
         with:
           filters: |
             backend:
               - 'portfolio_api/**'
 
-      - name: Log in to Azure
+      # Setup Azure CLI
+      - name: Azure login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
-          allow-no-subscriptions: false
-
-      - name: Debug Azure Context
-        run: |
-          az account show
-          az group list
-          az aks list
-
-      - name: Set AKS Context
-        uses: azure/aks-set-context@v2
+          
+      # Setup kubeconfig
+      - name: Set AKS context
+        uses: azure/aks-set-context@v1
         with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           resource-group: ${{ secrets.RESOURCE_GROUP }}
           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
-      - name: Create Kubernetes Secrets
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-        run: |
-          kubectl create secret generic database-credentials \
-            --from-literal=DB_NAME=$DB_NAME \
-            --from-literal=DB_USER=$DB_USER \
-            --from-literal=DB_PASSWORD=$DB_PASSWORD \
-            --from-literal=DB_HOST=$DB_HOST \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Setup Nginx Ingress
+      # Setup Helm
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.8.1'
+          
+      # Add Helm repo
+      - name: Add Helm repos
         run: |
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           helm repo update
-          
-          # Check if ingress-nginx is already installed
+      
+      # Setup Nginx Ingress
+      - name: Setup Nginx Ingress
+        run: |
           if helm list -n ingress-nginx | grep -q ingress-nginx; then
-            echo "Upgrading existing ingress-nginx installation"
             helm upgrade ingress-nginx ingress-nginx/ingress-nginx \
               --namespace ingress-nginx \
               --set controller.replicaCount=2 \
@@ -83,60 +69,118 @@ jobs:
               --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux
           fi
 
-      - name: Check Existing Ingress
-        run: |
-          helm list -A
-          kubectl get pods -n ingress-nginx
-
+      # Login to ACR
       - name: Login to Azure Container Registry
         uses: azure/docker-login@v1
         with:
           login-server: ${{ secrets.ACR_NAME }}.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
-
+          
+      # Build and push images
       - name: Build and push frontend
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest ./portfolio_ui
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest
-
+          
       - name: Build and push backend
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest ./portfolio_api
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest
 
+      # Setup PostgreSQL if needed
+      - name: Setup PostgreSQL in Kubernetes
+        if: contains(github.event.commits[0].message, '[db-setup]')
+        run: |
+          # Create database credentials secret
+          kubectl create secret generic database-credentials \
+            --from-literal=DB_NAME=${{ secrets.DB_NAME }} \
+            --from-literal=DB_USER=${{ secrets.DB_USER }} \
+            --from-literal=DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --from-literal=DB_HOST=postgres \
+            --dry-run=client -o yaml | kubectl apply -f -
+            
+          # Create Django secrets
+          kubectl create secret generic django-secrets \
+            --from-literal=SECRET_KEY=${{ secrets.SECRET_KEY }} \
+            --from-literal=ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Apply PVC first
+          kubectl apply -f kubernetes/postgres-pvc.yaml
+          
+          # Apply Postgres deployment and service
+          kubectl apply -f kubernetes/postgres-deployment.yaml
+          kubectl apply -f kubernetes/postgres-service.yaml
+          
+          # Wait for PostgreSQL to be ready
+          echo "Waiting for PostgreSQL to be ready..."
+          kubectl rollout status deployment/postgres --timeout=120s
+
   deploy:
     needs: build-push
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
     
-      - uses: azure/login@v1
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Setup Azure CLI
+      - name: Azure login
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-      - uses: azure/aks-set-context@v2
+          
+      # Setup kubeconfig
+      - name: Set AKS context
+        uses: azure/aks-set-context@v1
         with:
-           resource-group: ${{ secrets.RESOURCE_GROUP }}
-           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-    
-      - name: Setup Nginx Ingress
-        if: contains(github.event.commits[0].message, '[ingress]')
-        run: |
-            # helm commands ...
-        
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ secrets.RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+      
+      # Deploy application
       - name: Deploy to AKS
         run: |
-          # Apply Kubernetes manifests
-          kubectl apply -f kubernetes/
-      
-          # Restart deployments if changes detected
-          if [[ "${{ needs.build-push.outputs.frontend-changes }}" == "true" ]]; then
-          kubectl rollout restart deployment/frontend
-          fi
-      
-          if [[ "${{ needs.build-push.outputs.backend-changes }}" == "true" ]]; then
-          kubectl rollout restart deployment/backend
-          fi
-      
-          sleep 30
+          kubectl apply -f kubernetes/configmap.yaml
+          kubectl apply -f kubernetes/service.yaml
+          kubectl apply -f kubernetes/frontend-config.yaml
+          kubectl apply -f kubernetes/frontend-deployment.yaml
+          kubectl apply -f kubernetes/backend-deployment.yaml
+          kubectl apply -f kubernetes/nginx-deployment.yaml
+          kubectl apply -f kubernetes/ingress.yaml
+
+      # Run migrations if needed
+      - name: Run Database Migrations
+        if: needs.build-push.outputs.backend-changes == 'true' || contains(github.event.commits[0].message, '[migrate]')
+        run: |
+          echo "Running database migrations..."
+          # Create a temporary pod to run migrations
+          kubectl apply -f - <<EOF
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: django-migrations-job
+            labels:
+              app: django-migrations
+          spec:
+            ttlSecondsAfterFinished: 100
+            template:
+              spec:
+                containers:
+                - name: django
+                  image: ${{ secrets.ACR_NAME }}.azurecr.io/backend:latest
+                  command: ["sh", "-c", "python manage.py makemigrations --noinput && python manage.py migrate --noinput && python manage.py createcachetable"]
+                  envFrom:
+                  - secretRef:
+                      name: database-credentials
+                  - secretRef:
+                      name: django-secrets
+                restartPolicy: Never
+          EOF
+          
+          # Wait for the migrations to complete
+          kubectl wait --for=condition=complete --timeout=60s job/django-migrations-job
+          
+          # Check logs
+          POD_NAME=$(kubectl get pods -l job-name=django-migrations-job -o jsonpath="{.items[0].metadata.name}")
+          kubectl logs $POD_NAME

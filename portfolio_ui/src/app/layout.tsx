@@ -1,3 +1,5 @@
+// portfolio_ui/src/app/layout.tsx
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from './ClientLayout';

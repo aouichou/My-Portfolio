@@ -105,8 +105,28 @@ WSGI_APPLICATION = 'portfolio_api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': os.getenv('DB_NAME'),
+        # 'USER': os.getenv('DB_USER'),
+        # 'PASSWORD': os.getenv('DB_PASSWORD'),
+        # 'HOST': os.getenv('DB_HOST', 'postgres'),
+        # 'PORT': os.getenv('DB_PORT', '5432'),
+        # 'CONN_MAX_AGE': 300,
+        # 'OPTIONS': {
+        #     'connect_timeout': 5,
+        # }
+		
+		# local settings
+		'ENGINE': 'django.db.backends.postgresql',
+		'NAME': 'portfolio',
+		'USER': 'amine',
+		'PASSWORD': 'uZ1-kK_WlFZNRb1cS40W',
+		'HOST': 'localhost',
+		'PORT': '5432',
+		'CONN_MAX_AGE': 300,
+		'OPTIONS': {
+			'connect_timeout': 5,
+		}
     }
 }
 
@@ -163,3 +183,17 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('AZURE_EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('AZURE_EMAIL_KEY')
 CONTACT_RECIPIENT = os.getenv('CONTACT_RECIPIENT', 'your@email.com')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG' if DEBUG else 'WARNING',
+    },
+}
