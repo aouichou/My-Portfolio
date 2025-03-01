@@ -153,6 +153,8 @@ jobs:
       - name: Run Database Migrations
         if: needs.build-push.outputs.backend-changes == 'true' || contains(github.event.commits[0].message, '[migrate]')
         run: |
+          # Wait for PostgreSQL to be ready
+          kubectl wait --for=condition=ready pod -l app=postgres --timeout=120s
           echo "Running database migrations..."
           # Create a temporary pod to run migrations
           kubectl apply -f - <<EOF

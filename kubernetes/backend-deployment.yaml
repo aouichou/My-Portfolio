@@ -13,6 +13,13 @@ spec:
       labels:
         app: backend
     spec:
+      initContainers:
+      - name: copy-media
+        image: aouichou.azurecr.io/backend:latest
+        command: ["/bin/sh", "-c", "cp -r /app/prepopulated_media/* /app/media/ || true"]
+        volumeMounts:
+        - name: media-volume
+          mountPath: /app/media
       containers:
       - name: backend
         image: aouichou.azurecr.io/backend:latest
