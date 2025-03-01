@@ -191,10 +191,10 @@ jobs:
         if: contains(github.event.commits[0].message, '[setup-admin]')
         run: |
           # Apply migrations
-          kubectl exec -it deploy/backend -- python manage.py migrate
+          kubectl exec deploy/backend -- python manage.py migrate
           
           # Create superuser non-interactively
-          kubectl exec -it deploy/backend -- python -c "
+          kubectl exec deploy/backend -- python -c "
           import os
           os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portfolio_api.settings')
           import django
@@ -207,7 +207,14 @@ jobs:
               print('Superuser already exists')
           "
           
-          # Import projects data
-          kubectl cp ./portfolio_api/projects.json $(kubectl get pod -l app=backend -o jsonpath="{.items[0].metadata.name}"):/app/
-          kubectl exec -it $(kubectl get pod -l app=backend -o jsonpath="{.items[0].metadata.name}") -- python manage.py migrate
-          kubectl exec -it $(kubectl get pod -l app=backend -o jsonpath="{.items[0].metadata.name}") -- python manage.py import_projects /app/projects.json
+          # Create projects.json ConfigMap
+          cat > projects.json << 'EOL'
+          $(cat portfolio_api/projects.json)
+          EOL
+          kubectl create configmap projects-data --from-file=projects.json --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Copy ConfigMap data to a Pod
+          kubectl get pod -l app=backend -o name | head -n 1 | xargs -I{} kubectl cp projects.json {}:/app/
+          
+          # Import projects
+          kubectl get pod -l app=backend -o name | head -n 1 | xargs -I{} kubectl exec {} -- python manage.py import_projects /app/projects.json
