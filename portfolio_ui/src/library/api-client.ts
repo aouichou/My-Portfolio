@@ -15,7 +15,7 @@ export const mediaURL = typeof window === "undefined"
 
   export async function getProjectBySlug(slug: string): Promise<Project> {
 	try {
-	  const response = await api.get<Project>(`/v1/projects/${slug}/`);
+	  const response = await api.get<Project>(`/projects/${slug}/`);
 	  return response.data;
 	} catch (error) {
 	  console.error('Error fetching project:', error);
@@ -25,7 +25,7 @@ export const mediaURL = typeof window === "undefined"
   
   export async function getProjects() {
 	try {
-	  const response = await api.get('/v1/projects/');
+	  const response = await api.get('/projects/');
 	  return response.data;
 	} catch (error) {
 	  console.error('Error fetching projects:', error);

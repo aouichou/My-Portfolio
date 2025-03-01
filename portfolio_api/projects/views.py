@@ -72,3 +72,16 @@ class ContactSubmissionView(APIView):
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def debug_view(request):
+    """
+    Debug view to help identify routing issues
+    """
+    return Response({
+        'message': 'API is working',
+        'path': request.path,
+        'method': request.method,
+        'headers': dict(request.headers),
+        'query_params': dict(request.query_params)
+    })
