@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
 from projects.models import Project, Gallery, GalleryImage
 from pathlib import Path
+from django.conf import settings
 
 class Command(BaseCommand):
     help = 'Import projects from JSON file'
