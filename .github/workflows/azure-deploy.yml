@@ -186,3 +186,28 @@ jobs:
           # Check logs
           POD_NAME=$(kubectl get pods -l job-name=django-migrations-job -o jsonpath="{.items[0].metadata.name}")
           kubectl logs $POD_NAME
+
+      - name: Setup Database and Admin
+        if: contains(github.event.commits[0].message, '[setup-admin]')
+        run: |
+          # Apply migrations
+          kubectl exec -it deploy/backend -- python manage.py migrate
+          
+          # Create superuser non-interactively
+          kubectl exec -it deploy/backend -- python -c "
+          import os
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portfolio_api.settings')
+          import django
+          django.setup()
+          from django.contrib.auth.models import User
+          if not User.objects.filter(username='admin').exists():
+              User.objects.create_superuser('admin', 'admin@example.com', '${{ secrets.DJANGO_ADMIN_PASSWORD }}')
+              print('Superuser created successfully')
+          else:
+              print('Superuser already exists')
+          "
+          
+          # Import projects data
+          kubectl cp ./portfolio_api/projects.json $(kubectl get pod -l app=backend -o jsonpath="{.items[0].metadata.name}"):/app/
+          kubectl exec -it $(kubectl get pod -l app=backend -o jsonpath="{.items[0].metadata.name}") -- python manage.py migrate
+          kubectl exec -it $(kubectl get pod -l app=backend -o jsonpath="{.items[0].metadata.name}") -- python manage.py import_projects /app/projects.json

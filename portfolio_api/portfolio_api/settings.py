@@ -25,11 +25,11 @@ ALLOWED_HOSTS = [
     'aouichou.me',
     'www.aouichou.me',
     'backend-service',  # Kubernetes service name
-    'backend-service.default.svc.cluster.local'  # Full cluster DNS
+    'backend-service.default.svc.cluster.local', # Full cluster DNS
 	'nginx-service',  # Kubernetes service name
 	'nginx-service.default.svc.cluster.local'  # Full cluster DNS
 ]
-# Possibly also:
+
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/app/media'
