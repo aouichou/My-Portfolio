@@ -5,9 +5,7 @@ import os
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
 from projects.models import Project, Gallery, GalleryImage
-from pathlib import Path
 from django.conf import settings
-
 class Command(BaseCommand):
     help = 'Import projects from JSON file'
     
@@ -25,39 +23,54 @@ class Command(BaseCommand):
             projects_data = json.load(f)
             
         for project_data in projects_data:
-            # Check if project exists by slug
             try:
+                # For existing projects - update fields
                 project = Project.objects.get(slug=project_data['slug'])
-                self.stdout.write(self.style.SUCCESS(f'Updating existing project: {project.title}'))
+                project.title = project_data['title']
+                project.description = project_data['description']
+                project.tech_stack = project_data.get('tech_stack', [])
+                project.live_url = project_data.get('live_url', '')
+                project.code_url = project_data.get('code_url', '')
+                project.is_featured = project_data.get('is_featured', False)
+                project.features = project_data.get('features', [])
+                project.readme = project_data.get('readme', '')
+                project.save()
+                self.stdout.write(self.style.SUCCESS(f'Updated project: {project.title}'))
             except Project.DoesNotExist:
-                # Create new project with minimal validation
-                project = Project(
-                    title=project_data['title'],
-                    slug=project_data['slug'],
-                    description=project_data['description'],
-                    tech_stack=project_data.get('tech_stack', []),
-                    live_url=project_data.get('live_url', ''),
-                    code_url=project_data.get('code_url', ''),
-                    is_featured=project_data.get('is_featured', False),
-                    features=project_data.get('features', []),
-                    readme=project_data.get('readme', ''),
-                    score=project_data.get('score', None),
-                    challenges=project_data.get('challenges', ''),
-                    lessons=project_data.get('lessons', '')
-                )
-                
-                # Create a placeholder thumbnail if needed
-                placeholder_path = os.path.join('prepopulated_media', 'placeholder.jpg')
-                if os.path.exists(placeholder_path):
-                    with open(placeholder_path, 'rb') as img_file:
-                        project.thumbnail.save(f"{project.slug}_thumbnail.jpg", ContentFile(img_file.read()), save=False)
-                else:
-                    # Create an empty file - this is not ideal but prevents validation errors
-                    project.thumbnail.save(f"{project.slug}_thumbnail.jpg", ContentFile(b''), save=False)
-                
-                # Save without validation
-                project.save(bypass_validation=True)
-                self.stdout.write(self.style.SUCCESS(f'Created new project: {project.title}'))
+                # For new projects - create with a placeholder thumbnail
+                try:
+                    # Create a simple in-memory image
+                    import io
+                    from PIL import Image
+                    
+                    # Create a small colored square image
+                    img = Image.new('RGB', (100, 100), color = 'blue')
+                    img_io = io.BytesIO()
+                    img.save(img_io, format='JPEG')
+                    img_io.seek(0)
+                    
+                    # Create project without validation first
+                    project = Project(
+                        title=project_data['title'],
+                        slug=project_data['slug'],
+                        description=project_data['description'],
+                        tech_stack=project_data.get('tech_stack', []),
+                        live_url=project_data.get('live_url', ''),
+                        code_url=project_data.get('code_url', ''),
+                        is_featured=project_data.get('is_featured', False),
+                        features=project_data.get('features', []),
+                        readme=project_data.get('readme', '')
+                    )
+                    
+                    # Set the thumbnail
+                    project.thumbnail.save(f"{project_data['slug']}_thumbnail.jpg", ContentFile(img_io.getvalue()))
+                    
+                    # Now save the project
+                    project.save()
+                    self.stdout.write(self.style.SUCCESS(f'Created new project: {project.title}'))
+                    
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'Error creating project: {str(e)}'))
             
             # Process galleries
             for gallery_data in project_data.get('galleries', []):

@@ -23,8 +23,14 @@ class Project(models.Model):
 	architecture_diagram = models.ImageField(upload_to='architecture/', blank=True)
 	
 	def save(self, *args, **kwargs):
-		if not self.slug:
-			self.slug = slugify(self.title)
+		# Extract bypass_validation if present
+		bypass_validation = kwargs.pop('bypass_validation', False)
+		
+		# Only run validation if bypass_validation is False
+		if not bypass_validation:
+			self.full_clean()
+        
+		# Call parent save without bypass_validation
 		super().save(*args, **kwargs)
 
 	def clean(self):
