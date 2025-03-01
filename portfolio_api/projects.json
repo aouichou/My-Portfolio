@@ -1,0 +1,142 @@
+[
+  {
+    "title": "miniRT",
+    "slug": "minirt",
+    "description": "A ray tracing program written in C using the MiniLibX library. It renders basic 3D scenes by simulating how light interacts with geometric objects.",
+    "readme": "<h1 align=\"center\">miniRT</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Technology-Raytracing-orange.svg\" alt=\"Raytracing\">\n  <img src=\"https://img.shields.io/badge/Status%20-Completed-brightgreen.svg\" alt=\"Status\">\n  <img src=\"https://img.shields.io/badge/Score-125%25-brightgreen.svg\" alt=\"Score\">\n</p>\n\n## About the Project\n\n**miniRT** is a ray tracing program written in C using the **MiniLibX** library. It renders basic 3D scenes by simulating how light interacts with geometric objects. Created for 42Paris, this project builds on your knowledge of C programming, mathematical transformations, and real-time rendering techniques.\n\n## Features\n\n- Parse and render scene descriptions from \".rt\" files  \n- Supports basic geometric shapes: Plane, Sphere, Cylinder  \n- Ambient and diffuse lighting, plus hard shadows  \n- Rotations and translations of shapes, lights, and cameras  \n- Window event handling (close by pressing ESC or clicking the red cross)\n\n## Technical Details\n\n- **Language**: C  \n- **Libraries**: MiniLibX, libft, math library (compile with -lm)  \n- **Raytracing**: Compute intersections, apply transformations, manage shadows, etc.",
+    "tech_stack": ["C", "MiniLibX", "Raytracing", "Mathematics", "Computer Graphics"],
+    "live_url": "",
+    "code_url": "https://github.com/Agrippa2023/miniRT",
+    "is_featured": true,
+    "score": 125,
+    "features": [
+      "Parse and render scene descriptions from .rt files",
+      "Supports basic geometric shapes: Plane, Sphere, Cylinder",
+      "Ambient and diffuse lighting, plus hard shadows",
+      "Rotations and translations of shapes, lights, and cameras",
+      "Window event handling"
+    ],
+    "challenges": "Implementing ray-tracing algorithms required deep understanding of vector mathematics and light physics. Optimizing the rendering pipeline for performance while maintaining visual quality was particularly challenging. Handling complex scene descriptions and implementing proper transformations for all supported shapes demanded careful algorithmic design.",
+    "lessons": "This project significantly deepened my understanding of computer graphics fundamentals, 3D mathematics, and optimization techniques. I gained practical experience with ray-object intersections, shadow casting, and light simulation. The project also strengthened my C programming skills and taught me how to work with graphics libraries.",
+    "galleries": [
+      {
+        "name": "Basic Scenes",
+        "description": "Fundamental geometric shapes and lighting effects",
+        "order": 1,
+        "images": [
+          {
+            "image": "galleries/minirt/img06.png",
+            "caption": "Basic geometric shapes with ambient lighting",
+            "order": 1
+          },
+          {
+            "image": "galleries/minirt/img08.png",
+            "caption": "Advanced scene with multiple objects",
+            "order": 2
+          },
+          {
+            "image": "galleries/minirt/img10.png",
+            "caption": "Complex object interactions with shadows",
+            "order": 3
+          },
+          {
+            "image": "galleries/minirt/img11.png",
+            "caption": "Shadow casting demonstration",
+            "order": 4
+          }
+        ]
+      },
+      {
+        "name": "Advanced Effects",
+        "description": "Complex lighting models and special effects",
+        "order": 2,
+        "images": [
+          {
+            "image": "galleries/minirt/img12.png",
+            "caption": "Complex light interactions between multiple objects",
+            "order": 1
+          },
+          {
+            "image": "galleries/minirt/img14.png",
+            "caption": "Environment lighting effects and reflections",
+            "order": 2
+          },
+          {
+            "image": "galleries/minirt/img15.png",
+            "caption": "Multiple plane and sphere interactions with realistic shadows",
+            "order": 3
+          },
+          {
+            "image": "galleries/minirt/img16.png",
+            "caption": "Advanced geometric structures with multiple light sources",
+            "order": 4
+          }
+        ]
+      },
+      {
+        "name": "Special Effects",
+        "description": "Colored lights and texture mapping demonstrations",
+        "order": 3,
+        "images": [
+          {
+            "image": "galleries/minirt/img17.png",
+            "caption": "Scene illuminated with multiple colored light sources",
+            "order": 1
+          },
+          {
+            "image": "galleries/minirt/img18.png",
+            "caption": "Texture mapping applied to geometric objects",
+            "order": 2
+          },
+          {
+            "image": "galleries/minirt/img19.png",
+            "caption": "Advanced texture mapping with lighting effects",
+            "order": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "minishell",
+    "slug": "minishell",
+    "description": "A custom shell implementation in C, developed as part of the 42Paris curriculum that replicates core functionalities of bash.",
+    "readme": "<h1 align=\"center\">minishell</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n  <img src=\"https://img.shields.io/badge/Score-101%25-brightgreen.svg\" alt=\"Score\">\n</p>\n\n  \n## About the Project\n\n`minishell` is a custom shell implementation in C, developed as part of the 42Paris curriculum. This project helped me appreciate the work done by the older generation of developers, gain a better understanding of how the shell works, and solidify my knowledge and skills in C and shell programming.",
+    "tech_stack": ["C", "readline", "Unix System Calls", "Process Management", "File Descriptors"],
+    "live_url": "",
+    "code_url": "https://github.com/Agrippa2023/minishell",
+    "is_featured": true,
+    "score": 101,
+    "features": [
+      "Command history navigation",
+      "Execute commands based on the PATH variable or using relative/absolute paths",
+      "Handle single and double quotes",
+      "Implement redirections (<, >, <<, >>)",
+      "Implement pipes (|)",
+      "Handle environment variables ($) and special variables ($?)",
+      "Handle signals (ctrl-C, ctrl-D, ctrl-\\)",
+      "Built-in commands: echo, cd, pwd, export, unset, env, exit"
+    ],
+    "challenges": "Implementing a robust command parser that correctly handles quotes, redirections, and pipes was particularly challenging. Managing file descriptors during complex redirection chains required careful attention to prevent leaks. Signal handling across child processes demanded a deep understanding of process management.",
+    "lessons": "This project provided invaluable insights into how shells work under the hood. I gained practical experience with process creation and management, file descriptor manipulation, and signal handling. The project also improved my debugging skills when dealing with complex, multi-process applications.",
+    "galleries": [
+      {
+        "name": "Shell Interface",
+        "description": "Visual demonstration of the minishell functionality",
+        "order": 1,
+        "images": [
+          {
+            "image": "galleries/minishell/prompt.gif",
+            "caption": "The minishell prompt with command history navigation",
+            "order": 1
+          },
+          {
+            "image": "galleries/minishell/commands.gif",
+            "caption": "Executing various commands with pipes and redirections",
+            "order": 2
+          }
+        ]
+      }
+    ]
+  }
+]

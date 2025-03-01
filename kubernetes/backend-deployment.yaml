@@ -46,12 +46,18 @@ spec:
           httpGet:
             path: /healthz
             port: 8080
+            httpHeaders:
+              - name: Host
+                value: backend-service.default.svc.cluster.local
           initialDelaySeconds: 45
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /healthz
             port: 8080
+            httpHeaders:
+              - name: Host
+                value: backend-service.default.svc.cluster.local
           initialDelaySeconds: 10
           periodSeconds: 5
         resources:
