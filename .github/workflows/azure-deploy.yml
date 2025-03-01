@@ -141,13 +141,22 @@ jobs:
       # Deploy application
       - name: Deploy to AKS
         run: |
-          kubectl apply -f kubernetes/configmap.yaml
-          kubectl apply -f kubernetes/service.yaml
-          kubectl apply -f kubernetes/frontend-config.yaml
-          kubectl apply -f kubernetes/frontend-deployment.yaml
-          kubectl apply -f kubernetes/backend-deployment.yaml
-          kubectl apply -f kubernetes/nginx-deployment.yaml
-          kubectl apply -f kubernetes/ingress.yaml
+            # Apply database-related resources first
+            kubectl apply -f kubernetes/postgres-pvc.yaml
+            kubectl apply -f kubernetes/postgres-deployment.yaml
+            kubectl apply -f kubernetes/postgres-service.yaml
+            
+            # Wait for PostgreSQL
+            kubectl wait --for=condition=ready pod -l app=postgres --timeout=300s
+            
+            # Then apply other resources
+            kubectl apply -f kubernetes/configmap.yaml
+            kubectl apply -f kubernetes/service.yaml
+            kubectl apply -f kubernetes/frontend-config.yaml
+            kubectl apply -f kubernetes/frontend-deployment.yaml
+            kubectl apply -f kubernetes/backend-deployment.yaml
+            kubectl apply -f kubernetes/nginx-deployment.yaml
+            kubectl apply -f kubernetes/ingress.yaml
 
       # Run migrations if needed
       - name: Run Database Migrations

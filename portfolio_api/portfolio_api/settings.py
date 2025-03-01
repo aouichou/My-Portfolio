@@ -99,6 +99,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'portfolio_api.wsgi.application'
 
+APPEND_SLASH = True
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -113,7 +114,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', '5432'),
         'CONN_MAX_AGE': 300,
         'OPTIONS': {
-            'connect_timeout': 5,
+            'connect_timeout': 10,
         }
     }
 }

@@ -49,14 +49,16 @@ spec:
               secretKeyRef:
                 name: email-config
                 key: AZURE_EMAIL_USER
+          - name: DB_HOST
+            value: postgres
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
             httpHeaders:
               - name: Host
-                value: backend-service.default.svc.cluster.local
-          initialDelaySeconds: 45
+                value: aouichou.me
+          initialDelaySeconds: 90
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
@@ -64,9 +66,9 @@ spec:
             port: 8080
             httpHeaders:
               - name: Host
-                value: backend-service.default.svc.cluster.local
-          initialDelaySeconds: 10
-          periodSeconds: 5
+                value: aouichou.me
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             memory: "512Mi"
