@@ -12,11 +12,11 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
-# Install serve globally to serve static files
+# Install serve globally
 RUN npm install -g serve
 
-# Copy the static export output
+# Copy static export output
 COPY --from=builder /app/out ./out
 
-# Use Heroku's PORT environment variable
+# Use Heroku's PORT dynamically
 CMD ["sh", "-c", "serve -p $PORT -s out"]

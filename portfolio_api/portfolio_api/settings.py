@@ -25,8 +25,9 @@ X_FRAME_OPTIONS = 'DENY'
 ALLOWED_HOSTS = [
     'aouichou.me',
     'www.aouichou.me',
-    'portfolio-backend.onrender.com',  # Render service URL
-    'portfolio-frontend.herokuapp.com' # Heroku frontend URL
+    'portfolio-backend-dytv.onrender.com',  # Add exact Render host
+    'portfolio-frontend.herokuapp.com',
+    '.onrender.com'  # Wildcard for Render
 ]
 
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
@@ -72,8 +73,8 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://portfolio-frontend.herokuapp.com",
-	"portfolio-backend-dytv.onrender.com",
-	"https://aouichou.me",
+    "https://portfolio-backend-dytv.onrender.com",  # Add protocol
+    "https://aouichou.me",
     "https://www.aouichou.me",
 ]
 
