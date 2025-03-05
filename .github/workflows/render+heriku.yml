@@ -24,11 +24,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+      
       - name: Deploy to Heroku
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "portfolio-frontend"
           heroku_email: "a.ouichou@gmail.fr" 
-          buildpack: https://github.com/heroku/heroku-buildpack-static
+          buildpack: heroku-community/nginx  # Updated from deprecated buildpack
           env_file: "portfolio_ui/.env.production"
