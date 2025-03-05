@@ -72,6 +72,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://portfolio-frontend.herokuapp.com",
+	"portfolio-backend-dytv.onrender.com",
 	"https://aouichou.me",
     "https://www.aouichou.me",
 ]

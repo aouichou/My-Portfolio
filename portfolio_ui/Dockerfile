@@ -1,6 +1,3 @@
-# portfolio_ui/Dockerfile
-# Frontend Dockerfile
-
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -14,16 +11,12 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-RUN npm install --include=dev critters
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Install serve globally to serve static files
+RUN npm install -g serve
 
-USER nextjs
-EXPOSE 3000
-ENV PORT 3000
+# Copy the static export output
+COPY --from=builder /app/out ./out
 
-CMD ["node", "server.js"]
+# Use Heroku's PORT environment variable
+CMD ["sh", "-c", "serve -p $PORT -s out"]
