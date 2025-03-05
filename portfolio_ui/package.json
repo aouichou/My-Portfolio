@@ -5,10 +5,11 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "clean": "rm -rf .next",
-    "build": "npm run clean && next build",
+    "build": "next build && next export -o out",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+	"heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

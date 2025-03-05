@@ -1,8 +1,9 @@
 # portfolio_api/settings.py
 
-from pathlib import Path
-import os
 from dotenv import load_dotenv
+from pathlib import Path
+import dj_database_url
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,14 +25,12 @@ X_FRAME_OPTIONS = 'DENY'
 ALLOWED_HOSTS = [
     'aouichou.me',
     'www.aouichou.me',
-    'backend-service',  # Kubernetes service name
-    'backend-service.default.svc.cluster.local', # Full cluster DNS
-	'nginx-service',  # Kubernetes service name
-	'nginx-service.default.svc.cluster.local'  # Full cluster DNS
+    'portfolio-backend.onrender.com',  # Render service URL
+    'portfolio-frontend.herokuapp.com' # Heroku frontend URL
 ]
 
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
-MEDIA_URL = '/media/'
+MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 MEDIA_ROOT = '/app/media'
 
 CACHES = {
@@ -59,6 +58,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+	'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,8 +71,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "https://portfolio-frontend.herokuapp.com",
 	"https://aouichou.me",
     "https://www.aouichou.me",
 ]
@@ -105,18 +104,10 @@ APPEND_SLASH = True
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST', 'postgres'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'CONN_MAX_AGE': 300,
-        'OPTIONS': {
-            'connect_timeout': 10,
-        }
-    }
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -155,6 +146,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -186,3 +179,12 @@ LOGGING = {
         'level': 'DEBUG' if DEBUG else 'WARNING',
     },
 }
+
+# settings.py
+AWS_ACCESS_KEY_ID = os.getenv('BUCKETEER_AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('BUCKETEER_AWS_SECRET_ACCESS_KEY') 
+AWS_STORAGE_BUCKET_NAME = os.getenv('BUCKETEER_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.getenv('BUCKETEER_URL', 'https://s3.eu-west-1.amazonaws.com')
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3.S3Storage'
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'

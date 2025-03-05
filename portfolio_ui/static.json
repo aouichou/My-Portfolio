@@ -1,0 +1,6 @@
+{
+	"root": "out/.next/static",
+	"routes": {
+	  "/**": "index.html"
+	}
+}
