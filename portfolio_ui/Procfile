@@ -1,1 +1,3 @@
-web: cd /app && npm run start
+# portfolio_ui/Procfile
+
+web: cd out && npx serve -p $PORT

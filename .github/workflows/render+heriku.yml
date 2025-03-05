@@ -33,5 +33,5 @@ jobs:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "portfolio-frontend"
           heroku_email: "a.ouichou@gmail.fr" 
-          buildpack: heroku-community/nginx  # Updated from deprecated buildpack
+          buildpack: heroku-community/static
           env_file: "portfolio_ui/.env.production"

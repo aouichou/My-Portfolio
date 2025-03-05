@@ -1,4 +1,7 @@
 {
-  "root": "public",
-  "clean_urls": true
-}
+	"root": "out/.next/static",
+	"clean_urls": true,
+	"routes": {
+	  "/**": "index.html"
+	}
+  }
