@@ -35,3 +35,4 @@ jobs:
           heroku_email: "a.ouichou@gmail.fr" 
           buildpack: heroku-community/static
           env_file: "portfolio_ui/.env.production"
+          appdir: "portfolio_ui"
