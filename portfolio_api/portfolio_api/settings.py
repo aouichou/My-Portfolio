@@ -23,6 +23,7 @@ SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 
 ALLOWED_HOSTS = [
+	'api.aouichou.me',
     'aouichou.me',
     'www.aouichou.me',
     'portfolio-backend-dytv.onrender.com',  # Add exact Render host
@@ -71,13 +72,23 @@ MIDDLEWARE = [
 	'django_ratelimit.middleware.RatelimitMiddleware',
 ]
 
-# Allow CORS requests from any origin during development
-CORS_ALLOW_ALL_ORIGINS = True  # Turn this off in production with specific origins
-CORS_URLS_REGEX = r'^/api/.*$'  # Only allow CORS for API endpoints
-CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-CORS_ALLOW_HEADERS = ["*"]
-CORS_ALLOW_CREDENTIALS = True
+# Security middleware configuration
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://portfolio-frontend.herokuapp.com",
+    "https://*.aouichou.me"
+]
+
+# Rate limiting configuration
+RATELIMIT_ENABLE = True
+RATELIMIT_VIEW = 'portfolio_api.views.rate_limit_response'
 
 CORS_ALLOWED_ORIGINS = [
 	"https://portfolio-frontend-9fc822c2f19a.herokuapp.com",

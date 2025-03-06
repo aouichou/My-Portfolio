@@ -12,6 +12,8 @@ from django.utils.decorators import method_decorator
 from .models import Project, Gallery, GalleryImage
 from .serializers import ProjectSerializer, ContactSubmissionSerializer
 from django.db.models import Prefetch
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import AllowAny
 
 class ProjectList(generics.ListAPIView):
     queryset = Project.objects.prefetch_related(
@@ -85,3 +87,10 @@ def debug_view(request):
         'headers': dict(request.headers),
         'query_params': dict(request.query_params)
     })
+
+class RateLimitedTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [AllowAny]
+    
+    @method_decorator(ratelimit(key='ip', rate='5/m', method='POST'))
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
