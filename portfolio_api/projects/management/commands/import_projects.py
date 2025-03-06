@@ -16,6 +16,29 @@ class Command(BaseCommand):
 		
 	def handle(self, *args, **options):
 		self.stdout.write(self.style.NOTICE(f'MEDIA_ROOT is set to: {settings.MEDIA_ROOT}'))
+
+		# List all files in media directory to debug
+		self.stdout.write("Files in MEDIA_ROOT:")
+		for root, dirs, files in os.walk(settings.MEDIA_ROOT):
+			level = root.replace(settings.MEDIA_ROOT, '').count(os.sep)
+			indent = ' ' * 4 * level
+			self.stdout.write(f"{indent}{os.path.basename(root)}/")
+			sub_indent = ' ' * 4 * (level + 1)
+			for f in files:
+				self.stdout.write(f"{sub_indent}{f}")
+		
+		# List prepopulated media if it exists
+		prepop_path = "/app/prepopulated_media"
+		if os.path.exists(prepop_path):
+			self.stdout.write("Files in prepopulated_media:")
+			for root, dirs, files in os.walk(prepop_path):
+				level = root.replace(prepop_path, '').count(os.sep)
+				indent = ' ' * 4 * level
+				self.stdout.write(f"{indent}{os.path.basename(root)}/")
+				sub_indent = ' ' * 4 * (level + 1)
+				for f in files:
+					self.stdout.write(f"{sub_indent}{f}")
+
 		json_file = options['json_file']
 		
 		media_root = settings.MEDIA_ROOT

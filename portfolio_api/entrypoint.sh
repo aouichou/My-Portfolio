@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
 
+# Copy prepopulated media to Django's media directory
+echo "Copying media files..."
+mkdir -p /app/media
+cp -r /app/prepopulated_media/* /app/media/ 2>/dev/null || true
+echo "Media files copied."
+
 # Wait for external Render PostgreSQL
 echo "Waiting for database at $DB_HOST:$DB_PORT..."
 while ! python -c "import socket; s = socket.socket(); s.settimeout(5); s.connect(('$DB_HOST', $DB_PORT))" 2>/dev/null; do
