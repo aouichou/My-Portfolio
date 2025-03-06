@@ -23,7 +23,13 @@ export const mediaURL = typeof window === "undefined"
 	}
   }
   
-  export async function getProjects() {
+// Ensure this function works during build time (SSG)
+export async function getProjects() {
+	// Always use client-side URL for static exports
+	const api = axios.create({
+	  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api"
+	});
+  
 	try {
 	  const response = await api.get('/projects/');
 	  return response.data;

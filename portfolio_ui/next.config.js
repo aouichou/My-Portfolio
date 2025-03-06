@@ -2,8 +2,6 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	output: 'export', // Changed from standalone
-	distDir: 'out',
 	images: {
 	  unoptimized: true,
 	  remotePatterns: [
@@ -21,10 +19,6 @@ const nextConfig = {
 	eslint: {
 	  ignoreDuringBuilds: true,
 	},
-	optimizeFonts: true,
-  		experimental: {
-    	optimizeCss: true,
- 	 },
 };
   
   module.exports = nextConfig;

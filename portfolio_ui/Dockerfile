@@ -12,11 +12,11 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
-# Install serve globally
-RUN npm install -g serve
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package*.json ./
 
-# Copy static export output
-COPY --from=builder /app/out ./out
+RUN npm ci --omit=dev
 
-# Use Heroku's PORT dynamically
-CMD ["sh", "-c", "serve -p $PORT -s out"]
+EXPOSE 3000
+CMD ["npm", "start"]

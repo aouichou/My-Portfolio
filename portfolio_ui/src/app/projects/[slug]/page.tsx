@@ -10,7 +10,8 @@ import React from 'react';
 import { Metadata } from 'next';
 import { ErrorBoundary } from 'react-error-boundary';
 import ClientImage from '@/components/ClientImage';
-import { Project, Gallery, GalleryImage } from '@/library/types';
+import { Suspense } from 'react';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 type Props = {
   params: { slug: string };
@@ -81,8 +82,19 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   );
 };
 
+export async function generateStaticParams() {
+	return []; // Empty array for dynamic SSR
+  }
 
-export default async function Page({ params }: Props) {
+export default function Page({ params }: Props) {
+	return (
+	  <Suspense fallback={<LoadingSkeleton />}>
+		<ProjectPageContent params={params} />
+	  </Suspense>
+	);
+  }
+
+async function ProjectPageContent({ params }: Props) {
 	try {
 		const project = await getProjectBySlug(params.slug);
 	

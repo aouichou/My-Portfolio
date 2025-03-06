@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "clean": "rm -rf .next",
-    "build": "next build && next export",
-    "start": "serve -p $PORT out",
+	"build": "next build",
+	"start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
 	"heroku-postbuild": "npm run build"

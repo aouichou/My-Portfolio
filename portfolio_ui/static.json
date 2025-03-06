@@ -1,5 +1,5 @@
 {
-	"root": "out/.next/static",
+	"root": "out",
 	"clean_urls": true,
 	"routes": {
 	  "/**": "index.html"

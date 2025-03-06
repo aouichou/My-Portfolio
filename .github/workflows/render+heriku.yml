@@ -27,11 +27,14 @@ jobs:
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install.sh | sh
       
+      - name: Copy Dockerfile
+        run: cp portfolio_ui/Dockerfile .
+
       - name: Deploy to Heroku
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "portfolio-frontend"
           heroku_email: "a.ouichou@gmail.fr" 
-          buildpack: heroku-community/static
+          buildpack: heroku/nodejs
           env_file: "portfolio_ui/.env.production"
