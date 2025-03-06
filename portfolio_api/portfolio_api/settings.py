@@ -74,6 +74,10 @@ MIDDLEWARE = [
 # Allow CORS requests from any origin during development
 CORS_ALLOW_ALL_ORIGINS = True  # Turn this off in production with specific origins
 CORS_URLS_REGEX = r'^/api/.*$'  # Only allow CORS for API endpoints
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+CORS_ALLOW_HEADERS = ["*"]
+CORS_ALLOW_CREDENTIALS = True
+
 
 CORS_ALLOWED_ORIGINS = [
 	"https://portfolio-frontend-9fc822c2f19a.herokuapp.com",
