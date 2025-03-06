@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+	'corsheaders.middleware.CorsMiddleware',
 	'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -67,13 +68,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-	'corsheaders.middleware.CorsMiddleware',
 	'django_ratelimit.middleware.RatelimitMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [
+	"https://portfolio-frontend-9fc822c2f19a.herokuapp.com",
     "https://portfolio-frontend.herokuapp.com",
-    "https://portfolio-backend-dytv.onrender.com",  # Add protocol
+    "https://portfolio-backend-dytv.onrender.com",
     "https://aouichou.me",
     "https://www.aouichou.me",
 ]

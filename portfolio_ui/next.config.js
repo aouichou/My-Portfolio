@@ -19,6 +19,19 @@ const nextConfig = {
 	eslint: {
 	  ignoreDuringBuilds: true,
 	},
+	async headers() {
+		return [
+		  {
+			source: '/(.*)',
+			headers: securityHeaders,
+		  },
+		];
+	  },
+	env: {
+	PORT: process.env.PORT || 3000,
+	NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '/api',
+	NEXT_PUBLIC_MEDIA_URL: process.env.NEXT_PUBLIC_MEDIA_URL || '/media',
+	},
 };
   
   module.exports = nextConfig;
