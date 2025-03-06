@@ -11,13 +11,10 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN python manage.py makemigrations
-RUN python manage.py migrate
-
 # Collect static files during build
 RUN python manage.py collectstatic --noinput
 
-# Add data import after migrations
-RUN python manage.py import_projects projects.json
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "portfolio_api.wsgi"]
+CMD ["/entrypoint.sh"]

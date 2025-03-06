@@ -11,7 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 load_dotenv(os.path.join(BASE_DIR, '..', '..', '.env'))
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+# Temporary secret for build phase only
+BUILD_SECRET = 'django-insecure-build-key-123'
+
+SECRET_KEY = os.getenv('SECRET_KEY', BUILD_SECRET)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
