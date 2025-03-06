@@ -39,8 +39,18 @@ export async function getProjects() {
 	}
   }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
-const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || "/media"
+
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-dytv.onrender.com/api';
+export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || 'https://portfolio-backend-dytv.onrender.com/media';
+
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export default apiClient;
 
 export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = endpoint.startsWith("http") ? endpoint : `${API_URL}${endpoint}`

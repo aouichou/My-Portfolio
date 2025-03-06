@@ -71,6 +71,10 @@ MIDDLEWARE = [
 	'django_ratelimit.middleware.RatelimitMiddleware',
 ]
 
+# Allow CORS requests from any origin during development
+CORS_ALLOW_ALL_ORIGINS = True  # Turn this off in production with specific origins
+CORS_URLS_REGEX = r'^/api/.*$'  # Only allow CORS for API endpoints
+
 CORS_ALLOWED_ORIGINS = [
 	"https://portfolio-frontend-9fc822c2f19a.herokuapp.com",
     "https://portfolio-frontend.herokuapp.com",
