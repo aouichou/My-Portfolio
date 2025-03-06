@@ -80,31 +80,31 @@ class Command(BaseCommand):
 
 				# Create placeholder thumbnail if new project
 				if 'thumbnail' in project_data and project_data['thumbnail']:
-					thumbnail_path = self._resolve_media_path(project_data['thumbnail'])
-					self.stdout.write(self.style.NOTICE(f'Looking for thumbnail at: {thumbnail_path}'))
+					from django.core.files.base import ContentFile
+					import os
+					
+					thumbnail_path = os.path.join(settings.MEDIA_ROOT, project_data['thumbnail'])
 					if os.path.exists(thumbnail_path):
 						try:
 							with open(thumbnail_path, 'rb') as img_file:
-								# Save the thumbnail from the JSON file
+								# Use django's ContentFile to handle the image file
+								file_content = ContentFile(img_file.read())
+								# Save the thumbnail to the project
 								project.thumbnail.save(
-									os.path.basename(thumbnail_path),
-									ContentFile(img_file.read()),
-									save=False
+									os.path.basename(thumbnail_path),  # Just the filename part
+									file_content,
+									save=True  # Save the project right away
 								)
-								# Save the project with validation bypass
-								project.save(bypass_validation=True)
 								self.stdout.write(self.style.SUCCESS(
-									f'Set thumbnail for {project.slug} from {project_data["thumbnail"]}'
+									f"Successfully set thumbnail for {project.slug}"
 								))
 						except Exception as e:
 							self.stdout.write(self.style.ERROR(
-								f'Error loading thumbnail from {thumbnail_path}: {str(e)}'
+								f"Error processing thumbnail: {str(e)}"
 							))
-							# Fallback to placeholder if thumbnail loading fails
-							self._create_placeholder_thumbnail(project)
 					else:
 						self.stdout.write(self.style.WARNING(
-							f'Thumbnail file not found: {thumbnail_path}'
+							f"Thumbnail file not found: {thumbnail_path}"
 						))
 						# Create placeholder since thumbnail file wasn't found
 						self._create_placeholder_thumbnail(project)
