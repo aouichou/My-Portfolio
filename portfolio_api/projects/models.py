@@ -23,14 +23,23 @@ class Project(models.Model):
 	architecture_diagram = models.ImageField(upload_to='architecture/', blank=True)
 	
 	def save(self, *args, **kwargs):
-		# Extract bypass_validation if present
+		# Allow bypassing validation for initial imports
 		bypass_validation = kwargs.pop('bypass_validation', False)
 		
-		# Only run validation if bypass_validation is False
 		if not bypass_validation:
 			self.full_clean()
-        
-		# Call parent save without bypass_validation
+			
+		# Auto-generate slug if missing
+		if not self.slug:
+			self.slug = slugify(self.title)
+			
+		# Handle duplicate slugs
+		counter = 1
+		original_slug = self.slug
+		while Project.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+			self.slug = f"{original_slug}-{counter}"
+			counter += 1
+			
 		super().save(*args, **kwargs)
 
 	def clean(self):
@@ -42,9 +51,9 @@ class Project(models.Model):
 		if Project.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
 			raise ValidationError("Slug must be unique")
 
-	def save(self, *args, **kwargs):
-		self.full_clean()
-		super().save(*args, **kwargs)
+	# def save(self, *args, **kwargs):
+	# 	self.full_clean()
+	# 	super().save(*args, **kwargs)
 
 	class Meta:
 		ordering = ['-is_featured', 'title']
