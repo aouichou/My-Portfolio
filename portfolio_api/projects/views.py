@@ -8,12 +8,13 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
 from django_ratelimit.decorators import ratelimit
-from django.utils.decorators import method_decorator
+from django.utils.decorators import method_decorator, permission_classes
 from .models import Project, Gallery, GalleryImage
 from .serializers import ProjectSerializer, ContactSubmissionSerializer
 from django.db.models import Prefetch
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
+
 
 class ProjectList(generics.ListAPIView):
     queryset = Project.objects.prefetch_related(
@@ -94,3 +95,13 @@ class RateLimitedTokenObtainPairView(TokenObtainPairView):
     @method_decorator(ratelimit(key='ip', rate='5/m', method='POST'))
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def trigger_import(request):
+    from django.core.management import call_command
+    try:
+        call_command('import_projects', 'projects.json')
+        return Response({'status': 'Import started'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

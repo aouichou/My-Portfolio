@@ -10,6 +10,17 @@ done
 # Run database operations
 python manage.py makemigrations
 python manage.py migrate
-python manage.py import_projects projects.json
+
+# Attempt data import (with error handling)
+if [ -f "projects.json" ]; then
+  echo "Starting data import..."
+  if python manage.py import_projects projects.json; then
+    echo "Data import completed successfully"
+  else
+    echo "Data import failed, continuing deployment"
+  fi
+else
+  echo "projects.json not found, skipping import"
+fi
 
 exec gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi

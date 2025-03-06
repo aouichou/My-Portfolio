@@ -71,7 +71,7 @@ class Gallery(models.Model):
 		on_delete=models.CASCADE,
 		related_name='galleries'
 	)
-	name = models.CharField(max_length=200)
+	name = models.CharField(max_length=200, default='Unnamed Gallery')
 	description = models.TextField(blank=True)
 	order = models.PositiveIntegerField(default=0)
 	
