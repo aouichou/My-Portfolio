@@ -13,10 +13,20 @@ jobs:
           service-id: ${{ secrets.RENDER_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
           
-      - name: Run Migrations
+      - name: Run Migrations and Import Data
         run: |
+          # First deployment to create service
           curl -X POST -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
+               https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
+          
+          # Wait for service to be ready
+          sleep 120
+          
+          # Run migrations
+          curl -X POST -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+               -H "Content-Type: application/json" \
+               -d '{"clearCache": "do_not_clear"}' \
+               https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
 
   deploy-frontend:
     runs-on: ubuntu-latest

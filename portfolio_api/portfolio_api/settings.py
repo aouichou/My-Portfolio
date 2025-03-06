@@ -96,8 +96,22 @@ CORS_ALLOWED_ORIGINS = [
     "https://portfolio-backend-dytv.onrender.com",
     "https://aouichou.me",
     "https://www.aouichou.me",
+	"https://portfolio-backend.onrender.com"
 ]
 
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'portfolio_api.urls'
