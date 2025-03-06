@@ -15,10 +15,14 @@ ENV NODE_ENV production
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/next.config.js ./next.config.js
 
 RUN npm ci --omit=dev
 
-RUN echo '#!/bin/sh\nexec npm start -- -p $PORT' > start.sh && chmod +x start.sh
+# Modify this to ensure the script is in the right place
+RUN printf '#!/bin/sh\nnpm start -- -p $PORT\n' > /app/start.sh && \
+    chmod +x /app/start.sh && \
+    ls -la /app/start.sh  # Verify the file exists
 
-EXPOSE 3000
-CMD ["./start.sh"]
+# Use absolute path to ensure the script is found
+CMD ["/app/start.sh"]
