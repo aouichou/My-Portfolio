@@ -6,7 +6,7 @@
     "readme": "<h1 align=\"center\">miniRT</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Technology-Raytracing-orange.svg\" alt=\"Raytracing\">\n  <img src=\"https://img.shields.io/badge/Status%20-Completed-brightgreen.svg\" alt=\"Status\">\n  <img src=\"https://img.shields.io/badge/Score-125%25-brightgreen.svg\" alt=\"Score\">\n</p>\n\n## About the Project\n\n**miniRT** is a ray tracing program written in C using the **MiniLibX** library. It renders basic 3D scenes by simulating how light interacts with geometric objects. Created for 42Paris, this project builds on your knowledge of C programming, mathematical transformations, and real-time rendering techniques.\n\n## Features\n\n- Parse and render scene descriptions from \".rt\" files  \n- Supports basic geometric shapes: Plane, Sphere, Cylinder  \n- Ambient and diffuse lighting, plus hard shadows  \n- Rotations and translations of shapes, lights, and cameras  \n- Window event handling (close by pressing ESC or clicking the red cross)\n\n## Technical Details\n\n- **Language**: C  \n- **Libraries**: MiniLibX, libft, math library (compile with -lm)  \n- **Raytracing**: Compute intersections, apply transformations, manage shadows, etc.",
     "tech_stack": ["C", "MiniLibX", "Raytracing", "Mathematics", "Computer Graphics"],
     "live_url": "",
-    "code_url": "https://github.com/Agrippa2023/miniRT",
+    "code_url": "https://github.com/aouichou/miniRT",
     "is_featured": true,
     "score": 125,
     "features": [
@@ -25,22 +25,22 @@
         "order": 1,
         "images": [
           {
-            "image": "galleries/minirt/img06.png",
+            "image": "projects/minirt/img06.png",
             "caption": "Basic geometric shapes with ambient lighting",
             "order": 1
           },
           {
-            "image": "galleries/minirt/img08.png",
+            "image": "projects/minirt/img08.png",
             "caption": "Advanced scene with multiple objects",
             "order": 2
           },
           {
-            "image": "galleries/minirt/img10.png",
+            "image": "projects/minirt/img10.png",
             "caption": "Complex object interactions with shadows",
             "order": 3
           },
           {
-            "image": "galleries/minirt/img11.png",
+            "image": "projects/minirt/img11.png",
             "caption": "Shadow casting demonstration",
             "order": 4
           }
@@ -52,22 +52,22 @@
         "order": 2,
         "images": [
           {
-            "image": "galleries/minirt/img12.png",
+            "image": "projects/minirt/img12.png",
             "caption": "Complex light interactions between multiple objects",
             "order": 1
           },
           {
-            "image": "galleries/minirt/img14.png",
+            "image": "projects/minirt/img14.png",
             "caption": "Environment lighting effects and reflections",
             "order": 2
           },
           {
-            "image": "galleries/minirt/img15.png",
+            "image": "projects/minirt/img15.png",
             "caption": "Multiple plane and sphere interactions with realistic shadows",
             "order": 3
           },
           {
-            "image": "galleries/minirt/img16.png",
+            "image": "projects/minirt/img16.png",
             "caption": "Advanced geometric structures with multiple light sources",
             "order": 4
           }
@@ -79,23 +79,24 @@
         "order": 3,
         "images": [
           {
-            "image": "galleries/minirt/img17.png",
+            "image": "projects/minirt/img17.png",
             "caption": "Scene illuminated with multiple colored light sources",
             "order": 1
           },
           {
-            "image": "galleries/minirt/img18.png",
+            "image": "projects/minirt/img18.png",
             "caption": "Texture mapping applied to geometric objects",
             "order": 2
           },
           {
-            "image": "galleries/minirt/img19.png",
+            "image": "projects/minirt/img19.png",
             "caption": "Advanced texture mapping with lighting effects",
             "order": 3
           }
         ]
       }
-    ]
+    ],
+	"thumbnail": "projects/minirt/img06.png"
   },
   {
     "title": "minishell",
@@ -104,7 +105,7 @@
     "readme": "<h1 align=\"center\">minishell</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n  <img src=\"https://img.shields.io/badge/Score-101%25-brightgreen.svg\" alt=\"Score\">\n</p>\n\n  \n## About the Project\n\n`minishell` is a custom shell implementation in C, developed as part of the 42Paris curriculum. This project helped me appreciate the work done by the older generation of developers, gain a better understanding of how the shell works, and solidify my knowledge and skills in C and shell programming.",
     "tech_stack": ["C", "readline", "Unix System Calls", "Process Management", "File Descriptors"],
     "live_url": "",
-    "code_url": "https://github.com/Agrippa2023/minishell",
+    "code_url": "https://github.com/aouichou/minishell",
     "is_featured": true,
     "score": 101,
     "features": [
@@ -126,17 +127,18 @@
         "order": 1,
         "images": [
           {
-            "image": "galleries/minishell/prompt.gif",
+            "image": "projects/minishell/prompt.gif",
             "caption": "The minishell prompt with command history navigation",
             "order": 1
           },
           {
-            "image": "galleries/minishell/commands.gif",
+            "image": "projects/minishell/commands.gif",
             "caption": "Executing various commands with pipes and redirections",
             "order": 2
           }
         ]
       }
-    ]
+    ],
+	"thumbnail": "projects/minishell/Screenshot.png"
   }
 ]
