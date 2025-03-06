@@ -1,5 +1,7 @@
 // portfolio_ui/next.config.ts
 
+const securityHeaders = require('./security-headers');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	images: {
@@ -22,13 +24,13 @@ const nextConfig = {
 	async headers() {
 		return [
 		  {
-			source: '/(.*)',
+			source: '/security-headers.js',
 			headers: securityHeaders,
 		  },
 		];
 	  },
 	env: {
-	PORT: process.env.PORT || 3000,
+	PORT: process.env.PORT || '3000',
 	NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '/api',
 	NEXT_PUBLIC_MEDIA_URL: process.env.NEXT_PUBLIC_MEDIA_URL || '/media',
 	},
