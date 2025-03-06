@@ -1,20 +1,19 @@
 # portfolio_api/projects/views.py
 
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
 from django_ratelimit.decorators import ratelimit
-from django.utils.decorators import method_decorator, permission_classes
+from django.utils.decorators import method_decorator
 from .models import Project, Gallery, GalleryImage
 from .serializers import ProjectSerializer, ContactSubmissionSerializer
 from django.db.models import Prefetch
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
-
 
 class ProjectList(generics.ListAPIView):
     queryset = Project.objects.prefetch_related(
