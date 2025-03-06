@@ -34,5 +34,4 @@ jobs:
           heroku_app_name: "portfolio-frontend"
           heroku_email: "a.ouichou@gmail.fr" 
           buildpack: heroku-community/static
-          env_file: ".env.production"
-          appdir: "portfolio_ui"
+          env_file: "portfolio_ui/.env.production"
