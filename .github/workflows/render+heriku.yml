@@ -27,21 +27,16 @@ jobs:
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install.sh | sh
       
-      - name: Build, Push and Release a Docker container to Heroku.
+      # Set Heroku stack to container
+      - name: Set Heroku stack to container
+        run: heroku stack:set container -a portfolio-frontend
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      
+      - name: Build, Push and Release a Docker container to Heroku
         uses: gonuit/heroku-docker-deploy@v1.3.3
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "portfolio-frontend"
           email: "a.ouichou@student.42.fr" 
           dockerfile_directory: "./portfolio_ui/"
-      
-      # Alternatively, you can use the Node.js buildpack approach:
-      # - name: Deploy to Heroku with Node.js buildpack
-      #   uses: akhileshns/heroku-deploy@v3.12.12
-      #   with:
-      #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-      #     heroku_app_name: "portfolio-frontend"
-      #     heroku_email: "a.ouichou@gmail.fr" 
-      #     buildpack: "heroku/nodejs"
-      #     appdir: "portfolio_ui"
-      #     env_file: "portfolio_ui/.env.production"
