@@ -5,7 +5,6 @@ import os
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 from projects.models import Project, Gallery, GalleryImage
 from django.conf import settings
 
@@ -16,6 +15,7 @@ class Command(BaseCommand):
 		parser.add_argument('json_file', type=str)
 		
 	def handle(self, *args, **options):
+		self.stdout.write(self.style.NOTICE(f'MEDIA_ROOT is set to: {settings.MEDIA_ROOT}'))
 		json_file = options['json_file']
 		
 		media_root = settings.MEDIA_ROOT
@@ -56,27 +56,38 @@ class Command(BaseCommand):
 				)
 
 				# Create placeholder thumbnail if new project
-				if created:
-					try:
-						from PIL import Image
-						import io
-						
-						img = Image.new('RGB', (100, 100), color='blue')
-						img_io = io.BytesIO()
-						img.save(img_io, format='JPEG')
-						img_io.seek(0)
-						
-						project.thumbnail.save(
-							f"{project_data['slug']}_thumbnail.jpg", 
-							ContentFile(img_io.getvalue()),
-							save=False
-						)
-						project.save(bypass_validation=True)
-						
-					except Exception as e:
-						self.stdout.write(self.style.ERROR(f'Thumbnail creation failed: {str(e)}'))
-						project.delete()
-						continue
+				if 'thumbnail' in project_data and project_data['thumbnail']:
+					thumbnail_path = self._resolve_media_path(project_data['thumbnail'])
+					self.stdout.write(self.style.NOTICE(f'Looking for thumbnail at: {thumbnail_path}'))
+					if os.path.exists(thumbnail_path):
+						try:
+							with open(thumbnail_path, 'rb') as img_file:
+								# Save the thumbnail from the JSON file
+								project.thumbnail.save(
+									os.path.basename(thumbnail_path),
+									ContentFile(img_file.read()),
+									save=False
+								)
+								# Save the project with validation bypass
+								project.save(bypass_validation=True)
+								self.stdout.write(self.style.SUCCESS(
+									f'Set thumbnail for {project.slug} from {project_data["thumbnail"]}'
+								))
+						except Exception as e:
+							self.stdout.write(self.style.ERROR(
+								f'Error loading thumbnail from {thumbnail_path}: {str(e)}'
+							))
+							# Fallback to placeholder if thumbnail loading fails
+							self._create_placeholder_thumbnail(project)
+					else:
+						self.stdout.write(self.style.WARNING(
+							f'Thumbnail file not found: {thumbnail_path}'
+						))
+						# Create placeholder since thumbnail file wasn't found
+						self._create_placeholder_thumbnail(project)
+				elif created:  # Only for new projects without thumbnail in JSON
+					# Create placeholder thumbnail for new projects
+					self._create_placeholder_thumbnail(project)
 
 				# Process galleries
 				for gallery_data in project_data.get('galleries', []):
@@ -139,3 +150,48 @@ class Command(BaseCommand):
 					f'Project processing failed: {str(e)}'
 				))
 				continue
+
+	def _create_placeholder_thumbnail(self, project):
+		try:
+			from PIL import Image
+			import io
+			
+			img = Image.new('RGB', (100, 100), color='blue')
+			img_io = io.BytesIO()
+			img.save(img_io, format='JPEG')
+			img_io.seek(0)
+			
+			project.thumbnail.save(
+				f"{project.slug}_thumbnail.jpg", 
+				ContentFile(img_io.getvalue()),
+				save=False
+			)
+			project.save(bypass_validation=True)
+			self.stdout.write(self.style.SUCCESS(
+				f'Created placeholder thumbnail for {project.slug}'
+			))
+		except Exception as e:
+			self.stdout.write(self.style.ERROR(
+				f'Placeholder thumbnail creation failed: {str(e)}'
+			))
+
+	def _resolve_media_path(self, relative_path):
+		"""Try multiple ways to resolve the media path"""
+		# Try the direct join
+		path1 = os.path.join(settings.MEDIA_ROOT, relative_path)
+		if os.path.exists(path1):
+			return path1
+		
+		# Try without 'projects/' prefix if it's already in the path
+		if relative_path.startswith('projects/'):
+			path2 = os.path.join(settings.MEDIA_ROOT, relative_path.replace('projects/', '', 1))
+			if os.path.exists(path2):
+				return path2
+		
+		# Try with absolute path if media is a subfolder of current directory
+		path3 = os.path.abspath(os.path.join('media', relative_path))
+		if os.path.exists(path3):
+			return path3
+			
+		# Return the original path if none of the above work
+		return path1
