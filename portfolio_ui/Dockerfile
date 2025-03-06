@@ -18,5 +18,7 @@ COPY --from=builder /app/package*.json ./
 
 RUN npm ci --omit=dev
 
+RUN echo '#!/bin/sh\nexec npm start -- -p $PORT' > start.sh && chmod +x start.sh
+
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["./start.sh"]
