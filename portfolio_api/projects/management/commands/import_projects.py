@@ -72,31 +72,43 @@ class Command(BaseCommand):
 				thumbnail_content = None
 				thumbnail_name = None
 				
-				# In your thumbnail handling code
 				if 'thumbnail' in project_data and project_data['thumbnail']:
 					thumbnail_path = os.path.join(settings.MEDIA_ROOT, project_data['thumbnail'])
 					if os.path.exists(thumbnail_path):
+						self.stdout.write(self.style.SUCCESS(f"Found thumbnail file: {thumbnail_path}"))
 						try:
 							with open(thumbnail_path, 'rb') as img_file:
-								# Change this line - pass the name parameter to ContentFile
 								thumbnail_content = ContentFile(img_file.read(), name=os.path.basename(thumbnail_path))
-								thumbnail_name = os.path.basename(thumbnail_path)
+								# the thumbnail path is structured like 'projects/project_slug_/thumbnail.jpg', the name of the thumbnail is 'thumbnail.jpg'
+								# so we need to extract the name of the thumbnail from the path without using os.path.basename
+								thumbnail_name = thumbnail_path.split('/')[-1]
+								# thumbnail_name = os.path.basename(thumbnail_path)
 						except Exception as e:
 							self.stdout.write(self.style.ERROR(f"Error reading thumbnail: {str(e)}"))
 					else:
 						self.stdout.write(self.style.WARNING(f"Thumbnail file not found: {thumbnail_path}"))
+
+						# If thumbnail is not found, use the placeholder.jpg located in MEDIA_ROOT
+						placeholder_path = os.path.join(settings.MEDIA_ROOT, 'placeholder.jpg')
+						if os.path.exists(placeholder_path):
+							self.stdout.write(self.style.WARNING(f"Using placeholder thumbnail: {placeholder_path}"))
+							try:
+								with open(placeholder_path, 'rb') as img_file:
+									thumbnail_content = ContentFile(img_file.read(), name='placeholder.jpg')
+									thumbnail_name = 'placeholder.jpg'
+							except Exception as e:
+								self.stdout.write(self.style.ERROR(f"Error reading placeholder thumbnail: {str(e)}"))
+						else:
+							self.stdout.write(self.style.ERROR(f"Placeholder thumbnail not found: {placeholder_path}"))
 				
-				# Also update in your placeholder code
 				if not thumbnail_content:
 					img = Image.new('RGB', (100, 100), color='blue')
 					img_io = io.BytesIO()
 					img.save(img_io, format='JPEG')
 					img_io.seek(0)
 					thumbnail_name = f"{project_data['slug']}_thumbnail.jpg"
-					# Add the name parameter here too
 					thumbnail_content = ContentFile(img_io.getvalue(), name=thumbnail_name)
 				
-				# Now create a project object but don't save it yet
 				project = Project(
 					slug=project_data['slug'],
 					title=project_data['title'],
@@ -109,11 +121,9 @@ class Command(BaseCommand):
 					readme=project_data.get('readme', ''),
 					score=project_data.get('score', 0)
 				)
-				
-				# Assign the thumbnail manually
+
 				project.thumbnail.save(thumbnail_name, thumbnail_content, save=False)
 				
-				# Save with validation bypass
 				project.save(bypass_validation=True)
 				self.stdout.write(self.style.SUCCESS(f"Created/updated project {project.slug}"))
         
