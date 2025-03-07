@@ -64,53 +64,56 @@ class Command(BaseCommand):
 				if 'slug' not in project_data or 'title' not in project_data:
 					raise ValidationError("Project missing slug or title")
 
-				# Update existing or create new project
-				project, created = Project.objects.update_or_create(
-					slug=project_data['slug'],
-					defaults={
-						'title': project_data['title'],
-						'description': project_data['description'],
-						'tech_stack': project_data.get('tech_stack', []),
-						'live_url': project_data.get('live_url', ''),
-						'code_url': project_data.get('code_url', ''),
-						'is_featured': project_data.get('is_featured', False),
-						'features': project_data.get('features', []),
-						'readme': project_data.get('readme', ''),
-						'score': project_data.get('score', 0)
-					}
-				)
+		        # Debug the thumbnail info
+				if 'thumbnail' in project_data:
+					self.stdout.write(self.style.SUCCESS(f"Found thumbnail in JSON: {project_data['thumbnail']}"))
 
-				# Create placeholder thumbnail if new project
+				# First, prepare the thumbnail
+				thumbnail_content = None
+				thumbnail_name = None
+				
 				if 'thumbnail' in project_data and project_data['thumbnail']:
-					
 					thumbnail_path = os.path.join(settings.MEDIA_ROOT, project_data['thumbnail'])
 					if os.path.exists(thumbnail_path):
 						try:
 							with open(thumbnail_path, 'rb') as img_file:
-								# Use django's ContentFile to handle the image file
-								file_content = ContentFile(img_file.read())
-								# Save the thumbnail to the project
-								project.thumbnail.save(
-									os.path.basename(thumbnail_path),  # Just the filename part
-									file_content,
-									save=True  # Save the project right away
-								)
-								self.stdout.write(self.style.SUCCESS(
-									f"Successfully set thumbnail for {project.slug}"
-								))
+								thumbnail_content = ContentFile(img_file.read())
+								thumbnail_name = os.path.basename(thumbnail_path)
 						except Exception as e:
-							self.stdout.write(self.style.ERROR(
-								f"Error processing thumbnail: {str(e)}"
-							))
+							self.stdout.write(self.style.ERROR(f"Error reading thumbnail: {str(e)}"))
 					else:
-						self.stdout.write(self.style.WARNING(
-							f"Thumbnail file not found: {thumbnail_path}"
-						))
-						# Create placeholder since thumbnail file wasn't found
-						self._create_placeholder_thumbnail(project)
-				elif created:  # Only for new projects without thumbnail in JSON
-					# Create placeholder thumbnail for new projects
-					self._create_placeholder_thumbnail(project)
+						self.stdout.write(self.style.WARNING(f"Thumbnail file not found: {thumbnail_path}"))
+				
+				# If we couldn't load thumbnail, create placeholder
+				if not thumbnail_content:
+					img = Image.new('RGB', (100, 100), color='blue')
+					img_io = io.BytesIO()
+					img.save(img_io, format='JPEG')
+					img_io.seek(0)
+					thumbnail_content = ContentFile(img_io.getvalue())
+					thumbnail_name = f"{project_data['slug']}_thumbnail.jpg"
+				
+				# Now create a project object but don't save it yet
+				project = Project(
+					slug=project_data['slug'],
+					title=project_data['title'],
+					description=project_data['description'],
+					tech_stack=project_data.get('tech_stack', []),
+					live_url=project_data.get('live_url', ''),
+					code_url=project_data.get('code_url', ''),
+					is_featured=project_data.get('is_featured', False),
+					features=project_data.get('features', []),
+					readme=project_data.get('readme', ''),
+					score=project_data.get('score', 0)
+				)
+				
+				# Assign the thumbnail manually
+				project.thumbnail.save(thumbnail_name, thumbnail_content, save=False)
+				
+				# Save with validation bypass
+				project.save(bypass_validation=True)
+				self.stdout.write(self.style.SUCCESS(f"Created/updated project {project.slug}"))
+        
 
 				# Process galleries
 				for gallery_data in project_data.get('galleries', []):
