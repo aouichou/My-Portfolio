@@ -17,16 +17,26 @@ done
 python manage.py makemigrations
 python manage.py migrate
 
-# Attempt data import (with error handling)
-if [ -f "projects.json" ]; then
-  echo "Starting data import..."
-  if python manage.py import_projects projects.json; then
-    echo "Data import completed successfully"
-  else
-    echo "Data import failed, continuing deployment"
-  fi
-else
-  echo "projects.json not found, skipping import"
-fi
+# Create a superuser if it doesn't exist and if it exists change the password
+python -c "
+import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portfolio_api.settings')
+django.setup()
+from django.contrib.auth.models import User
+username = os.environ.get('DJANGO_ADMIN_USER', 'admin')
+email = os.environ.get('DJANGO_ADMIN_EMAIL', 'admin@example.com')
+password = os.environ.get('DJANGO_ADMIN_PASSWORD', 'admin')
+if not User.objects.filter(username=username).exists():
+    print(f'Creating superuser {username}')
+    User.objects.create_superuser(username, email, password)
+    print('Superuser created successfully')
+else:
+    user = User.objects.get(username=username)
+	print(f'User {username} already exists. Changing password...')
+	user.set_password(password)
+	user.save()
+	print('Password changed successfully')
+"
 
 exec gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi
