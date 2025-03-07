@@ -7,6 +7,8 @@ from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 from projects.models import Project, Gallery, GalleryImage
 from django.conf import settings
+from PIL import Image
+import io
 
 class Command(BaseCommand):
 	help = 'Import projects from JSON file'
@@ -80,8 +82,6 @@ class Command(BaseCommand):
 
 				# Create placeholder thumbnail if new project
 				if 'thumbnail' in project_data and project_data['thumbnail']:
-					from django.core.files.base import ContentFile
-					import os
 					
 					thumbnail_path = os.path.join(settings.MEDIA_ROOT, project_data['thumbnail'])
 					if os.path.exists(thumbnail_path):
@@ -176,8 +176,6 @@ class Command(BaseCommand):
 
 	def _create_placeholder_thumbnail(self, project):
 		try:
-			from PIL import Image
-			import io
 			
 			img = Image.new('RGB', (100, 100), color='blue')
 			img_io = io.BytesIO()
