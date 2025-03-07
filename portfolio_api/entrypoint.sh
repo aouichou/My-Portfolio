@@ -17,7 +17,7 @@ done
 python manage.py makemigrations
 python manage.py migrate
 
-# Create a superuser if it doesn't exist and if it exists change the password
+# Create a superuser if it doesn't exist
 python -c "
 import os
 import django
@@ -33,10 +33,10 @@ if not User.objects.filter(username=username).exists():
     print('Superuser created successfully')
 else:
     user = User.objects.get(username=username)
-	print(f'User {username} already exists. Changing password...')
-	user.set_password(password)
-	user.save()
-	print('Password changed successfully')
+    print(f'User {username} already exists. Changing password...')
+    user.set_password(password)
+    user.save()
+    print('Password changed successfully')
 "
 
 exec gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi
