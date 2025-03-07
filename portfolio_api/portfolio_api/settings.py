@@ -99,7 +99,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://portfolio-backend-dytv.onrender.com",
     "https://aouichou.me",
     "https://www.aouichou.me",
-	"https://portfolio-backend.onrender.com"
+	"https://portfolio-backend.onrender.com",
+    "https://api.aouichou.me",
+    "http://api.aouichou.me"
 ]
 
 CORS_ALLOW_HEADERS = [

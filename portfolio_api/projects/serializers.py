@@ -9,7 +9,7 @@ class GalleryImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryImage
         depth = 1
-        fields = ['id', 'image', 'caption', 'order']
+        fields = ['id', 'image', 'caption', 'order', 'image_url']
     
     def get_image_url(self, obj):
         request = self.context.get('request')

@@ -40,14 +40,14 @@ export async function getProjects() {
   }
 
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-dytv.onrender.com/api';
-export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || 'https://portfolio-backend-dytv.onrender.com/media';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api';
+export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || 'https://api.aouichou.me/media';
 
 const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+	baseURL: API_URL,
+	headers: {
+		'Content-Type': 'application/json',
+	}
 });
 
 export default apiClient;
