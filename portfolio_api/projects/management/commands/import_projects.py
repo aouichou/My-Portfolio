@@ -72,26 +72,29 @@ class Command(BaseCommand):
 				thumbnail_content = None
 				thumbnail_name = None
 				
+				# In your thumbnail handling code
 				if 'thumbnail' in project_data and project_data['thumbnail']:
 					thumbnail_path = os.path.join(settings.MEDIA_ROOT, project_data['thumbnail'])
 					if os.path.exists(thumbnail_path):
 						try:
 							with open(thumbnail_path, 'rb') as img_file:
-								thumbnail_content = ContentFile(img_file.read())
+								# Change this line - pass the name parameter to ContentFile
+								thumbnail_content = ContentFile(img_file.read(), name=os.path.basename(thumbnail_path))
 								thumbnail_name = os.path.basename(thumbnail_path)
 						except Exception as e:
 							self.stdout.write(self.style.ERROR(f"Error reading thumbnail: {str(e)}"))
 					else:
 						self.stdout.write(self.style.WARNING(f"Thumbnail file not found: {thumbnail_path}"))
 				
-				# If we couldn't load thumbnail, create placeholder
+				# Also update in your placeholder code
 				if not thumbnail_content:
 					img = Image.new('RGB', (100, 100), color='blue')
 					img_io = io.BytesIO()
 					img.save(img_io, format='JPEG')
 					img_io.seek(0)
-					thumbnail_content = ContentFile(img_io.getvalue())
 					thumbnail_name = f"{project_data['slug']}_thumbnail.jpg"
+					# Add the name parameter here too
+					thumbnail_content = ContentFile(img_io.getvalue(), name=thumbnail_name)
 				
 				# Now create a project object but don't save it yet
 				project = Project(
