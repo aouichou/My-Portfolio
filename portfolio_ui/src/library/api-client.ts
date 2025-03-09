@@ -16,8 +16,9 @@ export const mediaURL = typeof window === "undefined"
 	  const response = await api.get<Project>(`/projects/${slug}/`);
 	  return response.data;
 	} catch (error) {
-	  console.error('Error fetching project:', error);
-	  throw new Error('Failed to fetch project details');
+		const err = error as any;
+		console.error('API Error:', err.response?.data);
+		throw new Error(err.response?.data?.message || 'Project not found');
 	}
   }
   

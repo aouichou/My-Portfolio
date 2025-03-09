@@ -50,8 +50,19 @@ const nextConfig = {
   },
   env: {
     PORT: process.env.PORT || '3000',
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '/api',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '/api.aouichou.me/',
     NEXT_PUBLIC_MEDIA_URL: process.env.NEXT_PUBLIC_MEDIA_URL || '/media',
+  },
+
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'aouichou.me' }],
+        destination: 'https://aouichou.me/:path*',
+        permanent: true,
+      },
+    ];
   },
 };
 

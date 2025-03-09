@@ -31,7 +31,7 @@ ALLOWED_HOSTS = [
     'www.aouichou.me',
     'portfolio-backend-dytv.onrender.com',  # Add exact Render host
     'portfolio-frontend.herokuapp.com',
-    '.onrender.com'  # Wildcard for Render
+    '*.onrender.com'  # Wildcard for Render
 ]
 
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
