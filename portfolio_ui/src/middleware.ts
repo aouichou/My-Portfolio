@@ -15,21 +15,18 @@ export function middleware(request: NextRequest) {
   
   // Set a permissive CSP header
   response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http:; font-src 'self' data: https:; connect-src 'self' https: http:; media-src 'self' data: blob: https: http:; object-src 'none'; frame-src 'self';"
-  );
-
-  response.headers.set(
 	'Content-Security-Policy',
-	"default-src 'self'; " +
-	"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; " +
-	"style-src 'self' 'unsafe-inline'; " +
-	"img-src 'self' data: blob: https: http:; " +
-	"font-src 'self' data: https:; " +
-	"connect-src 'self' https: http:; " +
-	"media-src 'self' data: blob: https: http:; " +
-	"object-src 'none'; " +
-	"frame-src 'self';"
+	[
+	  "default-src 'self'",
+	  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
+	  "style-src 'self' 'unsafe-inline'",
+	  "img-src 'self' data: blob: https: http:",
+	  "font-src 'self' data: https:",
+	  "connect-src 'self' https: http:",
+	  "media-src 'self' data: blob: https: http:",
+	  "object-src 'none'",
+	  "frame-src 'self'"
+	].join('; ')
   );
   return response;
 }

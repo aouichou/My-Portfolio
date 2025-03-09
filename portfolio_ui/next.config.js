@@ -10,6 +10,16 @@ const nextConfig = {
         hostname: 'aouichou.me',
         pathname: '/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 's3.eu-west-1.amazonaws.com',
+        pathname: '/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579.s3.amazonaws.com',
+        pathname: '/**',
+      }
     ],
     minimumCacheTTL: 60,
   },
@@ -50,18 +60,25 @@ const nextConfig = {
   },
   env: {
     PORT: process.env.PORT || '3000',
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '/api.aouichou.me/',
-    NEXT_PUBLIC_MEDIA_URL: process.env.NEXT_PUBLIC_MEDIA_URL || '/media',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-dytv.onrender.com/api',
+    NEXT_PUBLIC_MEDIA_URL: process.env.NEXT_PUBLIC_MEDIA_URL || 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
   },
 
   async redirects() {
     return [
+      // Hostname redirect
       {
         source: '/:path*',
-        has: [{ type: 'host', value: 'aouichou.me' }],
+        has: [{ type: 'host', value: 'www.aouichou.me' }],  // Only redirect www subdomain
         destination: 'https://aouichou.me/:path*',
         permanent: true,
       },
+      // Static files redirect
+      {
+        source: '/:path*(.ico|.svg)',
+        destination: '/static/:path*',
+        permanent: true,
+      }
     ];
   },
 };

@@ -40,7 +40,8 @@ export async function getProjects() {
 
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api';
-export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || 'https://api.aouichou.me/media';
+export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || 
+  'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
 
 const apiClient = axios.create({
 	baseURL: API_URL,
@@ -78,6 +79,7 @@ export function getMediaUrl(path: string): string {
 	if (!path) return "/placeholder.svg";
 	if (path.startsWith("http")) return path;
 	
-	// Preserve media prefix for Kubernetes
-	return `${MEDIA_URL}${path.startsWith('/') ? path : `/${path}`}`;
+	const base = MEDIA_URL;
+	const version = new Date().getTime(); // Cache buster
+	return `${base}${path}?v=${version}`;
   }
