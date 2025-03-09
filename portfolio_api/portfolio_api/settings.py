@@ -94,6 +94,8 @@ RATELIMIT_ENABLE = True
 RATELIMIT_VIEW = 'portfolio_api.views.rate_limit_response'
 
 CORS_ALLOWED_ORIGINS = [
+	"https://portfolio-frontend-*.herokuapp.com", # Wildcard
+    "https://*.aouichou.me", 
 	"https://portfolio-frontend-9fc822c2f19a.herokuapp.com",
     "https://portfolio-frontend.herokuapp.com",
     "https://portfolio-backend-dytv.onrender.com",

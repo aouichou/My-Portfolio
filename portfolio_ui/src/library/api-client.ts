@@ -3,9 +3,7 @@
 import axios from "axios"
 import { Project } from "./types"
 
-const baseURL = typeof window === "undefined"
-  ? "http://backend-service:8080/api"  // Kubernetes service name
-  : process.env.NEXT_PUBLIC_API_URL || "/api";  // Client-side URL
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://api.aouichou.me/api";
 
 export const api = axios.create({ baseURL });
 
