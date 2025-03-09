@@ -3,83 +3,59 @@
 import axios from "axios"
 import { Project } from "./types"
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://api.aouichou.me/api";
+// Single source of truth for API URL with NO trailing slash
+export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 
+                      'https://portfolio-backend-dytv.onrender.com/api';
 
-export const api = axios.create({ baseURL });
-
-export const mediaURL = typeof window === "undefined" 
-  ? "http://reverse-proxy/media"  // 👈 Server-side through proxy
-  : "/media";  // Client-side relative path
-
-  export async function getProjectBySlug(slug: string): Promise<Project> {
-	try {
-	  const response = await api.get<Project>(`/projects/${slug}/`);
-	  return response.data;
-	} catch (error) {
-		const err = error as any;
-		console.error('API Error:', err.response?.data);
-		throw new Error(err.response?.data?.message || 'Project not found');
-	}
+// Create axios instance
+export const api = axios.create({ 
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
   }
-  
-// Ensure this function works during build time (SSG)
-export async function getProjects() {
-	// Always use client-side URL for static exports
-	const api = axios.create({
-	  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api"
-	});
-  
-	try {
-	  const response = await api.get('/projects/');
-	  return response.data;
-	} catch (error) {
-	  console.error('Error fetching projects:', error);
-	  return [];
-	}
-  }
-
-
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api';
-export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || 
-  'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
-
-const apiClient = axios.create({
-	baseURL: API_URL,
-	headers: {
-		'Content-Type': 'application/json',
-	}
 });
 
-export default apiClient;
+// Add interceptor to ensure trailing slashes for Django compatibility
+api.interceptors.request.use(config => {
+  if (config.url && !config.url.endsWith('/')) {
+    config.url = `${config.url}/`;
+  }
+  return config;
+});
 
-export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = endpoint.startsWith("http") ? endpoint : `${API_URL}${endpoint}`
+// Single source of truth for Media URL
+export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
+                        'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
 
+export async function getProjectBySlug(slug: string): Promise<Project> {
   try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`)
-    }
-
-    return response.json()
+    // Will get transformed to `/projects/minirt/` by the interceptor
+    const response = await api.get<Project>(`/projects/${slug}`);
+    return response.data;
   } catch (error) {
-    console.error("API request error:", error)
-    throw error
+    console.error('Error fetching project:', error);
+    throw new Error('Failed to fetch project details');
   }
 }
 
-export function getMediaUrl(path: string): string {
-	if (!path) return "/placeholder.svg";
-	if (path.startsWith("http")) return path;
-	
-	const base = MEDIA_URL;
-	const version = new Date().getTime(); // Cache buster
-	return `${base}${path}?v=${version}`;
+// Keep only one implementation of getProjects
+export async function getProjects() {
+  try {
+    const response = await api.get('/projects/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    return [];
   }
+}
+
+export default api;
+
+// Helper function for media URLs
+export function getMediaUrl(path: string): string {
+  if (!path) return "/placeholder.svg";
+  if (path.startsWith("http")) return path;
+  
+  const base = MEDIA_URL;
+  return `${base}/${path.replace(/^\//, '')}`;
+}

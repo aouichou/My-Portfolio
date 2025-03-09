@@ -58,11 +58,11 @@ const nextConfig = {
       }
     ];
   },
-  env: {
-    PORT: process.env.PORT || '3000',
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-dytv.onrender.com/api',
-    NEXT_PUBLIC_MEDIA_URL: process.env.NEXT_PUBLIC_MEDIA_URL || 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
-  },
+	env: {
+	PORT: process.env.PORT || '3000',
+	NEXT_PUBLIC_API_URL: 'https://portfolio-backend-dytv.onrender.com/api',
+	NEXT_PUBLIC_MEDIA_URL: 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
+	},
 
   async redirects() {
     return [
