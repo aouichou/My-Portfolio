@@ -1,0 +1,15 @@
+{
+    "Version": "2023-05-30",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
+            ],
+            "Resource": "arn:aws:s3:::bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/*"
+        }
+    ]
+}
