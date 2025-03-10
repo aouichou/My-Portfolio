@@ -62,24 +62,24 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   }
 
 
-  return (
-    <ImageErrorBoundary>
-      <div className="relative w-full aspect-video">
-        <ClientImage
-          src={src}
-          alt={alt || ''}
-          fill
-		  width={1200}
-		  height={675}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="rounded-lg shadow-md object-cover"
-          priority={true}
-          loading="eager"
-          unoptimized
-        />
-      </div>
-    </ImageErrorBoundary>
-  );
+	return (
+	<ImageErrorBoundary>
+		<div className="relative w-full aspect-video">
+		<ClientImage
+			src={src}
+			alt={alt || ''}
+			fill
+			// Remove width/height when using fill
+			sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+			className="rounded-lg shadow-md object-cover"
+			priority={true}
+			loading="eager"
+			fallbackSrc="/fallback-image.jpg"
+			unoptimized
+		/>
+		</div>
+	</ImageErrorBoundary>
+	);
 };
 
 export async function generateStaticParams() {
@@ -137,9 +137,13 @@ async function ProjectPageContent({ params }: Props) {
 	
 			<TabsContent value="architecture">
 				<ClientImage
-				src={project.architecture_diagram}
-				alt="Architecture Diagram"
-				className="rounded-xl border"
+				  src={project.architecture_diagram}
+				  alt="Architecture Diagram"
+				  className="rounded-xl border"
+				  width={800}  // Add required dimensions
+				  height={450}
+				  fallbackSrc="/fallback-diagram.jpg" // Optional custom fallback
+				  unoptimized
 				/>
 			</TabsContent>
 	

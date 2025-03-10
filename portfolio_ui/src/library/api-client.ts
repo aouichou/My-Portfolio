@@ -15,7 +15,6 @@ export const api = axios.create({
   }
 });
 
-// Add interceptor to ensure trailing slashes for Django compatibility
 api.interceptors.request.use(config => {
   if (config.url && !config.url.endsWith('/')) {
     config.url = `${config.url}/`;
@@ -23,7 +22,6 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// Single source of truth for Media URL
 export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
                         'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
 
@@ -38,7 +36,6 @@ export async function getProjectBySlug(slug: string): Promise<Project> {
   }
 }
 
-// Keep only one implementation of getProjects
 export async function getProjects() {
   try {
     const response = await api.get('/projects/');
@@ -59,3 +56,11 @@ export function getMediaUrl(path: string): string {
   const base = MEDIA_URL;
   return `${base}/${path.replace(/^\//, '')}`;
 }
+
+// response interceptor to handle 404s
+api.interceptors.response.use(response => response, error => {
+	if (error.response?.status === 404) {
+	  window.location.href = '/404';
+	}
+	return Promise.reject(error);
+  });

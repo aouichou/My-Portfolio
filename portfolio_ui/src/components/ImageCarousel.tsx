@@ -24,12 +24,14 @@ export default function ImageCarousel({ images }: { images: Array<{ image: strin
   return (
     <div className="relative group">
       <div className="relative aspect-video rounded-xl overflow-hidden">
-        <ClientImage
-          src={images[currentIndex].image}
-          alt={images[currentIndex].caption || 'Project screenshot'}
-          fill
-          className="object-cover"
-        />
+		<ClientImage
+		  src={images[currentIndex].image}
+		  alt={images[currentIndex].caption || 'Project screenshot'}
+		  fill
+		  className="object-cover"
+		  fallbackSrc="/fallback-image.jpg"
+		  unoptimized
+		/>
         
         {images[currentIndex].caption && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">

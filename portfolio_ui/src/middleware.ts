@@ -25,7 +25,8 @@ export function middleware(request: NextRequest) {
 	  "connect-src 'self' https: http:",
 	  "media-src 'self' data: blob: https: http:",
 	  "object-src 'none'",
-	  "frame-src 'self'"
+	  "frame-src 'self'",
+	  "form-action 'self'"
 	].join('; ')
   );
   return response;

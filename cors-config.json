@@ -1,0 +1,14 @@
+{
+  "CORSRules": [
+    {
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET", "HEAD"],
+      "AllowedOrigins": [
+        "https://aouichou.me", 
+        "https://portfolio-frontend.herokuapp.com"
+      ],
+      "ExposeHeaders": [],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}
