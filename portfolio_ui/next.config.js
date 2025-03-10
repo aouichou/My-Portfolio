@@ -4,15 +4,23 @@
 const nextConfig = {
   images: {
     unoptimized: true,
-    images: {
-        remotePatterns: [
-          {
-            protocol: 'https',
-            hostname: 'bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579.s3.eu-west-1.amazonaws.com',
-            pathname: '/**',
-          }
-        ]
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579.s3.eu-west-1.amazonaws.com',
+        pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 's3.eu-west-1.amazonaws.com',
+        pathname: '/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'portfolio-backend-dytv.onrender.com',
+        pathname: '/media/**',
+      }
+    ],
     minimumCacheTTL: 60,
   },
   typescript: {
@@ -50,32 +58,31 @@ const nextConfig = {
       }
     ];
   },
-    env: {
+  env: {
     PORT: process.env.PORT || '3000',
     NEXT_PUBLIC_API_URL: 'https://portfolio-backend-dytv.onrender.com/api',
     NEXT_PUBLIC_MEDIA_URL: 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
-    },
-
-    async redirects() {
-        return [
-          {
-                source: '/favicon.ico',
-                destination: '/public/favicon.ico',
-                permanent: true,
-          },
-          {
-                source: '/placeholder.svg',
-                destination: '/public/fallback-image.jpg',
-                permanent: true,
-          },
-          {
-            source: '/:path*',
-            has: [{ type: 'host', value: 'www.aouichou.me' }],
-            destination: 'https://aouichou.me/:path*',
-            permanent: true,
-          },
-        ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/favicon.ico',
+        destination: '/favicon.ico', // Files should be in public folder
+        permanent: true,
       },
+      {
+        source: '/placeholder.svg',
+        destination: '/fallback-image.jpg', // Files should be in public folder
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.aouichou.me' }],
+        destination: 'https://aouichou.me/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
