@@ -50,11 +50,23 @@ export default api;
 
 // Helper function for media URLs
 export function getMediaUrl(path: string): string {
-  if (!path) return "/placeholder.svg";
-  if (path.startsWith("http")) return path;
+  if (!path) return "/fallback-image.jpg";
   
+  // Handle case where path is already a full URL
+  if (path.startsWith("http")) {
+    // For S3 bucket images, use our proxy to avoid CORS issues
+    if (path.includes('bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579')) {
+      return `/api/image-proxy?url=${encodeURIComponent(path)}`;
+    }
+    return path;
+  }
+  
+  // If it's a relative path, construct the URL with the base
   const base = MEDIA_URL;
-  return `${base}/${path.replace(/^\//, '')}`;
+  const fullPath = `${base}/${path.replace(/^\//, '')}`;
+  
+  // Use proxy for all S3 URLs
+  return `/api/image-proxy?url=${encodeURIComponent(fullPath)}`;
 }
 
 // response interceptor to handle 404s
