@@ -240,4 +240,6 @@ AWS_QUERYSTRING_AUTH = False  # For signed URLs
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = 'public-read'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
-MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
+AWS_S3_USE_SSL = True
+AWS_S3_VERIFY = True 
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.eu-west-1.amazonaws.com/'

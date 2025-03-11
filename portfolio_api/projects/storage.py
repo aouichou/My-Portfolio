@@ -1,17 +1,10 @@
 # portfolio_api/projects/storage.py
 
 from storages.backends.s3boto3 import S3Boto3Storage
-import logging
-
-logger = logging.getLogger(__name__)
 
 class CustomS3Storage(S3Boto3Storage):
-    """Custom S3 storage that skips file existence checks to avoid permission issues."""
-    
-    def exists(self, name):
-        """
-        Override the exists method to avoid the HEAD request that's causing 403 errors.
-        Always return False to force upload attempt.
-        """
-        logger.info(f"Skipping exists check for {name}")
-        return False
+    """Custom S3 storage with proper hostname verification"""
+    def url(self, name, parameters=None, expire=3600):
+        # Force correct regional endpoint
+        self.bucket_name = self.bucket_name.split('.')[0]  # Remove any accidental duplication
+        return super().url(name, parameters, expire)
