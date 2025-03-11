@@ -19,6 +19,7 @@ export function middleware(request: NextRequest) {
 	[
 	  "default-src 'self'",
 	  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
+	  "img-src 'self' data: blob: https://bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579.s3.eu-west-1.amazonaws.com https://s3.eu-west-1.amazonaws.com",
 	  "style-src 'self' 'unsafe-inline'",
 	  "img-src 'self' data: blob: https: http:",
 	  "font-src 'self' data: https:",

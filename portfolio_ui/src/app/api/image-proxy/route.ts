@@ -8,31 +8,20 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    console.log('Image proxy request for:', url);
-
-    // Allow both URL formats for the bucket
-    const validDomains = [
-      'bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
-      's3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579'
-    ];
+    console.log('Image proxy request:', url);
     
-    const isValidUrl = validDomains.some(domain => url.includes(domain));
-    if (!isValidUrl) {
-      console.error('Invalid URL domain:', url);
+    // Simplified validation
+    if (!url.includes('bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579')) {
       return NextResponse.json({ error: 'Invalid URL domain' }, { status: 403 });
     }
     
     const response = await fetch(url, {
       cache: 'force-cache',
-      next: { revalidate: 86400 } // Cache for 24 hours
+      next: { revalidate: 86400 } 
     });
     
     if (!response.ok) {
-      console.error(`Failed to fetch image: ${response.status} ${response.statusText}`);
-      return NextResponse.json({ 
-        error: `Failed to fetch image: ${response.status}`,
-        url: url
-      }, { status: response.status });
+      throw new Error(`Failed to fetch image: ${response.status}`);
     }
     
     const contentType = response.headers.get('content-type');
@@ -41,16 +30,12 @@ export async function GET(request: NextRequest) {
     return new NextResponse(arrayBuffer, {
       headers: {
         'Content-Type': contentType || 'image/jpeg',
-        'Cache-Control': 'public, max-age=31536000',
+        'Cache-Control': 'public, max-age=86400',
         'Access-Control-Allow-Origin': '*'
       }
     });
   } catch (error) {
     console.error('Image proxy error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to proxy image',
-      message: (error instanceof Error) ? error.message : String(error),
-      url: url
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Image proxy error' }, { status: 500 });
   }
 }

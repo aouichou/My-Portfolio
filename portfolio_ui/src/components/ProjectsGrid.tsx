@@ -13,6 +13,10 @@ export default function ProjectsGrid() {
 	const [isMounted, setIsMounted] = useState(false);
 	const { data: projects, isLoading, error } = useFeaturedProjects();
 
+	useEffect(() => {
+		console.log("Projects data:", projects);
+	}, [projects]);
+
 	if (error) return <ErrorBoundary error={error} reset={() => window.location.reload()} />;
 	if (isLoading) return <LoadingSkeleton />;
   
