@@ -1,21 +1,28 @@
 // src/lib/queries.ts
 
 import { useQuery } from '@tanstack/react-query';
-import { api } from './api-client';
-import type { Project } from './types';
+import { getProjects, getProjectBySlug as apiGetProjectBySlug } from './api-client';
+import { normalizeProject } from './utils';
 
-export const useFeaturedProjects = () => {
-	return useQuery<Project[]>({
-	  queryKey: ['projects'],
-	  queryFn: async () => {
-		try {
-		  const { data } = await api.get('/projects/');
-		  return data;
-		} catch (error) {
-		  throw new Error('Failed to load projects. Please refresh the page.');
-		}
-	  },
-	  retry: 2,
-	  retryDelay: 1000
-	});
-  };
+export function useFeaturedProjects() {
+  return useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const projects = await getProjects();
+      return projects.map(normalizeProject);
+    }
+  });
+}
+
+export function useProjectBySlug(slug: string | null) {
+  return useQuery({
+    queryKey: ['projects', slug],
+    queryFn: async () => {
+      if (!slug) return null;
+      
+      const project = await apiGetProjectBySlug(slug);
+      return normalizeProject(project);
+    },
+    enabled: !!slug
+  });
+}

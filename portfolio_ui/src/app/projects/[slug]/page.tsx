@@ -12,6 +12,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ClientImage from '@/components/ClientImage';
 import { Suspense } from 'react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import { Gallery, GalleryImage, Project } from '@/library/types';
 
 type Props = {
   params: { slug: string };
@@ -102,78 +103,77 @@ async function ProjectPageContent({ params }: Props) {
 		<article className="max-w-6xl mx-auto px-4 py-12">
 			{/* Hero Section */}
 			<div className="mb-16">
-			<h1 className="text-5xl font-bold mb-6 dark:text-white">
-				{project.title}
-			</h1>
-			<div className="flex gap-2 flex-wrap mb-6">
-				{project.tech_stack.map((tech: string) => (
-				<span key={tech} className="badge-tech">
-					{tech}
-				</span>
-				))}
+				<h1 className="text-5xl font-bold mb-6 dark:text-white">
+					{project.title}
+				</h1>
+				<div className="flex gap-2 flex-wrap mb-6">
+					{project.tech_stack.map((tech: string) => (
+						<span key={tech} className="badge-tech">
+							{tech}
+						</span>
+					))}
+				</div>
 			</div>
-			</div>
-	
+
 			{/* Interactive Tabs */}
 			<Tabs defaultValue="overview" className="w-full">
-			<TabsList className="grid w-full grid-cols-4">
-				<TabsTrigger value="overview">Overview</TabsTrigger>
-				<TabsTrigger value="features">Features</TabsTrigger>
-				<TabsTrigger value="architecture">Architecture</TabsTrigger>
-				<TabsTrigger value="challenges">Challenges</TabsTrigger>
-			</TabsList>
-	
-			<TabsContent value="overview">
-				<ReactMarkdown>{project.description}</ReactMarkdown>
-			</TabsContent>
-	
-			<TabsContent value="features">
-				<div className="grid md:grid-cols-2 gap-6">
-				{project.features.map((feature, index) => (
-					<FeatureCard key={index} feature={feature} index={index} />
-				))}
-				</div>
-			</TabsContent>
-	
-			<TabsContent value="architecture">
-				<ClientImage
-				  src={project.architecture_diagram}
-				  alt="Architecture Diagram"
-				  className="rounded-xl border"
-				  width={800}  // Add required dimensions
-				  height={450}
-				  fallbackSrc="/fallback-diagram.jpg" // Optional custom fallback
-				  unoptimized
-				/>
-			</TabsContent>
-	
-			<TabsContent value="challenges">
-				<div className="prose-lg dark:prose-invert">
-				<h3 className="text-2xl font-bold mb-4">Technical Challenges</h3>
-				<p>{project.challenges}</p>
-				
-				<h3 className="text-2xl font-bold mt-8 mb-4">Key Learnings</h3>
-				<p>{project.lessons}</p>
-				</div>
-			</TabsContent>
+				<TabsList className="grid w-full grid-cols-4">
+					<TabsTrigger value="overview">Overview</TabsTrigger>
+					<TabsTrigger value="features">Features</TabsTrigger>
+					<TabsTrigger value="architecture">Architecture</TabsTrigger>
+					<TabsTrigger value="challenges">Challenges</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="overview">
+					<ReactMarkdown>{project.description}</ReactMarkdown>
+				</TabsContent>
+
+				<TabsContent value="features">
+					<div className="grid md:grid-cols-2 gap-6">
+						{project.features.map((feature, index) => (
+							<FeatureCard key={index} feature={feature} index={index} />
+						))}
+					</div>
+				</TabsContent>
+
+				<TabsContent value="architecture">
+					<ClientImage
+						src={project.architecture_diagram}
+						alt="Architecture Diagram"
+						className="rounded-xl border"
+						width={800}
+						height={450}
+						fallbackSrc="/fallback-diagram.jpg"
+						unoptimized
+					/>
+				</TabsContent>
+
+				<TabsContent value="challenges">
+					<div className="prose-lg dark:prose-invert">
+						<h3 className="text-2xl font-bold mb-4">Technical Challenges</h3>
+						<p>{project.challenges}</p>
+
+						<h3 className="text-2xl font-bold mt-8 mb-4">Key Learnings</h3>
+						<p>{project.lessons}</p>
+					</div>
+				</TabsContent>
 			</Tabs>
-	
+
 			{/* Interactive Gallery */}
-			{project.galleries?.map((gallery) => (
-			<section key={gallery.name} className="my-16">
-				<h2 className="text-3xl font-bold mb-8">{gallery.name}</h2>
-				{gallery.description && (
-				<p className="text-lg mb-6">{gallery.description}</p>
-				)}
-				<ImageCarousel 
-				images={gallery.images.map(img => ({
-					image: img.image,
-					caption: img.caption
-				}))}
-				/>
-			</section>
-			)
-			)}
+			{project.galleries?.map((gallery: Gallery) => (
+				<section key={gallery.name} className="my-16">
+					<h2 className="text-3xl font-bold mb-8">{gallery.name}</h2>
+					{gallery.description && (
+						<p className="text-lg mb-6">{gallery.description}</p>
+					)}
+					<ImageCarousel
+						images={gallery.images.map((img: GalleryImage) => ({
+							image: img.image,
+							caption: img.caption
+						}))}
+					/>
+				</section>
+			))}
 		</article>
 		);
   		} catch (error) {

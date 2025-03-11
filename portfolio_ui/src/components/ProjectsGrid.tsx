@@ -6,8 +6,8 @@ import { useFeaturedProjects } from '../library/queries';
 import Link from 'next/link';
 import ClientImage from './ClientImage';
 import { useEffect } from 'react';
-import ErrorBoundary from './error/boundary';
 import LoadingSkeleton from './LoadingSkeleton';
+import { Project } from '../library/types';
 
 export default function ProjectsGrid() {
   const { data: projects, isLoading, error } = useFeaturedProjects();
@@ -30,7 +30,7 @@ export default function ProjectsGrid() {
           Featured Work
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects?.map((project) => (
+          {projects?.map((project: Project) => (
             <Link
               key={project.id}
               href={`/projects/${project.slug}`}
@@ -38,7 +38,7 @@ export default function ProjectsGrid() {
             >
               <div className="relative h-48 w-full">
                 <ClientImage
-                  src={project.thumbnail}
+                  src={project.thumbnail_url || project.thumbnail}
                   alt={project.title}
                   className="w-full h-full object-cover"
                 />
@@ -48,7 +48,7 @@ export default function ProjectsGrid() {
                   {project.title}
                 </h3>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tech_stack?.map((tech) => (
+                  {project.tech_stack?.map((tech: string) => (
                     <span key={tech} className="badge-tech">
                       {tech}
                     </span>
