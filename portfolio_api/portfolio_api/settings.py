@@ -103,7 +103,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.aouichou.me",
 	"https://portfolio-backend.onrender.com",
     "https://api.aouichou.me",
-    "http://api.aouichou.me"
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -120,7 +119,7 @@ CORS_ALLOW_HEADERS = [
 
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True # For development only 
+CORS_ALLOW_ALL_ORIGINS = False
 
 ROOT_URLCONF = 'portfolio_api.urls'
 

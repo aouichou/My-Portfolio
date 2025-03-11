@@ -9,55 +9,58 @@ export { getMediaUrl, S3_BUCKET_URL };
 
 // Single source of truth for API URL with NO trailing slash
 export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 
-                      'https://portfolio-backend-dytv.onrender.com/api';
+					  'https://portfolio-backend-dytv.onrender.com/api';
 
 // Create axios instance
 export const api = axios.create({ 
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+	'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
 
 api.interceptors.request.use(config => {
   if (config.url && !config.url.endsWith('/')) {
-    config.url = `${config.url}/`;
+	config.url = `${config.url}/`;
   }
   return config;
 });
 
 export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
-                        'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
+						'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
 
 export async function getProjectBySlug(slug: string): Promise<Project> {
   try {
-    // Will get transformed to `/projects/minirt/` by the interceptor
-    const response = await api.get<Project>(`/projects/${slug}`);
-    return response.data;
+	// Will get transformed to `/projects/minirt/` by the interceptor
+	const response = await api.get<Project>(`/projects/${slug}`);
+	return response.data;
   } catch (error) {
-    console.error('Error fetching project:', error);
-    throw new Error('Failed to fetch project details');
+	console.error('Error fetching project:', error);
+	throw new Error('Failed to fetch project details');
   }
 }
 
 export async function getProjects() {
   try {
-    const response = await api.get('/projects/');
-    return response.data;
+	const response = await api.get('/projects/');
+	return response.data;
   } catch (error) {
-    console.error('Error fetching projects:', error);
-    return [];
+	console.error('Error fetching projects:', error);
+	return [];
   }
 }
 
 // response interceptor to handle 404s
-api.interceptors.response.use(response => response, error => {
-  if (error.response?.status === 404) {
-    window.location.href = '/404';
-  }
-  return Promise.reject(error);
-});
+api.interceptors.response.use(
+	response => response,
+	error => {
+	  if (typeof window !== 'undefined' && error.response?.status === 404) {
+		window.location.href = '/404';
+	  }
+	  return Promise.reject(error);
+	}
+  );
 
 export default api;
 
