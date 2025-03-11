@@ -4,22 +4,10 @@
 const nextConfig = {
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579.s3.eu-west-1.amazonaws.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 's3.eu-west-1.amazonaws.com',
-        pathname: '/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'portfolio-backend-dytv.onrender.com',
-        pathname: '/media/**',
-      }
+    domains: [
+      'bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579.s3.eu-west-1.amazonaws.com',
+      's3.eu-west-1.amazonaws.com',
+      'portfolio-backend-dytv.onrender.com',
     ],
     minimumCacheTTL: 60,
   },
@@ -29,15 +17,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Only include essential headers here
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http:; font-src 'self' data: https:; connect-src 'self' https: http:; media-src 'self' data: blob: https: http:; object-src 'none'; frame-src 'self';"
-          },
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'
@@ -45,18 +30,6 @@ const nextConfig = {
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http:; font-src 'self' data: https:; connect-src 'self' https: http:; media-src 'self' data: blob: https: http:; object-src 'none'; frame-src 'self';"
           }
         ]
       }
@@ -66,27 +39,7 @@ const nextConfig = {
     PORT: process.env.PORT || '3000',
     NEXT_PUBLIC_API_URL: 'https://portfolio-backend-dytv.onrender.com/api',
     NEXT_PUBLIC_MEDIA_URL: 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
-  },
-  async redirects() {
-    return [
-      {
-        source: '/favicon.ico',
-        destination: '/favicon.ico', // Files should be in public folder
-        permanent: true,
-      },
-      {
-        source: '/placeholder.svg',
-        destination: '/fallback-image.jpg', // Files should be in public folder
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.aouichou.me' }],
-        destination: 'https://aouichou.me/:path*',
-        permanent: true,
-      },
-    ];
-  },
+  }
 };
 
 module.exports = nextConfig;

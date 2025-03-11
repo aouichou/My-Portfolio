@@ -7,6 +7,7 @@ import { metadata } from './metadata';
 import { Toaster } from 'sonner';
 import { Inter } from 'next/font/google';
 import FontLoader from '@/components/FontLoader';
+import BlockCloudflare from '@/components/BlockCloudflare';
 
 const inter = Inter({
 	subsets: ['latin'],
@@ -34,6 +35,7 @@ export default function RootLayout({
 	return (
 	  <html lang="en" suppressHydrationWarning>
 		<body className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+		<BlockCloudflare />
 		  <FontLoader />
 		  <ClientLayout>
 			{children}
