@@ -1,12 +1,14 @@
-[
-    {
+{
+    "CORSRules": [
+      {
         "AllowedHeaders": ["*"],
         "AllowedMethods": ["GET", "HEAD"],
         "AllowedOrigins": [
-            "https://aouichou.me",
-            "https://www.aouichou.me",
-            "https://api.aouichou.me"
+          "https://aouichou.me",
+          "https://www.aouichou.me",
+          "https://api.aouichou.me"
         ],
         "ExposeHeaders": []
-    }
-]
+      }
+    ]
+  }

@@ -54,74 +54,55 @@
 
 "use client"
 
+// import Image from "next/image"
 import { useState, useEffect } from "react"
 
 interface ClientImageProps {
   src?: string;
   alt?: string;
   fallbackSrc?: string;
-  className?: string;
-  width?: number;
-  height?: number;
-  [key: string]: any;
+  [key: string]: any; // For other props
 }
 
 export default function ClientImage({
   src,
   alt = "",
   fallbackSrc = "/fallback-image.jpg",
-  className,
-  width,
-  height,
   ...props
 }: ClientImageProps) {
   const [imgSrc, setImgSrc] = useState<string>(fallbackSrc);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
+  // Simple approach - use local fallback images
   useEffect(() => {
-    // Reset when src changes
-    setIsLoaded(false);
-    
     if (!src) {
       setImgSrc(fallbackSrc);
       return;
     }
     
-    // Try to load the image
-    const img = new Image();
+    // Try loading the image directly first
+    const img = new window.Image();
     img.src = src;
     
-    const timer = setTimeout(() => {
-      // After 3 seconds, assume loading failed
-      if (!isLoaded) {
-        console.log(`Image timeout: ${src}`);
-        setImgSrc(fallbackSrc);
-      }
-    }, 3000);
-    
     img.onload = () => {
-      clearTimeout(timer);
       setImgSrc(src);
-      setIsLoaded(true);
+      setHasError(false);
     };
     
     img.onerror = () => {
-      clearTimeout(timer);
-      console.log(`Image failed to load: ${src}`);
+      console.log(`Image failed to load: ${src}, using fallback`);
       setImgSrc(fallbackSrc);
+      setHasError(true);
     };
-    
-    return () => clearTimeout(timer);
-  }, [src, fallbackSrc, isLoaded]);
+  }, [src, fallbackSrc]);
 
+  // Simply render an img element with error handling
   return (
     <img
+      {...props}
       src={imgSrc}
       alt={alt}
-      className={className}
-      width={width}
-      height={height}
-      {...props}
+      onError={() => setImgSrc(fallbackSrc)}
     />
   );
 }
