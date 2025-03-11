@@ -4,6 +4,9 @@ from django.db import models
 from django.utils.text import slugify
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
+from .storage import CustomS3Storage
+
+s3_storage = CustomS3Storage()
 
 class Project(models.Model):
 	title = models.CharField(max_length=200)
@@ -13,14 +16,14 @@ class Project(models.Model):
 	tech_stack = models.JSONField(default=list)
 	live_url = models.URLField(blank=True)
 	code_url = models.URLField(blank=True)
-	thumbnail = models.ImageField(upload_to='projects/')
+	thumbnail = models.ImageField(upload_to='projects/', storage=s3_storage, blank=True, help_text="Thumbnail image for project", null=True)
 	is_featured = models.BooleanField(default=False)
 	score = models.IntegerField(null=True, blank=True)
 	features = models.JSONField(default=list, help_text="List of key features")
 	challenges = models.TextField(blank=True, help_text="Technical challenges overcome")
 	lessons = models.TextField(blank=True, help_text="Key lessons learned")
 	video_url = models.URLField(blank=True)
-	architecture_diagram = models.ImageField(upload_to='architecture/', blank=True)
+	architecture_diagram = models.ImageField(upload_to='architecture/', blank=True, storage=s3_storage, help_text="Architecture diagram for project", null=True)
 	
 	def save(self, *args, **kwargs):
 		# Allow bypassing validation for initial imports
@@ -50,10 +53,6 @@ class Project(models.Model):
 			
 		if Project.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
 			raise ValidationError("Slug must be unique")
-
-	# def save(self, *args, **kwargs):
-	# 	self.full_clean()
-	# 	super().save(*args, **kwargs)
 
 	class Meta:
 		ordering = ['-is_featured', 'title']
@@ -94,6 +93,7 @@ class GalleryImage(models.Model):
 	)
 	image = models.ImageField(
 		upload_to='galleries/%Y/%m/%d/',
+		storage=s3_storage,
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])]
 	)
 	caption = models.CharField(max_length=200, blank=True)
