@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { getMediaUrl } from '@/library/s3-config';
 
 type ClientImageProps = {
   src?: string;
@@ -21,33 +22,59 @@ export default function ClientImage({
   height,
   ...props 
 }: ClientImageProps) {
-  // Initialize with the actual src to avoid hydration mismatch
-  const [imgSrc, setImgSrc] = useState<string>(src || '/fallback-image.jpg');
+  // Process the source URL
+  const processedSrc = src ? getMediaUrl(src) : '/fallback-image.jpg';
+  
+  // Use state to track image loading
+  const [imgSrc, setImgSrc] = useState<string>(processedSrc);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [attempts, setAttempts] = useState<number>(0);
 
   // Handle image loading errors
   const handleError = () => {
-    if (imgSrc !== '/fallback-image.jpg') {
-      console.log(`Falling back to default for: ${src}`);
+    console.error(`Image failed to load: ${imgSrc}`);
+    
+    if (attempts < 2) {
+      // Try one more time with a small delay
+      setTimeout(() => {
+        setAttempts(prev => prev + 1);
+        // Try a different approach on second attempt
+        if (attempts === 0 && src) {
+          const directUrl = src.startsWith('http') 
+            ? src 
+            : `https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src.replace(/^\//, '')}`;
+          console.log('Retry with direct URL:', directUrl);
+          setImgSrc(directUrl);
+        }
+      }, 1000);
+    } else {
+      // After final attempt, use fallback
       setImgSrc('/fallback-image.jpg');
+      setIsLoading(false);
     }
   };
 
-  // Only try to load real image after hydration is complete
+  // Effect to load image
   useEffect(() => {
-    // If src changes or is undefined, update imgSrc
     if (!src) {
       setImgSrc('/fallback-image.jpg');
+      setIsLoading(false);
       return;
     }
 
-    // Preload image
+    // Reset state when src changes
+    if (processedSrc !== imgSrc) {
+      setImgSrc(processedSrc);
+      setAttempts(0);
+      setIsLoading(true);
+    }
+
     const img = new Image();
-    img.src = src;
+    img.src = processedSrc;
     
     img.onload = () => {
-      if (imgSrc !== src) {
-        setImgSrc(src);
-      }
+      setIsLoading(false);
+      console.log('Image loaded successfully:', processedSrc);
     };
     
     img.onerror = handleError;
@@ -56,17 +83,24 @@ export default function ClientImage({
       img.onload = null;
       img.onerror = null;
     };
-  }, [src, imgSrc]);
+  }, [src, processedSrc, imgSrc, attempts]);
   
   return (
-    <img
-      src={imgSrc}
-      alt={alt || ""}
-      className={className || ""}
-      width={width}
-      height={height}
-      onError={handleError}
-      {...props}
-    />
+    <>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+          <div className="w-8 h-8 border-4 border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+      )}
+      <img
+        src={imgSrc}
+        alt={alt || ""}
+        className={`${className || ""} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        width={width}
+        height={height}
+        onError={handleError}
+        {...props}
+      />
+    </>
   );
 }
