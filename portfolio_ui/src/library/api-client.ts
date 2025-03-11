@@ -65,23 +65,26 @@ api.interceptors.response.use(
 export default api;
 
 
-// // Helper function for media URLs
-// export function getMediaUrl(path: string): string {
-// 	if (!path) return "/fallback-image.jpg";
+// Helper for better error handling in network requests
+export const fetchWithTimeout = async (url: string, options = {}, timeout = 10000) => {
+	const controller = new AbortController();
+	const id = setTimeout(() => controller.abort(), timeout);
 	
-// 	// Handle case where path is already a full URL
-// 	if (path.startsWith("http")) {
-// 	  // For S3 bucket images, use our proxy to avoid CORS issues
-// 	  if (path.includes('bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579')) {
-// 		return `/api/image-proxy?url=${encodeURIComponent(path)}`;
-// 	  }
-// 	  return path;
-// 	}
-	
-// 	// If it's a relative path, construct the URL with the base
-// 	const base = MEDIA_URL;
-// 	const fullPath = `${base}/${path.replace(/^\//, '')}`;
-	
-// 	// Use proxy for all S3 URLs
-// 	return `/api/image-proxy?url=${encodeURIComponent(fullPath)}`;
-//   }
+	try {
+	  const response = await fetch(url, {
+		...options,
+		signal: controller.signal
+	  });
+	  
+	  clearTimeout(id);
+	  
+	  if (!response.ok) {
+		throw new Error(`Network response was not ok: ${response.status}`);
+	  }
+	  
+	  return response;
+	} catch (error) {
+	  clearTimeout(id);
+	  throw error;
+	}
+  };

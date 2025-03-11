@@ -5,24 +5,23 @@
 import { useFeaturedProjects } from '../library/queries';
 import Link from 'next/link';
 import ClientImage from './ClientImage';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import ErrorBoundary from './error/boundary';
 import LoadingSkeleton from './LoadingSkeleton';
 
 export default function ProjectsGrid() {
-	const [isMounted, setIsMounted] = useState(false);
-	const { data: projects, isLoading, error } = useFeaturedProjects();
+  const { data: projects, isLoading, error } = useFeaturedProjects();
 
-	useEffect(() => {
-		console.log("Projects data:", projects);
-	}, [projects]);
+  // Only log in development, not production
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      console.log("Projects data:", projects);
+    }, [projects]);
+  }
 
-	if (error) return <ErrorBoundary error={error} reset={() => window.location.reload()} />;
-	if (isLoading) return <LoadingSkeleton />;
-  
-	useEffect(() => {
-	  setIsMounted(true);
-	}, []);
+  if (error) return <div className="py-20 text-center">Failed to load projects. Please try again later.</div>;
+  if (isLoading) return <LoadingSkeleton />;
 
   return (
     <section id="projects" className="py-20 bg-gray-50 dark:bg-gray-800">
@@ -37,46 +36,42 @@ export default function ProjectsGrid() {
               href={`/projects/${project.slug}`}
               className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
             >
-              {	<ClientImage
-				src={project.thumbnail}
-				alt={project.title}
-				width={600}
-				height={400}
-				className="w-full h-48 object-cover"
-				priority={true}
-				placeholder="blur"
-				blurDataURL="/placeholder.jpg"
-				fallbackSrc="/fallback-image.jpg"
-				unoptimized
-				/>
-			  }
+              <div className="relative h-48 w-full">
+                <ClientImage
+                  src={project.thumbnail}
+                  alt={project.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <div className="p-6">
                 <h3 className="text-2xl font-bold mb-3 dark:text-white">
                   {project.title}
                 </h3>
                 <div className="flex flex-wrap gap-2 mb-4">
-					{project.tech_stack?.map((tech: string) => (
-						<span key={tech} className="badge-tech">
-						{tech}
-						</span>
-					))}
-				</div>
+                  {project.tech_stack?.map((tech) => (
+                    <span key={tech} className="badge-tech">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
                 <div className="flex gap-4 mt-4">
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      window.open(project.live_url, '_blank');
+                      if (project.live_url) window.open(project.live_url, '_blank');
                     }}
                     className="btn-primary-sm"
+                    disabled={!project.live_url}
                   >
                     Live Demo
                   </button>
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      window.open(project.code_url, '_blank');
+                      if (project.code_url) window.open(project.code_url, '_blank');
                     }}
                     className="btn-outline-sm"
+                    disabled={!project.code_url}
                   >
                     Source Code
                   </button>

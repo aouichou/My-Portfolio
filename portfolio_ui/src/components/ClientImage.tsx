@@ -21,52 +21,51 @@ export default function ClientImage({
   height,
   ...props 
 }: ClientImageProps) {
-  // Start with a loading state or fallback
-  const [imgSrc, setImgSrc] = useState<string>('/fallback-image.jpg');
-  const [isLoaded, setIsLoaded] = useState(false);
-  
-  // Use effect to ensure hydration consistency
+  // Initialize with the actual src to avoid hydration mismatch
+  const [imgSrc, setImgSrc] = useState<string>(src || '/fallback-image.jpg');
+
+  // Handle image loading errors
+  const handleError = () => {
+    if (imgSrc !== '/fallback-image.jpg') {
+      console.log(`Falling back to default for: ${src}`);
+      setImgSrc('/fallback-image.jpg');
+    }
+  };
+
+  // Only try to load real image after hydration is complete
   useEffect(() => {
-    if (!src) return;
-    
-    // Now that we know we're on client side, try the real image
+    // If src changes or is undefined, update imgSrc
+    if (!src) {
+      setImgSrc('/fallback-image.jpg');
+      return;
+    }
+
+    // Preload image
     const img = new Image();
     img.src = src;
     
-    const timer = setTimeout(() => {
-      if (!isLoaded) {
-        console.log(`Image load timeout: ${src}`);
-        setImgSrc('/fallback-image.jpg');
-      }
-    }, 5000);
-    
     img.onload = () => {
-      clearTimeout(timer);
-      setImgSrc(src);
-      setIsLoaded(true);
+      if (imgSrc !== src) {
+        setImgSrc(src);
+      }
     };
     
-    img.onerror = () => {
-      clearTimeout(timer);
-      console.error(`Image failed to load: ${src}`);
-      setImgSrc('/fallback-image.jpg');
-    };
+    img.onerror = handleError;
     
-    return () => clearTimeout(timer);
-  }, [src, isLoaded]);
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src, imgSrc]);
   
-  // Simple img element with error handling
   return (
     <img
       src={imgSrc}
-      alt={alt}
-      className={className}
+      alt={alt || ""}
+      className={className || ""}
       width={width}
       height={height}
-      onError={() => {
-        console.log(`Error loading image: ${imgSrc}`);
-        setImgSrc('/fallback-image.jpg');
-      }}
+      onError={handleError}
       {...props}
     />
   );

@@ -3,11 +3,11 @@ export const S3_BUCKET_URL = 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244
 export const getMediaUrl = (path: string): string => {
   if (!path) return "/fallback-image.jpg";
   
-  // Direct access now that bucket is public
+  // Return direct URLs without modification
   if (path.startsWith('http')) {
-    return path;  // Use direct URL, no proxy
+    return path;
   }
   
-  // Build path properly for relative paths
+  // Create proper URL for relative paths
   return `${S3_BUCKET_URL}/${path.replace(/^\//, '')}`;
 };
