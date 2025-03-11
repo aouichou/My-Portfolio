@@ -8,6 +8,7 @@ import { Toaster } from 'sonner';
 import { Inter } from 'next/font/google';
 import FontLoader from '@/components/FontLoader';
 import BlockCloudflare from '@/components/BlockCloudflare';
+import DebugCSP from '@/components/DebugCSP';
 
 const inter = Inter({
 	subsets: ['latin'],
@@ -37,6 +38,7 @@ export default function RootLayout({
 		<body className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
 		<BlockCloudflare />
 		  <FontLoader />
+		  <DebugCSP />
 		  <ClientLayout>
 			{children}
 			<Toaster position="top-center" />
