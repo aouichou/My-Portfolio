@@ -22,7 +22,7 @@ export const GithubContributions = ({ repoUrl }: GithubContributionsProps) => {
 
   // Simple activity graph without the dependency
   return (
-    <div className="rounded-xl border p-6 bg-background">
+    <div className="rounded-xl border p-6 bg-gray-100 dark:bg-gray-800">
       <p className="mb-4 text-muted-foreground">Repository: <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{repoUrl}</a></p>
       
       <div className="h-32 w-full flex items-end gap-1">

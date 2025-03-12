@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/Icons';
 import { MermaidComponent } from '@/components/MermaidComponent';
+import ScrollToTop from '@/components/ScrollToTop';
 
 interface ProjectDetailProps {
   slug: string;
@@ -97,15 +98,14 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 		  animate={{ opacity: 1 }}
 		  transition={{ delay: 0.2 }}
 		>
-		  {project.tech_stack.map((tech: string) => (
+			{project.tech_stack.map((tech: string) => (
 			<Badge
-			  key={tech}
-			  variant="outline"
-			  className="px-4 py-2 text-sm font-mono hover:bg-accent/50 transition-all"
+				key={tech}
+				className="px-4 py-2 text-sm font-mono bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all"
 			>
-			  {tech}
+				{tech}
 			</Badge>
-		  ))}
+			))}
 		</motion.div>
 
 		<div className="flex justify-center gap-4 mb-12">
@@ -122,164 +122,148 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 			  Live Demo
 			</a>
 		  )}
-		  {project.code_url && (
+			{project.code_url && (
 			<a
-			  href={project.code_url}
-			  target="_blank"
-			  rel="noopener noreferrer"
-			  className="flex items-center gap-2 px-6 py-3 border border-accent hover:bg-accent/10 rounded-full transition-all"
+				href={project.code_url}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-all"
 			>
-			  <div className="h-5 w-5">
-			  <Icons.github />
-			  </div>
-			  View Code
+				<div className="h-5 w-5">
+				<Icons.github />
+				</div>
+				View Code
 			</a>
-		  )}
+			)}
 		</div>
 	  </section>
 
-	  {/* Interactive Tabs */}
-	  <Tabs value={activeTab} onValueChange={setActiveTab}>
-		  <TabsList className="grid w-full grid-cols-4 bg-background/50 backdrop-blur-sm">
-			  {['overview', 'features', 'architecture', 'challenges'].map((tab) => (
-			  <TabsTrigger
-				  key={tab}
-				  value={tab}
-				  className="data-[state=active]:bg-accent/10 data-[state=active]:border-b-2 data-[state=active]:border-primary"
-			  >
-				  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-			  </TabsTrigger>
-			  ))}
-		  </TabsList>
-
-		<motion.div
-		  key={activeTab}
-		  initial={{ opacity: 0, y: 10 }}
-		  animate={{ opacity: 1, y: 0 }}
-		  transition={{ duration: 0.3 }}
+	{/* Project Description */}
+	<section className="my-12 p-8 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 shadow-lg">
+	  <h2 className="text-3xl font-bold mb-6 text-blue-900 dark:text-blue-100">Project Overview</h2>
+	  <motion.div 
+		className="prose prose-lg dark:prose-invert max-w-none"
+		initial={{ opacity: 0 }}
+		animate={{ opacity: 1 }}
+		transition={{ duration: 0.5 }}
+	  >
+		<ReactMarkdown components={{
+		  img: ({ node, ...props }) => (
+			<ImageComponent src={props.src} alt={props.alt} />
+		  )
+		}}>
+		  {project.description}
+		</ReactMarkdown>
+	  </motion.div>
+	</section>
+	
+	{/* Technical Challenges & Key Learnings */}
+	<section className="my-12">
+	  <h2 className="text-3xl font-bold mb-8">Insights & Challenges</h2>
+	  <div className="grid md:grid-cols-2 gap-8">
+		<motion.div 
+		  className="p-6 rounded-xl bg-red-500/5 border border-red-500/20"
+		  initial={{ opacity: 0 }}
+		  animate={{ opacity: 1 }}
 		>
-		  <TabsContent value="overview" className="mt-8">
-			<motion.div className="prose prose-lg dark:prose-invert max-w-none">
-			  <ReactMarkdown components={{
-				img: ({ node, ...props }) => (
-				  <ImageComponent src={props.src} alt={props.alt} />
-				)
-			  }}>
-				{project.description}
-			  </ReactMarkdown>
-			</motion.div>
-		  </TabsContent>
-
-		  <TabsContent value="features" className="mt-8">
-			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{project.features.map((feature: any, index: number) => {
-			  // Handle both string and object formats
-			  const featureText = typeof feature === 'string' ? feature : feature.text;
-			  const completionPercentage = 
-				typeof feature === 'object' && 'completionPercentage' in feature
-				  ? feature.completionPercentage
-				  : (index + 1) * 25;  // Fallback to original calculation
-			  
-			  return (
-				<motion.div
-				  key={index}
-				  whileHover={{ y: -5 }}
-				  className="p-6 rounded-xl border bg-card/50 hover:bg-card transition-all"
-				>
-				  <div className="flex items-center gap-3 mb-4">
-					<div className="p-2 bg-primary/10 rounded-full">
-					  <div className="h-6 w-6 text-primary">
-						<Icons.feature />
-					  </div>
-					</div>
-					<h3 className="text-xl font-semibold">Feature {index + 1}</h3>
-				  </div>
-				  <p className="text-muted-foreground">{featureText}</p>
-				  <Separator className="my-4" />
-				  <div className="flex items-center gap-2 text-sm">
-					<span>Implementation Progress</span>
-					<Progress value={completionPercentage} className="h-2 w-24" />
-				  </div>
-				</motion.div>
-			  );
-			})}
+		  <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+			<div className="h-6 w-6 text-red-500">
+			  <Icons.challenge />
 			</div>
-		  </TabsContent>
-
-		  <TabsContent value="architecture" className="mt-8">
-			{project.architecture_diagram ? (
-				<div className="space-y-4">
-				<DiagramRenderer 
-					diagram={project.architecture_diagram}
-					type={project.diagram_type}
-				/>
-				<div className="text-sm text-muted-foreground">
-					Diagram type: {project.diagram_type}
-				</div>
-				</div>
-			) : (
-				<div className="p-6 rounded-lg bg-muted">
-				<p className="text-center text-foreground/50">
-					Architecture diagram not available
-				</p>
-				</div>
-			)}
-			</TabsContent>
-
-		  <TabsContent value="challenges" className="mt-8">
-			<div className="grid md:grid-cols-2 gap-8">
-			  <motion.div 
-				className="p-6 rounded-xl bg-red-500/5 border border-red-500/20"
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-			  >
-				<h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-				  <div className="h-6 w-6 text-red-500">
-					<Icons.challenge />
-				  </div>
-				  Technical Challenges
-				</h3>
-				<p className="text-muted-foreground">{project.challenges}</p>
-			  </motion.div>
-
-			  <motion.div 
-				className="p-6 rounded-xl bg-green-500/5 border border-green-500/20"
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-			  >
-				<h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-				  <div className="h-6 w-6 text-green-500">
-					  <Icons.learning />
-				  </div>
-				  Key Learnings
-				</h3>
-				<p className="text-muted-foreground">{project.lessons}</p>
-			  </motion.div>
-			</div>
-
-		  {project.development_steps && project.development_steps.length > 0 && (
-			<div className="mt-12">
-			  <h4 className="text-xl font-semibold mb-6">Development Timeline</h4>
-			  <div className="relative pl-6 border-l-2 border-accent">
-				{project.development_steps.map((step, index) => (
-				  <motion.div
-					key={index}
-					className="mb-8 pl-6 relative"
-					initial={{ opacity: 0, x: -20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ delay: index * 0.1 }}
-				  >
-					<div className="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-2 border-2 border-background" />
-					<h5 className="font-medium mb-2">{step.title}</h5>
-					<p className="text-sm text-muted-foreground">{step.description}</p>
-				  </motion.div>
-				))}
-			  </div>
-			</div>
-		  )}
-		  </TabsContent>
+			Technical Challenges
+		  </h3>
+		  <p className="text-muted-foreground">{project.challenges}</p>
 		</motion.div>
-	  </Tabs>
+	
+		<motion.div 
+		  className="p-6 rounded-xl bg-green-500/5 border border-green-500/20"
+		  initial={{ opacity: 0 }}
+		  animate={{ opacity: 1 }}
+		>
+		  <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+			<div className="h-6 w-6 text-green-500">
+			  <Icons.learning />
+			</div>
+			Key Learnings
+		  </h3>
+		  <p className="text-muted-foreground">{project.lessons}</p>
+		</motion.div>
+	  </div>
+	
+	  {/* Development Timeline (if available) */}
+	  {project.development_steps && project.development_steps.length > 0 && (
+		<div className="mt-12">
+		  <h4 className="text-xl font-semibold mb-6">Development Timeline</h4>
+		  <div className="relative pl-6 border-l-2 border-accent">
+			{project.development_steps.map((step, index) => (
+			  <motion.div
+				key={index}
+				className="mb-8 pl-6 relative"
+				initial={{ opacity: 0, x: -20 }}
+				animate={{ opacity: 1, x: 0 }}
+				transition={{ delay: index * 0.1 }}
+			  >
+				<div className="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-2 border-2 border-background" />
+				<h5 className="font-medium mb-2">{step.title}</h5>
+				<p className="text-sm text-muted-foreground">{step.description}</p>
+			  </motion.div>
+			))}
+		  </div>
+		</div>
+	  )}
+	</section>
+	
+	{/* Features Section  */}
+	<section className="my-12">
+	  <h2 className="text-3xl font-bold mb-8">Key Features</h2>
+	  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+		{project.features.map((feature: any, index: number) => {
+		  // Handle both string and object formats
+		  const featureText = typeof feature === 'string' ? feature : feature.text;
+		  const completionPercentage = 
+			typeof feature === 'object' && 'completionPercentage' in feature
+			  ? feature.completionPercentage
+			  : (index + 1) * 25;  // Fallback to original calculation
+		  
+		  return (
+			<motion.div
+			  key={index}
+			  whileHover={{ y: -3, scale: 1.03 }}
+			  className="p-4 rounded-lg border bg-card/50 hover:bg-card transition-all h-full flex flex-col justify-between"
+			>
+			  <div>
+				<div className="mb-2">
+				  <div className="h-5 w-5 text-primary">
+					<Icons.feature />
+				  </div>
+				</div>
+				<p className="text-sm text-muted-foreground line-clamp-4">{featureText}</p>
+			  </div>
+			  <div className="mt-3">
+				<Progress value={completionPercentage} className="h-1.5 w-full" />
+			  </div>
+			</motion.div>
+		  );
+		})}
+	  </div>
+	</section>
+
+		{/* Architecture Diagram */}
+		{project.architecture_diagram && (
+		  <section className="my-16">
+			<h2 className="text-3xl font-bold mb-8">System Architecture</h2>
+			<motion.div
+			  initial={{ opacity: 0, y: 20 }}
+			  animate={{ opacity: 1, y: 0 }}
+			  transition={{ duration: 0.5 }}
+			>
+			  <DiagramRenderer 
+				diagram={project.architecture_diagram} 
+				type={project.diagram_type || 'MERMAID'} 
+			  />
+			</motion.div>
+		  </section>
+		)}
 
 	  {/* Interactive Gallery */}
 	  {project.galleries?.map((gallery: Gallery) => (
@@ -366,6 +350,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 		  Launch Demo
 		</a>
 	  </div>
+	  <ScrollToTop />
 	</motion.div>
   );
 }

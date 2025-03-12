@@ -181,21 +181,26 @@
 
 /* Mermaid diagram styling */
 .mermaid-container {
-	@apply bg-background p-6 rounded-xl border;
-  }
-  
-  .mermaid-container .label {
-	@apply font-mono text-sm !important;
-  }
-  
-  .mermaid-container path {
-	@apply stroke-foreground/80;
-  }
-  
-  .mermaid-container .node rect {
-	@apply fill-background stroke-foreground/30;
-  }
-  
-  .mermaid-container .edgeLabels .edgeLabel {
-	@apply bg-background/90 px-2 rounded-md border;
-  }
+  @apply bg-white dark:bg-gray-800 p-6 rounded-xl border;
+}
+
+/* Make sure mermaid diagrams are visible */
+.mermaid-container .node rect,
+.mermaid-container .node circle,
+.mermaid-container .node ellipse,
+.mermaid-container .node polygon,
+.mermaid-container .node path {
+  @apply fill-white dark:fill-gray-800 stroke-gray-800 dark:stroke-white;
+}
+
+.mermaid-container .label {
+  @apply text-gray-800 dark:text-white;
+}
+
+.mermaid-container .cluster rect {
+  @apply fill-gray-50 dark:fill-gray-700 stroke-gray-300 dark:stroke-gray-600;
+}
+
+.mermaid-container .edgePath .path {
+  @apply stroke-gray-800 dark:stroke-gray-200;
+}

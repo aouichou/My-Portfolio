@@ -9,6 +9,7 @@ import { Inter } from 'next/font/google';
 import FontLoader from '@/components/FontLoader';
 import BlockCloudflare from '@/components/BlockCloudflare';
 import DebugCSP from '@/components/DebugCSP';
+import Script from 'next/script';
 
 const inter = Inter({
 	subsets: ['latin'],
@@ -36,13 +37,27 @@ export default function RootLayout({
 	return (
 	  <html lang="en">
 		<body className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
-		<BlockCloudflare />
+		  <BlockCloudflare />
 		  <FontLoader />
 		  <DebugCSP />
 		  <ClientLayout>
 			{children}
 			<Toaster position="top-center" />
 		  </ClientLayout>
+		  
+		  {/* Add Mermaid script */}
+		  <Script 
+			src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"
+			strategy="afterInteractive"
+			onLoad={() => {
+			  // Initialize mermaid when script loads
+			  // @ts-ignore
+			  window.mermaid?.initialize({ 
+				startOnLoad: true,
+				theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default'
+			  });
+			}}
+		  />
 		</body>
 	  </html>
 	);
