@@ -147,3 +147,21 @@
 	  @apply px-4 py-2 border rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white;
 	}
   }
+
+  @layer base {
+	:root {
+	  --primary: 222.2 47.4% 11.2%;
+	  --secondary: 210 40% 96.1%;
+	  --border: 214.3 31.8% 91.4%;
+	  --input: 214.3 31.8% 91.4%;
+	  --foreground: 222.2 47.4% 11.2%;
+	}
+  
+	.dark {
+	  --primary: 210 40% 98%;
+	  --secondary: 217.2 32.6% 17.5%;
+	  --border: 217.2 32.6% 17.5%;
+	  --input: 217.2 32.6% 17.5%;
+	  --foreground: 210 40% 98%;
+	}
+  }

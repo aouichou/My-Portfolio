@@ -12,6 +12,12 @@ export type GalleryImage = {
 	images: GalleryImage[];
   };
   
+  export type DevelopmentStep = {
+	title: string;
+	description: string;
+	date?: string;
+  };
+
   export interface Project {
   id: number;
   title: string;
@@ -31,4 +37,7 @@ export type GalleryImage = {
   thumbnail?: string;
   video_url?: string;
   architecture_diagram?: string;
+  development_steps?: DevelopmentStep[];
+  code_snippet?: string;
+  styles_snippet?: string;
 }

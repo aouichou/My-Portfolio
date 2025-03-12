@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getProjects, getProjectBySlug as apiGetProjectBySlug } from './api-client';
 import { normalizeProject } from './utils';
+import { Project } from './types';
 
 export function useFeaturedProjects() {
   return useQuery({
@@ -14,7 +15,7 @@ export function useFeaturedProjects() {
   });
 }
 
-export function useProjectBySlug(slug: string | null) {
+export function useProjectBySlug(slug: string, initialData?: Project) {
   return useQuery({
     queryKey: ['projects', slug],
     queryFn: async () => {
@@ -23,6 +24,7 @@ export function useProjectBySlug(slug: string | null) {
       const project = await apiGetProjectBySlug(slug);
       return normalizeProject(project);
     },
+    initialData, // Use server-fetched data for initial render
     enabled: !!slug
   });
 }
