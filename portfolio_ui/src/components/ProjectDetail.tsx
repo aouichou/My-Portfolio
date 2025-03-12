@@ -109,33 +109,34 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 		</MotionDiv>
 
 		<div className="flex justify-center gap-4 mb-12">
-		  {project.live_url && (
-			<a
-			  href={project.live_url}
-			  target="_blank"
-			  rel="noopener noreferrer"
-			  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all"
-			>
-			  <div className="h-5 w-5">
-				<Icons.externalLink />
-			  </div>
-			  Live Demo
-			</a>
-		  )}
-		</div>
-		{project.code_url && (
-		<a
-			href={project.code_url}
-			target="_blank"
-			rel="noopener noreferrer"
-			className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-all"
-		>
-			<div className="h-5 w-5 text-black dark:text-white">
-			<Icons.github />
+			{project.live_url && (
+				<a
+				href={project.live_url}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all"
+				>
+				<div className="h-5 w-5">
+					<Icons.externalLink />
+				</div>
+				Live Demo
+				</a>
+			)}
+			
+			{project.code_url && (
+				<a
+				href={project.code_url}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-all"
+				>
+				<div className="h-5 w-5 text-black dark:text-white">
+					<Icons.github />
+				</div>
+				View Code
+				</a>
+			)}
 			</div>
-			View Code
-		</a>
-		)}
 	  </section>
 
 	{/* Project Description */}
