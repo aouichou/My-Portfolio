@@ -2,6 +2,7 @@
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@next/bundle-analyzer": "^15.1.6",
+    "mermaid": "^11.4.1",
     "sharp": "^0.33.5"
   }
 }

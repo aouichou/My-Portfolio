@@ -18,11 +18,33 @@ import { Lightbox } from '@/components/Lightbox';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/Icons';
+import { MermaidComponent } from '@/components/MermaidComponent';
 
 interface ProjectDetailProps {
   slug: string;
   initialProject?: Project;
 }
+
+
+const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) => {
+	if (type === 'MERMAID') {
+	  return <MermaidComponent chart={diagram} />;
+	}
+	
+	if (type === 'SVG') {
+	  return <div dangerouslySetInnerHTML={{ __html: diagram }} />;
+	}
+  
+	if (type === 'ASCII') {
+	  return <pre className="font-mono bg-muted p-4 rounded-lg">{diagram}</pre>;
+	}
+  
+	return (
+	  <div className="text-muted-foreground">
+		Unsupported diagram type: {type}
+	  </div>
+	);
+  };
 
 const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   return (
@@ -150,7 +172,15 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 
 		  <TabsContent value="features" className="mt-8">
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-			  {project.features.map((feature: string, index: number) => (
+			{project.features.map((feature: any, index: number) => {
+			  // Handle both string and object formats
+			  const featureText = typeof feature === 'string' ? feature : feature.text;
+			  const completionPercentage = 
+				typeof feature === 'object' && 'completionPercentage' in feature
+				  ? feature.completionPercentage
+				  : (index + 1) * 25;  // Fallback to original calculation
+			  
+			  return (
 				<motion.div
 				  key={index}
 				  whileHover={{ y: -5 }}
@@ -164,42 +194,37 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 					</div>
 					<h3 className="text-xl font-semibold">Feature {index + 1}</h3>
 				  </div>
-				  <p className="text-muted-foreground">{feature}</p>
+				  <p className="text-muted-foreground">{featureText}</p>
 				  <Separator className="my-4" />
 				  <div className="flex items-center gap-2 text-sm">
 					<span>Implementation Progress</span>
-					<Progress value={(index + 1) * 25} className="h-2 w-24" />
+					<Progress value={completionPercentage} className="h-2 w-24" />
 				  </div>
 				</motion.div>
-			  ))}
+			  );
+			})}
 			</div>
 		  </TabsContent>
 
 		  <TabsContent value="architecture" className="mt-8">
-		  {project.architecture_diagram && (
-			  <motion.div 
-				  whileHover={{ scale: 1.02 }}
-				  className="cursor-zoom-in"
-				  onClick={() => setIsLightboxOpen(true)}
-			  >
-				  <ClientImage
-				  src={project.architecture_diagram}
-				  alt="Architecture Diagram"
-				  className="rounded-xl border-2"
-				  width={1200}
-				  height={675}
-				  quality={100}
-				  />
-			  </motion.div>
-			  )}
-			  {project.architecture_diagram && (
-			  <Lightbox
-				  isOpen={isLightboxOpen}
-				  onClose={() => setIsLightboxOpen(false)}
-				  imageSrc={project.architecture_diagram}
-			  />
-			  )}
-		  </TabsContent>
+			{project.architecture_diagram ? (
+				<div className="space-y-4">
+				<DiagramRenderer 
+					diagram={project.architecture_diagram}
+					type={project.diagram_type}
+				/>
+				<div className="text-sm text-muted-foreground">
+					Diagram type: {project.diagram_type}
+				</div>
+				</div>
+			) : (
+				<div className="p-6 rounded-lg bg-muted">
+				<p className="text-center text-foreground/50">
+					Architecture diagram not available
+				</p>
+				</div>
+			)}
+			</TabsContent>
 
 		  <TabsContent value="challenges" className="mt-8">
 			<div className="grid md:grid-cols-2 gap-8">

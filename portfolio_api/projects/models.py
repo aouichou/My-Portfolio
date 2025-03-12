@@ -23,7 +23,31 @@ class Project(models.Model):
 	challenges = models.TextField(blank=True, help_text="Technical challenges overcome")
 	lessons = models.TextField(blank=True, help_text="Key lessons learned")
 	video_url = models.URLField(blank=True)
-	architecture_diagram = models.ImageField(upload_to='architecture/', blank=True, storage=s3_storage, help_text="Architecture diagram for project", null=True)
+	architecture_diagram = models.TextField(
+		blank=True,
+		help_text="""
+		Supported formats:
+		- Mermaid.js (preferred)
+		- PlantUML
+		- ASCII diagram
+		- SVG XML
+		""",
+		null=True
+	)
+	
+	DIAGRAM_TYPES = [
+		('MERMAID', 'Mermaid.js'),
+		('PLANTUML', 'PlantUML'),
+		('ASCII', 'ASCII Art'),
+		('SVG', 'SVG XML'),
+		('CUSTOM', 'Custom Format'),
+	]
+	diagram_type = models.CharField(
+		max_length=10,
+		choices=DIAGRAM_TYPES,
+		default='MERMAID',
+		help_text="Format of the architecture diagram"
+	)
 	
 	def save(self, *args, **kwargs):
 		# Allow bypassing validation for initial imports

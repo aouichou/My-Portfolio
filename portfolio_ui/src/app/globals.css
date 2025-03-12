@@ -165,3 +165,37 @@
 	  --foreground: 210 40% 98%;
 	}
   }
+
+/* Smooth tab transitions */
+[data-state="inactive"] {
+	opacity: 0;
+	transform: translateY(10px);
+	transition: opacity 300ms ease-out, transform 300ms ease-out;
+  }
+  
+  [data-state="active"] {
+	opacity: 1;
+	transform: translateY(0);
+	transition: opacity 300ms ease-in, transform 300ms ease-in;
+  }
+
+/* Mermaid diagram styling */
+.mermaid-container {
+	@apply bg-background p-6 rounded-xl border;
+  }
+  
+  .mermaid-container .label {
+	@apply font-mono text-sm !important;
+  }
+  
+  .mermaid-container path {
+	@apply stroke-foreground/80;
+  }
+  
+  .mermaid-container .node rect {
+	@apply fill-background stroke-foreground/30;
+  }
+  
+  .mermaid-container .edgeLabels .edgeLabel {
+	@apply bg-background/90 px-2 rounded-md border;
+  }
