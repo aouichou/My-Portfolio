@@ -46,17 +46,18 @@
 ## 🛠 Technical Architecture
 
 ```mermaid
-participant GH as GitHub
-participant R as Render
-participant H as Heroku
-participant CF as Cloudflare
-
-GH->>R: Trigger backend deploy
-R->>R: Build Docker & run migrations
-R->>CF: Update DNS records
-GH->>H: Trigger frontend deploy
-H->>CF: Verify SSL certs
-CF->>User: Serve HTTPS traffic
+sequenceDiagram
+    participant GH as GitHub
+    participant R as Render
+    participant H as Heroku
+    participant CF as Cloudflare
+    
+    GH->>R: Trigger backend deploy
+    R->>R: Build Docker & run migrations
+    R->>CF: Update DNS records
+    GH->>H: Trigger frontend deploy
+    H->>CF: Verify SSL certs
+    CF->>User: Serve HTTPS traffic
 ```
 
 ---
