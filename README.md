@@ -1,15 +1,15 @@
 # Modern Full-Stack Developer Portfolio [![Production Status](https://img.shields.io/badge/status-live-success?style=flat-square&logo=azure-devops)](https://aouichou.me)
 
 **A Cloud-Native Showcase of Modern Web Development Practices**  
-*Django 4.2 | Next.js 14 | Kubernetes | Azure DevOps*
+*Django 4.2 | Next.js 14 | Docker + Render + Heroku DevOps*
 
 ## 📌 Key Features
 
 ### ✅ Implemented
 - **Core Architecture**
   - Multi-stage Docker builds with Alpine base images
-  - Kubernetes cluster deployment (AKS) with ingress-nginx
-  - Azure-managed PostgreSQL database
+  - Render + Heroku deployment (Docker) with nginx
+  - Render-managed PostgreSQL database
   - Automated CI/CD with GitHub Actions
   - Let's Encrypt TLS certificates via cert-manager
 
@@ -26,11 +26,6 @@
   - Admin-controlled content via Django Admin
 
 ### 🚧 In Progress
-- **Security Enhancements**
-  - HashiCorp Vault integration for secret management
-  - OWASP ModSecurity WAF rules
-  - 2FA authentication flow
-
 - **Observability**
   - ELK Stack for centralized logging
   - Prometheus/Grafana monitoring
@@ -73,37 +68,17 @@ docker-compose up -d frontend backend reverse-proxy
 docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up
 ```
 
-### Production Infrastructure
-```bash
-# Apply Kubernetes manifests
-kubectl apply -f kubernetes/ --recursive
-
-# Manage deployments
-kubectl rollout restart deployment/frontend
-kubectl rollout status deployment/backend --timeout=300s
-```
-
 ### CI/CD Pipeline
 ```mermaid
 graph LR
     A[Code Push] --> B[Security Scan]
     B --> C[Build & Push Images]
-    C --> D[AKS Deployment]
+    C --> D[Render + Heroku Deployment]
     D --> E[Smoke Tests]
     E --> F[Monitoring Alerts]
 ```
 
 ---
-
-## 📚 Documentation Hub
-
-| Area                  | Resources                          | Status       |
-|-----------------------|------------------------------------|--------------|
-| API Reference         | Swagger Docs                       | ✅ Complete  |
-| Deployment Guide      | Azure Setup Walkthrough            | ✅ Complete  |
-| Security Model        | Threat Matrix Analysis             | 🔄 In Draft  |
-| Performance Tuning    | Lighthouse Reports                 | 🚧 In Progress|
-
 
 ## 📈 Performance Metrics
 
@@ -138,7 +113,6 @@ Secret Rotation               🔜 Q3 2025
 ```text
 System Components              Version
 ==================             =======
-Kubernetes Cluster             v1.32.0
 Django                         v5.0.11
 Next.js                        v15.1.6
 ```
