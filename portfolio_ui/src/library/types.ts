@@ -41,3 +41,11 @@ export type GalleryImage = {
   code_snippet?: string;
   styles_snippet?: string;
 }
+
+declare global {
+	interface Window {
+	  mermaid?: {
+		initialize: (config: any) => void;
+	  };
+	}
+  }

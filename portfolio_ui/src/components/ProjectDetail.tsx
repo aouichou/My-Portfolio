@@ -4,7 +4,7 @@
 
 import { useProjectBySlug } from '@/library/queries';
 import ReactMarkdown from 'react-markdown';
-import {Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/tabs';
+// import {Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/tabs';
 import ImageCarousel from '@/components/ImageCarousel';
 import React from 'react';
 import ClientImage from '@/components/ClientImage';
@@ -14,9 +14,9 @@ import { useState } from 'react';
 import { GithubContributions } from '@/components/GithubContributions';
 import { CodeWindow } from '@/components/CodeWindow';
 import { Progress } from '@/components/ui/progress';
-import { Lightbox } from '@/components/Lightbox';
+// import { Lightbox } from '@/components/Lightbox';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+// import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/Icons';
 import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
