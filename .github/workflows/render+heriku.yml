@@ -2,10 +2,62 @@ name: Heroku + Render Deploy
 on: [push]
 
 jobs:
+  # First job: detect which parts have changed
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend || steps.check-commit-msg.outputs.force_deploy == 'true' }}
+      frontend: ${{ steps.filter.outputs.frontend || steps.check-commit-msg.outputs.force_deploy == 'true' }}
+      force_deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history to properly compare changes
+      
+      # Check if commit message contains force deploy flag
+      - name: Check commit message
+        id: check-commit-msg
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if echo "$COMMIT_MSG" | grep -q "\[deploy-all\]" || echo "$COMMIT_MSG" | grep -q "\[force-deploy\]"; then
+            echo "force_deploy=true" >> $GITHUB_OUTPUT
+            echo "Force deployment detected from commit message"
+          else
+            echo "force_deploy=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'portfolio_api/**'
+              - 'docker-compose.yml'
+              - 'nginx.conf'
+            frontend:
+              - 'portfolio_ui/**'
+
+      - name: Report changes
+        run: |
+          echo "Backend changes: ${{ steps.filter.outputs.backend }}"
+          echo "Frontend changes: ${{ steps.filter.outputs.frontend }}"
+          echo "Force deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}"
+
+  # Backend deployment job with condition
   deploy-backend:
+    needs: check-changes
+    if: needs.check-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Deploy reason
+        run: |
+          if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
+            echo "🚀 Deploying backend because force deploy was requested in commit message"
+          else
+            echo "🚀 Deploying backend because backend files changed"
+          fi
       
       - name: Render Deploy Action
         uses: johnbeynon/render-deploy-action@v0.0.8
@@ -28,11 +80,22 @@ jobs:
                -d '{"clearCache": "do_not_clear"}' \
                https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
 
+  # Frontend deployment job with condition
   deploy-frontend:
+    needs: [check-changes]
+    # Run if frontend changed OR if backend job was skipped due to no changes
+    if: needs.check-changes.outputs.frontend == 'true' 
     runs-on: ubuntu-latest
-    needs: deploy-backend
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Deploy reason
+        run: |
+          if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
+            echo "🚀 Deploying frontend because force deploy was requested in commit message"
+          else
+            echo "🚀 Deploying frontend because frontend files changed"
+          fi
       
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install.sh | sh
