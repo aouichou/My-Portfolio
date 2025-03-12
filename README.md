@@ -46,18 +46,17 @@
 ## 🛠 Technical Architecture
 
 ```mermaid
-graph TD
-    A[User] --> B[Azure CDN]
-    B --> C[NGINX Ingress]
-    C --> D[Next.js Frontend]
-    C --> E[Django Backend]
-    E --> F[PostgreSQL]
-    E --> G[Azure Blob Storage]
-    H[GitHub Actions] --> I[ACR]
-    I --> J[AKS Cluster]
-    K[Vault] -->|Secrets| J
-    L[Prometheus] -->|Metrics| J
-    M[ELK Stack] -->|Logs| J
+participant GH as GitHub
+participant R as Render
+participant H as Heroku
+participant CF as Cloudflare
+
+GH->>R: Trigger backend deploy
+R->>R: Build Docker & run migrations
+R->>CF: Update DNS records
+GH->>H: Trigger frontend deploy
+H->>CF: Verify SSL certs
+CF->>User: Serve HTTPS traffic
 ```
 
 ---
