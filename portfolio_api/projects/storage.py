@@ -16,12 +16,12 @@ class CustomS3Storage(S3Boto3Storage):
         logger.info(f"Skipping exists check for {name}")
         return False
     
-    def get_object_parameters(self):
+    def get_object_parameters(self, name=None):
         """
         Remove ACL from object parameters to support buckets with ACLs disabled
         (Bucket owner enforced setting)
         """
-        params = super().get_object_parameters()
+        params = super().get_object_parameters(name)
         if 'ACL' in params:
             logger.info("Removing ACL from S3 object parameters")
             del params['ACL']
