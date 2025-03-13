@@ -40,6 +40,7 @@ export type GalleryImage = {
   development_steps?: DevelopmentStep[];
   code_snippet?: string;
   styles_snippet?: string;
+  diagram_type?: string;
 }
 
 declare global {

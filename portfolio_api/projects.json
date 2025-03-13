@@ -140,5 +140,190 @@
       }
     ],
 	"thumbnail": "projects/minishell/Screenshot.png"
-  }
+  },
+ {
+	"title": "Philosophers",
+	"slug": "philosophers",
+	"description": "A simulation of the dining philosophers problem, demonstrating synchronization in concurrent systems. Developed as part of the 42Paris curriculum, this project explores thread/process management and resource allocation using mutexes (mandatory) and semaphores (bonus).",
+	"readme": "<h1 align=\"center\">Philosophers</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n</p>\n\n... (full README content as provided) ...",
+	"tech_stack": ["C", "pthread", "sys/time", "Mutexes", "Semaphores"],
+	"live_url": "",
+	"code_url": "https://github.com/aouichou/philosophers",
+	"is_featured": true,
+	"score": null,
+	"features": [
+	"Thread-based philosophers with individual mutexes for forks",
+	"Process-based philosophers with central fork semaphores",
+	"Real-time status logging",
+	"Configurable parameters",
+	"Graceful cleanup on exit"
+	],
+	"challenges": "Implementing a robust synchronization system that prevents deadlocks while ensuring fairness. Handling the precision requirements for death detection (10ms accuracy) required careful timing implementations.",
+	"lessons": "Deepened understanding of concurrent programming, resource allocation strategies, and different synchronization primitives. Gained experience in implementing both thread-based and process-based solutions.",
+	"galleries": [
+	{
+		"name": "Simulation Examples",
+		"description": "Demonstration of different philosopher states",
+		"order": 1,
+		"images": [
+		{
+			"image": "projects/philosophers/sim1.png",
+			"caption": "Philosophers in eating state",
+			"order": 1
+		},
+		{
+			"image": "projects/philosophers/sim2.png",
+			"caption": "Deadlock prevention mechanism",
+			"order": 2
+		}
+		]
+	}
+	],
+	"thumbnail": "projects/philosophers/thumbnail.png"
+},
+{
+	"title": "FDF",
+	"slug": "fdf",
+	"description": "A wireframe modeling program that renders 3D landscapes from topographic maps using the MiniLibX library. Introduces computer graphics concepts and interactive 3D projections.",
+	"readme": "<h1 align=\"center\">FDF</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
+	"tech_stack": ["C", "MiniLibX", "3D Mathematics", "Bresenham's Algorithm"],
+	"live_url": "",
+	"code_url": "https://github.com/aouichou/fdf",
+	"is_featured": true,
+	"score": null,
+	"features": [
+	"Isometric and perspective projections",
+	"Interactive 3D controls",
+	"Altitude-based color gradients",
+	"Multi-map support",
+	"Smooth 60+ FPS rendering"
+	],
+	"challenges": "Implementing efficient 3D-to-2D projections while maintaining performance. Developing a robust parser for .fdf map files with various elevation formats.",
+	"lessons": "Gained foundational knowledge in computer graphics, matrix transformations, and graphics library integration. Improved skills in algorithm optimization for real-time rendering.",
+	"galleries": [
+	{
+		"name": "Rendering Examples",
+		"description": "Sample wireframe outputs",
+		"order": 1,
+		"images": [
+		{
+			"image": "projects/fdf/rend1.png",
+			"caption": "Isometric view of topographic map",
+			"order": 1
+		},
+		{
+			"image": "projects/fdf/rend2.png",
+			"caption": "Perspective projection with coloring",
+			"order": 2
+		}
+		]
+	}
+	],
+	"thumbnail": "projects/fdf/thumbnail.png"
+},
+{
+	"title": "push_swap",
+	"slug": "push-swap",
+	"description": "An algorithmic challenge that sorts integers using two stacks with limited operations. Demonstrates efficient algorithm design and optimization techniques.",
+	"readme": "<h1 align=\"center\">push_swap</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
+	"tech_stack": ["C", "Algorithm Design", "Linked Lists", "Complexity Analysis"],
+	"live_url": "",
+	"code_url": "https://github.com/aouichou/push_swap",
+	"is_featured": true,
+	"score": null,
+	"features": [
+	"Sorts 100 numbers in <700 moves",
+	"Bonus checker program",
+	"Doubly linked list implementation",
+	"Move optimization",
+	"Complex error handling"
+	],
+	"challenges": "Developing an algorithm that meets strict move count requirements while handling various edge cases. Optimizing the sorting process for large datasets without exceeding computational limits.",
+	"lessons": "Enhanced understanding of algorithm complexity and optimization strategies. Learned to balance between different sorting approaches for varying input sizes.",
+	"galleries": [
+	{
+		"name": "Algorithm Visualization",
+		"description": "Sorting process demonstrations",
+		"order": 1,
+		"images": [
+		{
+			"image": "projects/push_swap/vis1.gif",
+			"caption": "Sorting animation for 100 numbers",
+			"order": 1
+		}
+		]
+	}
+	],
+	"thumbnail": "projects/push_swap/thumbnail.png"
+},
+{
+	"title": "ft_irc",
+	"slug": "ft-irc",
+	"description": "A custom IRC server implementation in C++98 demonstrating network programming and TCP/IP communication. Handles multiple clients with non-blocking I/O.",
+	"readme": "<h1 align=\"center\">ft_irc</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
+	"tech_stack": ["C++98", "Network Programming", "TCP/IP", "epoll"],
+	"live_url": "",
+	"code_url": "https://github.com/aouichou/ft_irc",
+	"is_featured": true,
+	"score": null,
+	"features": [
+	"Multi-client management",
+	"IRC protocol implementation",
+	"Channel operations",
+	"Operator commands",
+	"Comprehensive error handling"
+	],
+	"challenges": "Implementing the IRC protocol specification accurately while handling concurrent client connections. Developing robust network communication that handles partial data and connection drops.",
+	"lessons": "Gained deep understanding of network programming, protocol implementation, and server-side resource management. Improved skills in low-level socket programming.",
+	"galleries": [
+	{
+		"name": "Server Operations",
+		"description": "IRC command demonstrations",
+		"order": 1,
+		"images": [
+		{
+			"image": "projects/ft_irc/demo1.png",
+			"caption": "Channel joining and messaging",
+			"order": 1
+		}
+		]
+	}
+	],
+	"thumbnail": "projects/ft_irc/thumbnail.png"
+},
+{
+	"title": "minitalk",
+	"slug": "minitalk",
+	"description": "A lightweight client-server communication program using UNIX signals for data transmission. Demonstrates low-level signal handling and IPC in C.",
+	"readme": "<h1 align=\"center\">minitalk</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
+	"tech_stack": ["C", "Signal Handling", "IPC", "Bit Manipulation"],
+	"live_url": "",
+	"code_url": "https://github.com/aouichou/minitalk",
+	"is_featured": true,
+	"score": null,
+	"features": [
+	"Signal-based communication",
+	"Client-server architecture",
+	"Unicode support",
+	"Memory leak protection",
+	"Efficient transmission"
+	],
+	"challenges": "Implementing reliable data transmission using only two signals. Handling bit-level manipulation and timing issues between processes.",
+	"lessons": "Mastered low-level signal handling and inter-process communication. Learned advanced techniques for data encoding/decoding at the bit level.",
+	"galleries": [
+	{
+		"name": "Communication Demo",
+		"description": "Message transmission examples",
+		"order": 1,
+		"images": [
+		{
+			"image": "projects/minitalk/demo.gif",
+			"caption": "Client-server message exchange",
+			"order": 1
+		}
+		]
+	}
+	],
+	"thumbnail": "projects/minitalk/thumbnail.png"
+}
 ]

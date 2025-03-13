@@ -15,6 +15,9 @@ from django.db.models import Prefetch
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+import dns.resolver
 import logging
 
 logger = logging.getLogger(__name__)
@@ -54,6 +57,32 @@ def project_by_slug(request):
 class ContactSubmissionView(APIView):
     permission_classes = [AllowAny]
     
+    def validate_domain(self, email):
+        """Verify if email domain has valid MX records"""
+        try:
+            domain = email.split('@')[-1]
+            
+            # First check for common disposable email domains
+            disposable_domains = ['mailinator.com', 'tempmail.com', 'guerrillamail.com', 'trashmail.com']
+            if domain.lower() in disposable_domains:
+                return False, "Disposable email addresses are not allowed"
+            
+            # Check for valid MX record
+            try:
+                dns.resolver.resolve(domain, 'MX')
+                return True, "Valid domain"
+            except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.resolver.NoNameservers):
+                # No MX record found, try A record as fallback
+                try:
+                    dns.resolver.resolve(domain, 'A')
+                    return True, "Valid domain (A record)"
+                except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.resolver.NoNameservers):
+                    return False, "Domain doesn't appear to be valid"
+        except Exception as e:
+            logger.error(f"Domain verification error: {e}")
+            # If verification fails, just continue - don't block submission
+            return True, "Verification error, allowing submission"
+    
     @method_decorator(ratelimit(key='ip', rate='5/m', method=['POST']))
     def post(self, request):
         was_limited = getattr(request, 'limited', False)
@@ -64,6 +93,23 @@ class ContactSubmissionView(APIView):
             )
 
         serializer = ContactSubmissionSerializer(data=request.data)
+        
+        # Custom validation before saving
+        if 'email' in request.data:
+            email = request.data['email']
+            
+            # Basic format validation (redundant with Django's but helpful for specific error messages)
+            try:
+                validate_email(email)
+            except ValidationError:
+                return Response({'email': ['Enter a valid email address']}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Domain validation (optional - MX record check)
+            if settings.VERIFY_EMAIL_DOMAINS:  # Add this to settings.py
+                is_valid, message = self.validate_domain(email)
+                if not is_valid:
+                    return Response({'email': [message]}, status=status.HTTP_400_BAD_REQUEST)
+
         if serializer.is_valid():
             submission = serializer.save()
             

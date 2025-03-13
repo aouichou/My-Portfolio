@@ -228,6 +228,10 @@ DEFAULT_FROM_EMAIL = 'contact@aouichou.me'  # branded sender email
 SERVER_EMAIL = 'system@aouichou.me'  # System notifications
 ADMIN_EMAIL = os.getenv('CONTACT_RECIPIENT', 'your@email.com')
 
+# Email validation settings
+VERIFY_EMAIL_DOMAINS = True  # Set to False to skip domain verification
+BLOCK_DISPOSABLE_EMAILS = True  # Set to False to allow disposable email addresses
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

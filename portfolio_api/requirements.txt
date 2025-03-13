@@ -12,4 +12,5 @@ whitenoise==6.9.0
 django-storages==1.14.5
 boto3==1.37.6
 djangorestframework-simplejwt==5.5.0
-django-cors-headers==4.7.0 
+django-cors-headers==4.7.0
+dnspython==2.7.0

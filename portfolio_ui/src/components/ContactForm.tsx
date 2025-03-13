@@ -6,16 +6,48 @@ import { motion } from 'framer-motion';
 import { api } from '../library/api-client';
 import { toast } from 'sonner';
 
+// Email validation regex - RFC 5322 compliant
+const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     message: ''
   });
+  const [errors, setErrors] = useState({
+    email: '',
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { email: '' };
+    
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!EMAIL_REGEX.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+      isValid = false;
+    } else if (formData.email.split('@')[1] === 'example.com') {
+      newErrors.email = 'Please use your actual email address';
+      isValid = false;
+    }
+    
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -24,21 +56,39 @@ export default function ContactForm() {
         description: "Thank you for reaching out. I'll respond shortly.",
       });
       setFormData({ name: '', email: '', message: '' });
-    } catch (error) {
-      toast.error('Error', {
-        description: "Failed to send message. Please try again later.",
-      });
+      setErrors({ email: '' });
+    } catch (error: any) {
+      // Check for validation errors from backend
+      if (error.response?.data?.email) {
+        setErrors({ email: error.response.data.email[0] });
+        toast.error('Invalid Email', {
+          description: error.response.data.email[0],
+        });
+      } else {
+        toast.error('Error', {
+          description: "Failed to send message. Please try again later.",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
-  };
+    
+    // Clear error when field is edited
+    if (name in errors && errors[name as keyof typeof errors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  }; // This closing brace was missing
 
   return (
     <section id="contact" className="py-20 bg-gray-50 dark:bg-gray-800">
@@ -82,9 +132,14 @@ export default function ContactForm() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className={`mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white ${
+                  errors.email ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+                }`}
                 placeholder="your@email.com"
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              )}
             </div>
 
             <div>
