@@ -19,7 +19,7 @@ export default function ContactForm() {
     setIsSubmitting(true);
 
     try {
-      await api.post('/v1/contact/', formData);
+      await api.post('/contact/', formData);
       toast.success('Message Sent!', {
         description: "Thank you for reaching out. I'll respond shortly.",
       });

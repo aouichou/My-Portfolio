@@ -217,14 +217,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me']
 
 
-# Email settings
+# Email Configuration for SMTP2GO
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.eu.mailgun.org'
-EMAIL_PORT = 465
+EMAIL_HOST = 'mail.smtp2go.com'
+EMAIL_PORT = 587  # SMTP2GO recommends port 587 with TLS
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('AZURE_EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.getenv('AZURE_EMAIL_KEY')
-CONTACT_RECIPIENT = os.getenv('CONTACT_RECIPIENT', 'your@email.com')
+EMAIL_HOST_USER = os.environ.get('SMTP_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
+DEFAULT_FROM_EMAIL = 'contact@aouichou.me'  # branded sender email
+SERVER_EMAIL = 'system@aouichou.me'  # System notifications
+ADMIN_EMAIL = os.getenv('CONTACT_RECIPIENT', 'your@email.com')
 
 LOGGING = {
     'version': 1,

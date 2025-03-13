@@ -58,7 +58,20 @@ jobs:
           else
             echo "🚀 Deploying backend because backend files changed"
           fi
-      
+
+      - name: Update Render Environment Variables
+        run: |
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "envVars": [
+              {"key": "SMTP_USER", "value": "${{ secrets.SMTP_USER }}"},
+              {"key": "SMTP_PASSWORD", "value": "${{ secrets.SMTP_PASSWORD }}"}
+            ]
+          }' \
+          https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/env-vars
+              
       - name: Render Deploy Action
         uses: johnbeynon/render-deploy-action@v0.0.8
         with:

@@ -14,41 +14,46 @@ from .serializers import ProjectSerializer, ContactSubmissionSerializer
 from django.db.models import Prefetch
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
+from django.utils import timezone
+import logging
 
+logger = logging.getLogger(__name__)
 class ProjectList(generics.ListAPIView):
-    queryset = Project.objects.prefetch_related(
-        Prefetch('galleries', queryset=Gallery.objects.prefetch_related('images').order_by('order'))
-    ).filter(is_featured=True)
-    serializer_class = ProjectSerializer
-    filterset_fields = ['is_featured']
+	queryset = Project.objects.prefetch_related(
+		Prefetch('galleries', queryset=Gallery.objects.prefetch_related('images').order_by('order'))
+	).filter(is_featured=True)
+	serializer_class = ProjectSerializer
+	filterset_fields = ['is_featured']
 
 class ProjectDetail(generics.RetrieveAPIView):
-    queryset = Project.objects.prefetch_related(
-        Prefetch('galleries', 
-                 queryset=Gallery.objects.prefetch_related('images').order_by('order'))
-    )
-    lookup_field = 'slug'
-    serializer_class = ProjectSerializer
+	queryset = Project.objects.prefetch_related(
+		Prefetch('galleries', 
+				 queryset=Gallery.objects.prefetch_related('images').order_by('order'))
+	)
+	lookup_field = 'slug'
+	serializer_class = ProjectSerializer
 
 @api_view(['GET', 'POST'])
 @ratelimit(key='ip', rate='60/m')
 def project_by_slug(request):
-    if request.method == 'POST':
-        slug = request.data.get('slug')
-    else:
-        slug = request.GET.get('slug')
-    
-    if not slug:
-        return Response({'error': 'Slug is required'}, status=400)
-    
-    project = get_object_or_404(
-        Project.objects.prefetch_related('galleries__images'),
-        slug=slug
-    )
-    serializer = ProjectSerializer(project, context={'request': request})
-    return Response(serializer.data)
+	if request.method == 'POST':
+		slug = request.data.get('slug')
+	else:
+		slug = request.GET.get('slug')
+	
+	if not slug:
+		return Response({'error': 'Slug is required'}, status=400)
+	
+	project = get_object_or_404(
+		Project.objects.prefetch_related('galleries__images'),
+		slug=slug
+	)
+	serializer = ProjectSerializer(project, context={'request': request})
+	return Response(serializer.data)
 
 class ContactSubmissionView(APIView):
+    permission_classes = [AllowAny]
+    
     @method_decorator(ratelimit(key='ip', rate='5/m', method=['POST']))
     def post(self, request):
         was_limited = getattr(request, 'limited', False)
@@ -61,46 +66,61 @@ class ContactSubmissionView(APIView):
         serializer = ContactSubmissionSerializer(data=request.data)
         if serializer.is_valid():
             submission = serializer.save()
+            
+            # Generate subject from name or first words of message if no subject field
+            subject = f"New Contact Form Message from {submission.name}"
+            
+            # Format message with line breaks for better readability
+            message_body = f"""
+Name: {submission.name}
+Email: {submission.email}
+
+Message:
+{submission.message}
+
+Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
+            """
+            
             try:
                 send_mail(
-                    'New Portfolio Contact',
-                    f'New message from {submission.name} ({submission.email}):\n\n{submission.message}',
-                    settings.EMAIL_HOST_USER,
-                    [settings.CONTACT_RECIPIENT],
+                    subject=subject,
+                    message=message_body,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.ADMIN_EMAIL],
                     fail_silently=False,
                 )
             except Exception as e:
-                print(f"Email error: {e}")
+                logger.error(f"Email sending failed: {e}")
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def debug_view(request):
-    """
-    Debug view to help identify routing issues
-    """
-    return Response({
-        'message': 'API is working',
-        'path': request.path,
-        'method': request.method,
-        'headers': dict(request.headers),
-        'query_params': dict(request.query_params)
-    })
+	"""
+	Debug view to help identify routing issues
+	"""
+	return Response({
+		'message': 'API is working',
+		'path': request.path,
+		'method': request.method,
+		'headers': dict(request.headers),
+		'query_params': dict(request.query_params)
+	})
 
 class RateLimitedTokenObtainPairView(TokenObtainPairView):
-    permission_classes = [AllowAny]
-    
-    @method_decorator(ratelimit(key='ip', rate='5/m', method='POST'))
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-    
+	permission_classes = [AllowAny]
+	
+	@method_decorator(ratelimit(key='ip', rate='5/m', method='POST'))
+	def post(self, request, *args, **kwargs):
+		return super().post(request, *args, **kwargs)
+	
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def trigger_import(request):
-    from django.core.management import call_command
-    try:
-        call_command('import_projects', 'projects.json')
-        return Response({'status': 'Import started'})
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
+	from django.core.management import call_command
+	try:
+		call_command('import_projects', 'projects.json')
+		return Response({'status': 'Import started'})
+	except Exception as e:
+		return Response({'error': str(e)}, status=500)
