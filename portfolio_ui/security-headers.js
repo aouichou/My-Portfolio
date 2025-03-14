@@ -59,3 +59,4 @@ const securityHeaders = [
 ];
 
 module.exports = securityHeaders;
+
