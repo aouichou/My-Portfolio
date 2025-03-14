@@ -49,16 +49,6 @@ class ProjectAdminForm(forms.ModelForm):
             })
         }
 
-    def clean_demo_commands(self):
-        """Validate that demo_commands contains valid JSON"""
-        demo_commands = self.cleaned_data.get('demo_commands')
-        if demo_commands:
-            try:
-                json.loads(demo_commands)
-            except json.JSONDecodeError as e:
-                raise forms.ValidationError(f"Invalid JSON format: {str(e)}")
-        return demo_commands
-
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
