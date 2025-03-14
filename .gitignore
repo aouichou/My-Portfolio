@@ -82,3 +82,4 @@ __snapshots__/
 .env.production.local
 portfolio_api/test.py
 nginx.local.conf
+portfolio_ui/security-headers.js
