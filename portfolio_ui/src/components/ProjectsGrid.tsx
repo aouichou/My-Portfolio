@@ -55,16 +55,20 @@ export default function ProjectsGrid() {
                   ))}
                 </div>
                 <div className="flex gap-4 mt-4">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (project.live_url) window.open(project.live_url, '_blank');
-                    }}
-                    className="btn-primary-sm"
-                    disabled={!project.live_url}
-                  >
-                    Live Demo
-                  </button>
+				<button
+					onClick={(e) => {
+						e.preventDefault();
+						if (project.has_interactive_demo) {
+						window.location.href = `/demo/${project.slug}`;
+						} else if (project.live_url) {
+						window.open(project.live_url, '_blank');
+						}
+					}}
+					className="btn-primary-sm"
+					disabled={!project.live_url && !project.has_interactive_demo}
+					>
+					{project.has_interactive_demo ? 'Try Demo' : 'Live Demo'}
+				</button>
                   <button
                     onClick={(e) => {
                       e.preventDefault();

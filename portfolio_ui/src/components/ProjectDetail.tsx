@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Icons } from '@/components/Icons';
 import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
+import Link from 'next/link';
 
 interface ProjectDetailProps {
   slug: string;
@@ -331,26 +332,51 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 		</section>
 	  )}
 
-	  {/* Live Demo Banner */}
-	  <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center">
-		<div className="flex items-center gap-2">
-		  <div className="h-6 w-6">
-			  <Icons.sparkles />
-		  </div>
-		  <span className="font-medium">Interactive Demo Available</span>
+		{/* Live Demo Banner - Only show if has_interactive_demo is true */}
+		{project.has_interactive_demo && (
+		<div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center">
+			<div className="flex items-center gap-2">
+			<div className="h-6 w-6">
+				<Icons.sparkles />
+			</div>
+			<span className="font-medium">Interactive Demo Available</span>
+			</div>
+			<Link
+			href={`/demo/${slug}`}
+			className="flex items-center gap-2 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-all"
+			>
+			<div className="h-5 w-5">
+				<Icons.rocket />
+			</div>
+			Launch Demo
+			</Link>
 		</div>
-		<a
-		  href={project.live_url}
-		  target="_blank"
-		  rel="noopener noreferrer"
-		  className="flex items-center gap-2 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-all"
-		>
-		  <div className="h-5 w-5">
-			  <Icons.rocket />
-		  </div>
-		  Launch Demo
-		</a>
-	  </div>
+		)}
+		
+		{/* Replace the old ProjectTerminalDemo with a link to the new demo page */}
+		{project.has_interactive_demo && (
+		<section className="my-16">
+			<h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Interactive Demo</h2>
+			<div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700">
+			<div className="text-center">
+				<h3 className="text-2xl font-bold mb-4">Try {project.title} in your browser</h3>
+				<p className="text-gray-600 dark:text-gray-300 mb-6">
+				Experience this project with our interactive terminal simulator.
+				No installation required!
+				</p>
+				<Link
+				href={`/demo/${slug}`}
+				className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-all"
+				>
+				<div className="h-5 w-5">
+					<Icons.terminal />
+				</div>
+				Open Terminal Demo
+				</Link>
+			</div>
+			</div>
+		</section>
+		)}
 	  <ScrollToTop />
 	</MotionDiv>
   );

@@ -41,6 +41,9 @@ export type GalleryImage = {
   code_snippet?: string;
   styles_snippet?: string;
   diagram_type?: string;
+  has_interactive_demo: boolean;
+  demo_files_path?: string;
+  demo_commands?: Record<string, string>;
 }
 
 declare global {

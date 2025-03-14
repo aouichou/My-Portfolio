@@ -155,6 +155,7 @@ DATABASES = {
 }
 
 # DB settings for local development
+
 # DATABASES = {
 # 	'default': {
 # 		'ENGINE': 'django.db.backends.postgresql',

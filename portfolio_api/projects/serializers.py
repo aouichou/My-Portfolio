@@ -32,7 +32,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'slug', 'description', 'thumbnail_url', 
                  'tech_stack', 'live_url', 'code_url', 'readme', 'score',
                  'features', 'challenges', 'lessons', 'galleries', 
-                 'video_url', 'architecture_diagram', 'is_featured', 'architecture_diagram']
+                 'video_url', 'architecture_diagram', 'is_featured', 'architecture_diagram',
+				 'has_interactive_demo', 'demo_files_path', 'demo_commands']
         extra_kwargs = {
             'architecture_diagram': {'write_only': True}
         }
