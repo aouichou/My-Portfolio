@@ -9,7 +9,7 @@ import { Inter } from 'next/font/google';
 import FontLoader from '@/components/FontLoader';
 import BlockCloudflare from '@/components/BlockCloudflare';
 import DebugCSP from '@/components/DebugCSP';
-import MermaidScriptLoader from '@/components/MermaidScriptLoader';
+import { MermaidScriptLoader } from '@/components/MermaidScriptLoader';
 
 const inter = Inter({
 	subsets: ['latin'],

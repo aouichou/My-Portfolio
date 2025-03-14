@@ -17,6 +17,7 @@ from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from .storage import CustomS3Storage
 import dns.resolver
 import logging
 
@@ -170,3 +171,23 @@ def trigger_import(request):
 		return Response({'status': 'Import started'})
 	except Exception as e:
 		return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def project_files(request, slug):
+    """Serve project demo files from S3"""
+    project = get_object_or_404(Project, slug=slug)
+    
+    if not project.demo_files_path:
+        return Response({'error': 'No demo files available for this project'}, status=404)
+    
+    # Get the S3 URL for the file
+    s3_storage = CustomS3Storage()
+    try:
+        file_url = s3_storage.url(project.demo_files_path)
+        
+        # Return the S3 URL to the client
+        return Response({'file_url': file_url})
+        
+    except Exception as e:
+        logger.error(f"Error getting S3 URL for {project.demo_files_path}: {str(e)}")
+        return Response({'error': 'Could not retrieve project files'}, status=500)

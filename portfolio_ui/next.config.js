@@ -1,5 +1,7 @@
 // portfolio_ui/next.config.ts
 
+const securityHeaders = require('./security-headers');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -20,6 +22,10 @@ const nextConfig = {
   // Only include essential headers here
   async headers() {
     return [
+		{
+			source: '/:path*',
+			headers: securityHeaders
+		},
       {
         source: '/(.*)',
         headers: [

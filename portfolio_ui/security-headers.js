@@ -1,7 +1,7 @@
 // Define Content-Security-Policy headers that allow necessary resources
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https: http:;
   font-src 'self' data: https:;
@@ -37,6 +37,10 @@ module.exports = [
 
 const securityHeaders = [
 	{
+		key: 'Content-Security-Policy',
+		value: ContentSecurityPolicy.replace(/\s{2,}/g, ' ').trim(),
+	},
+	{
 		key: 'X-Frame-Options',
 		value: 'SAMEORIGIN'
 	},
@@ -53,3 +57,5 @@ const securityHeaders = [
 		value: 'same-origin'
 	}
 ];
+
+module.exports = securityHeaders;

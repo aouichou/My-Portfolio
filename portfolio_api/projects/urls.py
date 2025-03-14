@@ -8,5 +8,6 @@ urlpatterns = [
     path('projects/', views.ProjectList.as_view(), name='project-list'),
     path('projects/<slug:slug>/', views.ProjectDetail.as_view(), name='project-detail'),
     path('contact/', views.ContactSubmissionView.as_view(), name='contact-submission'),
+	path('projects/<slug:slug>/files/', views.project_files, name='project-files'),
 	path('import-data/', views.trigger_import),
 ]

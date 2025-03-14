@@ -3,8 +3,7 @@
 from django.contrib import admin
 from .models import Project, Gallery, GalleryImage, ContactSubmission
 from django import forms
-import json
-
+from .storage import CustomS3Storage
 class GalleryImageInline(admin.TabularInline):
     model = GalleryImage
     extra = 3
@@ -19,6 +18,12 @@ class GalleryInline(admin.TabularInline):
     extra = 1
 
 class ProjectAdminForm(forms.ModelForm):
+    demo_files = forms.FileField(
+        required=False, 
+        help_text="Upload a zip file containing project demo files",
+        widget=forms.ClearableFileInput(attrs={'accept': '.zip'})
+    )
+
     class Meta:
         model = Project
         fields = '__all__'
@@ -49,6 +54,26 @@ class ProjectAdminForm(forms.ModelForm):
             })
         }
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Handle demo files upload
+        demo_files = self.cleaned_data.get('demo_files')
+        if demo_files:
+            # Generate a path like 'project-files/project-slug.zip'
+            file_path = f'project-files/{instance.slug}.zip'
+            
+            # Save the file to S3
+            s3_storage = CustomS3Storage()
+            s3_path = s3_storage.save(file_path, demo_files)
+            
+            # Store the S3 path
+            instance.demo_files_path = s3_path
+        
+        if commit:
+            instance.save()
+        
+        return instance
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
@@ -72,7 +97,7 @@ class ProjectAdmin(admin.ModelAdmin):
             'classes': ('wide',)
         }),
         ('Interactive Terminal Demo', {
-            'fields': ('has_interactive_demo', 'demo_commands'),
+            'fields': ('has_interactive_demo', 'demo_commands', 'demo_files'),
             'classes': ('wide',),
             'description': 'Configure the interactive terminal demo for this project. The demo commands should be a JSON object where keys are commands and values are their outputs.'
         }),

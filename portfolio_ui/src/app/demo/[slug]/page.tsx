@@ -138,85 +138,125 @@ export default function ProjectDemoPage() {
     };
     window.addEventListener('resize', handleResize);
     
-    function executeCommand(cmd: string) {
-      // Project-specific commands from database
-      const projectCommands = project?.demo_commands || {};
-      
-      // Basic commands
-      if (cmd === 'help') {
-        term.writeln('Available commands:');
-        term.writeln('  help         Show this help message');
-        term.writeln('  clear        Clear the terminal');
-        term.writeln('  ls           List files');
-        term.writeln('  cat README   View README file');
-        term.writeln('  run          Execute the project demo');
-        
-        // Show project-specific commands
-        if (Object.keys(projectCommands).length > 0) {
-          term.writeln('\nProject commands:');
-          Object.keys(projectCommands).forEach(cmdKey => {
-            const firstLine = typeof projectCommands[cmdKey] === 'string' 
-              ? projectCommands[cmdKey].split('\n')[0] 
-              : 'Command description';
-            term.writeln(`  ${cmdKey.padEnd(12)} ${firstLine}`);
-          });
-        }
-        return;
-      }
-      
-      if (cmd === 'clear') {
-        term.clear();
-        return;
-      }
-      
-      if (cmd === 'ls') {
-        term.writeln('README.md');
-        term.writeln('src/');
-        term.writeln('Makefile');
-        term.writeln('demo.sh');
-        return;
-      }
-      
-      if (cmd === 'cat README' || cmd === 'cat README.md') {
-        term.writeln('# ' + (project?.title || 'Project'));
-        term.writeln('');
-        term.writeln(project?.description?.split('\n')[0] || 'No description available');
-        term.writeln('');
-        term.writeln('## How to run');
-        term.writeln('Type `run` to execute the demo.');
-        return;
-      }
-      
-      if (cmd === 'run') {
-        term.writeln('Running demo...');
-        term.writeln('');
-        
-        // Simulate loading
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 10;
-          term.write(`Loading: [${'.'.repeat(progress/10)}${' '.repeat(10-progress/10)}] ${progress}%\r`);
-          
-          if (progress >= 100) {
-            clearInterval(interval);
-            term.writeln('');
-            term.writeln('Demo started successfully!');
-            term.writeln('');
-            term.writeln('This is a simulated environment showing how ' + (project?.title || 'this project') + ' works.');
-            term.writeln('In a real implementation, you would see actual project output here.');
-          }
-        }, 200);
-        return;
-      }
-      
-      // Check project-specific commands
-      if (projectCommands[cmd]) {
-        term.writeln(projectCommands[cmd]);
-        return;
-      }
-      
-      term.writeln(`Command not found: ${cmd}`);
-    }
+	function executeCommand(cmd: string) {
+	  // Project-specific commands from database
+	  const projectCommands = project?.demo_commands || {};
+	  
+	  // Define known long-running commands
+	  const longRunningCommands = ['make', './miniRT', 'gcc', 'npm', 'git clone', 'python', 'install'];
+	  
+	  // Check if this is a command that might take time
+	  const isLongRunning = 
+		cmd === './miniRT scenes/basic_sphere.rt' || 
+		longRunningCommands.some(longCmd => cmd.includes(longCmd));
+	  
+	  // Basic commands
+	  if (cmd === 'help') {
+		term.writeln('Available commands:');
+		term.writeln('  help         Show this help message');
+		term.writeln('  clear        Clear the terminal');
+		term.writeln('  ls           List files');
+		term.writeln('  cat README   View README file');
+		term.writeln('  run          Execute the project demo');
+		
+		// Show project-specific commands
+		if (Object.keys(projectCommands).length > 0) {
+		  term.writeln('\nProject commands:');
+		  Object.keys(projectCommands).forEach(cmdKey => {
+			const firstLine = typeof projectCommands[cmdKey] === 'string' 
+			  ? projectCommands[cmdKey].split('\n')[0] 
+			  : 'Command description';
+			term.writeln(`  ${cmdKey.padEnd(12)} ${firstLine}`);
+		  });
+		}
+		return;
+	  }
+	  
+	  if (!project?.demo_commands || Object.keys(project.demo_commands).length === 0) {
+		if (cmd !== 'help' && cmd !== 'clear' && cmd !== 'ls' && 
+			cmd !== 'cat README' && cmd !== 'cat README.md' && cmd !== 'run') {
+		  term.writeln('Demo commands are not configured for this project yet.');
+		  return;
+		}
+	  }
+
+	  if (cmd === 'clear') {
+		term.clear();
+		return;
+	  }
+	  
+	  if (cmd === 'ls') {
+		term.writeln('README.md');
+		term.writeln('src/');
+		term.writeln('Makefile');
+		term.writeln('demo.sh');
+		return;
+	  }
+	  
+	  if (cmd === 'cat README' || cmd === 'cat README.md') {
+		term.writeln('# ' + (project?.title || 'Project'));
+		term.writeln('');
+		term.writeln(project?.description?.split('\n')[0] || 'No description available');
+		term.writeln('');
+		term.writeln('## How to run');
+		term.writeln('Type `run` to execute the demo.');
+		return;
+	  }
+	  
+	  if (cmd === 'run') {
+		term.writeln('Running demo...');
+		term.writeln('');
+		
+		// Simulate loading
+		let progress = 0;
+		const interval = setInterval(() => {
+		  progress += 10;
+		  term.write(`Loading: [${'.'.repeat(progress/10)}${' '.repeat(10-progress/10)}] ${progress}%\r`);
+		  
+		  if (progress >= 100) {
+			clearInterval(interval);
+			term.writeln('');
+			term.writeln('Demo started successfully!');
+			term.writeln('');
+			term.writeln('This is a simulated environment showing how ' + (project?.title || 'this project') + ' works.');
+			term.writeln('In a real implementation, you would see actual project output here.');
+		  }
+		}, 200);
+		return;
+	  }
+	  
+	  // Handle potentially long-running commands with an animation
+	  if (isLongRunning && projectCommands[cmd]) {
+		term.writeln(`Running: ${cmd}`);
+		
+		// Show loading animation with ASCII spinner
+		const loadingChars = ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'];
+		let i = 0;
+		const loadingInterval = setInterval(() => {
+		  term.write('\r' + loadingChars[i] + ' Processing...');
+		  i = (i + 1) % loadingChars.length;
+		}, 100);
+		
+		// Simulate processing time (2 seconds)
+		setTimeout(() => {
+		  clearInterval(loadingInterval);
+		  term.write('\r\n');
+		  
+		  // Show the actual output from projectCommands
+		  term.writeln(projectCommands[cmd]);
+		}, 2000);
+		
+		return;
+	  }
+	  
+	  // Check project-specific commands (non long-running)
+	  if (projectCommands[cmd]) {
+		term.writeln(projectCommands[cmd]);
+		return;
+	  }
+	  
+	  term.writeln(`Command not found: ${cmd}`);
+	}
     
     return () => {
       if (terminalRef.current) {
