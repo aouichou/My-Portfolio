@@ -3,6 +3,7 @@
 from django.contrib import admin
 from .models import Project, Gallery, GalleryImage, ContactSubmission
 from django import forms
+import json
 
 class GalleryImageInline(admin.TabularInline):
     model = GalleryImage
@@ -35,14 +36,34 @@ class ProjectAdminForm(forms.ModelForm):
     A[Client] --> B[Server]
     B --> C[Database]'''
             }),
-            'diagram_type': forms.RadioSelect()
+            'diagram_type': forms.RadioSelect(),
+            'demo_commands': forms.Textarea(attrs={
+                'rows': 15,
+                'style': 'font-family: monospace; font-size: 12px;',
+                'placeholder': '''{
+  "ls": "README.md\\nMakefile\\nsrc/\\nincludes/\\nproject",
+  "cat README.md": "# Project Title\\n\\nProject description here\\n\\n## Usage\\n./project [args]",
+  "make": "Compiling...\\n[####################] 100%\\nCompilation successful!",
+  "run": "Running project...\\nProject output here"
+}'''
+            })
         }
+
+    def clean_demo_commands(self):
+        """Validate that demo_commands contains valid JSON"""
+        demo_commands = self.cleaned_data.get('demo_commands')
+        if demo_commands:
+            try:
+                json.loads(demo_commands)
+            except json.JSONDecodeError as e:
+                raise forms.ValidationError(f"Invalid JSON format: {str(e)}")
+        return demo_commands
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
-    list_display = ('title', 'is_featured', 'score')
-    list_filter = ('is_featured', 'diagram_type')
+    list_display = ('title', 'is_featured', 'score', 'has_interactive_demo')
+    list_filter = ('is_featured', 'diagram_type', 'has_interactive_demo')
     prepopulated_fields = {'slug': ('title',)}
     search_fields = ('title', 'description')
     inlines = [GalleryInline]
@@ -59,6 +80,11 @@ class ProjectAdmin(admin.ModelAdmin):
         ('Architecture Diagram', {
             'fields': ('diagram_type', 'architecture_diagram'),
             'classes': ('wide',)
+        }),
+        ('Interactive Terminal Demo', {
+            'fields': ('has_interactive_demo', 'demo_commands'),
+            'classes': ('wide',),
+            'description': 'Configure the interactive terminal demo for this project. The demo commands should be a JSON object where keys are commands and values are their outputs.'
         }),
     )
 
