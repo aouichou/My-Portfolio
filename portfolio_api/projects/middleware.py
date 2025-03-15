@@ -16,17 +16,18 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
 class TerminalSecurityMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        self.allowed_commands = {'make', 'gcc', 'python3', 'npm'}
-        self.blocked_patterns = {'rm ', 'sudo', 'ssh'}
-
+        
     def __call__(self, request):
-        if request.path.startswith('/ws/'):
+        # Only apply to regular HTTP endpoints, not WebSockets
+        if request.path.startswith('/api/terminal/') and not request.path.startswith('/ws/'):
             command = request.GET.get('cmd', '')
-            if any(blocked in command for blocked in self.blocked_patterns):
+            if self.is_dangerous_command(command):
                 return HttpResponseForbidden("Command blocked")
-            if not any(allowed in command for allowed in self.allowed_commands):
-                return HttpResponseForbidden("Command not permitted")
         return self.get_response(request)
+    
+    def is_dangerous_command(self, command):
+        blocked_patterns = {'rm -rf', 'sudo', 'ssh', '>', '|', ';'}
+        return any(pattern in command for pattern in blocked_patterns)
     
 class TerminalRateLimiter:
     def __init__(self, get_response):
