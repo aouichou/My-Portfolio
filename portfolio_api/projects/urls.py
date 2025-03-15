@@ -10,4 +10,5 @@ urlpatterns = [
     path('contact/', views.ContactSubmissionView.as_view(), name='contact-submission'),
 	path('projects/<slug:slug>/files/', views.project_files, name='project-files'),
 	path('import-data/', views.trigger_import),
+	path('health/', views.health_check, name='health-check'),
 ]

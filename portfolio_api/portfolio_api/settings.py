@@ -262,3 +262,24 @@ AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_USE_SSL = True
 AWS_S3_VERIFY = True 
 MEDIA_URL = f'https://s3.eu-west-1.amazonaws.com/{os.getenv("BUCKETEER_BUCKET_NAME")}/'
+
+
+# Channel layers for WebSocket
+ASGI_APPLICATION = 'portfolio_api.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        ## Use Redis in development
+        # 'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        ## Use Redis in production
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        }
+    }
+}
+
+TERMINAL_SETTINGS = {
+    'MAX_SESSION_DURATION': 900,  # 15 minutes
+    'MAX_OUTPUT_LENGTH': 10000,   # 10KB per command
+    'CONCURRENT_SESSIONS': 3,     # Max 3 sessions per IP
+}

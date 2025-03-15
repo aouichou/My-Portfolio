@@ -2,15 +2,13 @@
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useProjectBySlug } from '@/library/queries';
 import Link from 'next/link';
-import { Icons } from '@/components/Icons';
 import dynamic from 'next/dynamic';
 
-// Dynamic import for XTerm components (client-side only)
-const TerminalComponent = dynamic(() => import('@/components/TerminalComponent'), {
+// Dynamic import with SSR disabled
+const LiveTerminal = dynamic(() => import('@/components/LiveTerminal'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-full">
@@ -25,10 +23,9 @@ const TerminalComponent = dynamic(() => import('@/components/TerminalComponent')
 export default function ProjectDemoPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const { data: project, isLoading: projectLoading } = useProjectBySlug(slug);
-  const [error, setError] = useState<string | null>(null);
+  const { data: project, isLoading } = useProjectBySlug(slug);
   
-  if (projectLoading || !project) {
+  if (isLoading || !project) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -40,14 +37,10 @@ export default function ProjectDemoPage() {
     );
   }
   
-  if (error) {
-    return <div className="p-8 text-center text-red-500">{error}</div>;
-  }
-  
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <header className="bg-gray-800 text-white p-4 flex justify-between items-center" role="banner">
+      <header className="bg-gray-800 text-white p-4 flex justify-between items-center pl-16 pr-16" role="banner">
         <div className="flex items-center space-x-4">
           <Link 
             href={`/projects/${slug}`} 
@@ -74,9 +67,9 @@ export default function ProjectDemoPage() {
       </header>
       
       <div className="flex flex-1 overflow-hidden">
-        {/* Terminal - Now loaded dynamically with next/dynamic */}
+        {/* Terminal - Now using LiveTerminal */}
         <div className="flex-1 overflow-hidden bg-black">
-          <TerminalComponent project={project} slug={slug} />
+          <LiveTerminal project={project} slug={slug} />
         </div>
         
         {/* Documentation panel */}

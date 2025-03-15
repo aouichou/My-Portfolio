@@ -1,0 +1,17 @@
+# .github/workflows/monitor.yml
+
+name: Terminal Monitoring
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  check-terminal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Terminal Connection
+        run: |
+          if ! timeout 10 websocat -v wss://api.aouichou.me/ws/terminal/minirt; then
+            echo "Terminal service down!" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi

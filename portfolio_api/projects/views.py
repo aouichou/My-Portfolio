@@ -20,6 +20,11 @@ from django.core.validators import validate_email
 from .storage import CustomS3Storage
 import dns.resolver
 import logging
+import os
+import tempfile
+import zipfile
+import boto3
+
 
 logger = logging.getLogger(__name__)
 class ProjectList(generics.ListAPIView):
@@ -191,3 +196,44 @@ def project_files(request, slug):
     except Exception as e:
         logger.error(f"Error getting S3 URL for {project.demo_files_path}: {str(e)}")
         return Response({'error': 'Could not retrieve project files'}, status=500)
+
+def download_project_files(project_slug):
+    """Download project files from S3 and extract to temp directory"""
+    try:
+        project = Project.objects.get(slug=project_slug)
+        if not project.demo_files_path:
+            return None
+        
+        # Create temp directory
+        temp_dir = tempfile.mkdtemp(prefix=f"project-{project_slug}-")
+        
+        # Download zip from S3
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME
+        )
+        
+        zip_path = os.path.join(temp_dir, 'project.zip')
+        s3.download_file(
+            settings.AWS_STORAGE_BUCKET_NAME,
+            project.demo_files_path,
+            zip_path
+        )
+        
+        # Extract zip
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+        
+        # Remove zip file
+        os.remove(zip_path)
+        
+        return temp_dir
+    except Exception as e:
+        print(f"Error downloading project files: {e}")
+        return None
+
+@api_view(['GET'])
+def health_check(request):
+    return Response({'status': 'healthy'}, status=200)

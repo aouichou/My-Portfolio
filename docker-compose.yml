@@ -7,9 +7,12 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=https://aouichou.me/api
       - NEXT_PUBLIC_MEDIA_URL=https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579
+      - DOCKER_HOST=unix:///var/run/docker.sock
     networks:
       - app-network
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - ./portfolio_api/media:/app/media
       - media_volume:/app/media
     depends_on: [backend]
     restart: unless-stopped
@@ -26,6 +29,7 @@ services:
       - DJANGO_SETTINGS_MODULE=portfolio_api.settings
     networks:
       - app-network
+    startCommand: daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
     restart: unless-stopped
 
   reverse-proxy:
@@ -39,6 +43,12 @@ services:
     networks:
       - app-network
     depends_on: [frontend, backend]
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    networks:
+      - app-network
 
   # certbot:
   #   image: certbot/certbot
