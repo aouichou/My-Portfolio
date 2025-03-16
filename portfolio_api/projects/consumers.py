@@ -102,7 +102,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(f"Error downloading project files: {e}")
 			return False
-	
+
 	async def receive(self, text_data):
 		try:
 			print(f"Received WebSocket data: {text_data}")
@@ -112,6 +112,23 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 				command = data['command']
 				print(f"Processing command: '{command}', length: {len(command)}")
 				
+				# Check if this is an execution request (Enter key)
+				if data.get('execute', False):
+					# Validate and execute full command
+					if command and not self.validate_command(command):
+						await self.send(text_data=json.dumps({
+							'output': f"Command not permitted: {command}\r\n"
+						}))
+						return
+					
+					# Send the command with a newline to execute it
+					await self.pty.write(command + '\r\n')
+					output = await self.pty.read(timeout=5)
+					await self.send(text_data=json.dumps({
+						'output': output.decode('utf-8', errors='replace')
+					}))
+					return
+					
 				# For single character input (interactive typing)
 				if len(command) == 1:
 					await self.pty.write(command)
@@ -120,25 +137,6 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 						'output': output.decode('utf-8', errors='replace')
 					}))
 					return
-					
-				# For full commands (when Enter is pressed)
-				if command.endswith('\r') or command.endswith('\n'):
-					# Strip the newline character
-					command = command.rstrip('\r\n')
-					
-					# Validate complete commands only
-					if command and not self.validate_command(command):
-						await self.send(text_data=json.dumps({
-							'output': f"Command not permitted: {command}\r\n"
-						}))
-						return
-					
-				# Execute command
-				await self.pty.write(command)
-				output = await self.pty.read(timeout=5)
-				await self.send(text_data=json.dumps({
-					'output': output.decode('utf-8', errors='replace')
-				}))
 				
 			# Handle resize events
 			elif 'resize' in data:

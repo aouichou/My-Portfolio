@@ -105,21 +105,33 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 
 	// Handle user input (handle characters one by one):
 	let currentCommand = '';
+
 	term.onData((data) => {
-	  console.log("Terminal received key:", data);
+	  console.log("Terminal received key:", data.charCodeAt(0));
+	  
 	  // ONLY check socket.readyState, NOT connected state
 	  if (socket.readyState === WebSocket.OPEN) {
-		console.log("Sending key to socket:", data);
+		// Handle Enter key properly (carriage return)
 		if (data === '\r') {
-		  // Enter key - send complete command with newline
-		  socket.send(JSON.stringify({ command: currentCommand + '\r\n' }));
+		  // Send complete command with newline - ONCE
+		  socket.send(JSON.stringify({ 
+			command: currentCommand,
+			execute: true  // Signal to execute the command
+		  }));
 		  currentCommand = '';
-		} else if (data === '\u007f') {
+		} 
+		// Handle backspace
+		else if (data === '\u007f') {
 		  // Backspace - remove last character
-		  currentCommand = currentCommand.slice(0, -1);
-		  socket.send(JSON.stringify({ command: data }));
-		} else {
-		  // Regular character - add to command and send for echo
+		  if (currentCommand.length > 0) {
+			currentCommand = currentCommand.slice(0, -1);
+			// Just send backspace character for handling by PTY
+			socket.send(JSON.stringify({ command: data }));
+		  }
+		} 
+		// Regular character input
+		else {
+		  // Add to command and send for echo
 		  currentCommand += data;
 		  socket.send(JSON.stringify({ command: data }));
 		}
