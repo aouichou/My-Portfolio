@@ -37,6 +37,8 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	  disableStdin: false,
 	  allowTransparency: true,
 	  convertEol: true,  // Important: Convert line feeds
+	  scrollback: 1000,
+	  tabStopWidth: 4,
 	});
     
     // Connect to WebSocket
