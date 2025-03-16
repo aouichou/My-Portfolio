@@ -53,7 +53,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 				message = await self.terminal_ws.recv()
 				print(f"Forwarding from terminal to client: {message[:30]}...")
 				await self.send(text_data=message)
-		except websockets.ConnectionClosed:
+		except websockets.ConnectionClosed as e:
 			print(f"Error in forward_from_terminal: {e}")
 			await self.send(text_data=json.dumps({
 				'output': '\r\n\r\nTerminal connection closed. Refresh to reconnect.\r\n'

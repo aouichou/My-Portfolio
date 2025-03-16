@@ -169,6 +169,7 @@ async def read_terminal_output(websocket, child):
                     await websocket.send_text(json.dumps({
                         'output': output
                     }))
+                    print(f"Sent message to client, length: {len(output)}")
                 except Exception as e:
                     print(f"Error sending to WebSocket: {e}")
                     break  # Break the loop if WebSocket is disconnected
@@ -254,6 +255,17 @@ def download_project_files(project_slug, project_dir):
             print(f"Missing S3 bucket configuration")
             return False
             
+        print(f"Looking for S3 object: {s3_path} in bucket {bucket_name}")
+
+        try:
+            s3.head_object(Bucket=bucket_name, Key=s3_path)
+        except s3.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == '404':
+                print(f"Project file {s3_path} doesn't exist in S3 bucket")
+                return False
+            else:
+                raise
+
         # Create temp file for downloading
         with tempfile.NamedTemporaryFile() as temp_file:
             try:
