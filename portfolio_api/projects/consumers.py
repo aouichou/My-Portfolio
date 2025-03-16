@@ -66,14 +66,21 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 				await self.close()
 				
 	async def receive(self, text_data):
-		if hasattr(self, 'terminal_ws') and not self.terminal_ws.closed:
-			await self.terminal_ws.send(text_data)
+		if hasattr(self, 'terminal_ws'):
+			try:
+				# Check connection is still open by attempting to send
+				await self.terminal_ws.send(text_data)
+			except websockets.exceptions.ConnectionClosed:
+				# Handle closed connection
+				await self.send(text_data=json.dumps({
+					'output': '\r\nTerminal connection lost, please refresh.\r\n'
+				}))
 
 class HealthCheckConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        await self.accept()
-        await self.send(text_data=json.dumps({
-            'status': 'healthy',
-            'service': 'websocket'
-        }))
-        await self.close()
+	async def connect(self):
+		await self.accept()
+		await self.send(text_data=json.dumps({
+			'status': 'healthy',
+			'service': 'websocket'
+		}))
+		await self.close()
