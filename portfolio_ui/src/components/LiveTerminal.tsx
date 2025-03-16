@@ -36,15 +36,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       }
     });
     
-    terminalRef.current = term;
-    
-    const fitAddon = new FitAddon();
-    term.loadAddon(fitAddon);
-    term.loadAddon(new WebLinksAddon());
-    
-    term.open(terminalElement);
-    fitAddon.fit();
-    
     // Connect to WebSocket
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     // const wsUrl = `${wsProtocol}//api.aouichou.me/ws/terminal/${slug}/`;
@@ -91,30 +82,14 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 		console.log("Terminal focused");
 	}, 1000);
 
-    // Handle user input (handle characters one by one):
-	let currentCommand = '';
-	term.onData((data) => {
-	console.log("Terminal received key:", data);
-	if (connected && socket.readyState === WebSocket.OPEN) {
-		console.log("Sending key to socket:", data);
-		if (data === '\r') {
-		// Enter key - send complete command with newline
-		socket.send(JSON.stringify({ command: currentCommand + '\r\n' }));
-		currentCommand = '';
-		} else if (data === '\u007f') {
-		// Backspace - remove last character
-		currentCommand = currentCommand.slice(0, -1);
-		socket.send(JSON.stringify({ command: data }));
-		} else {
-		// Regular character - add to command and send for echo
-		currentCommand += data;
-		socket.send(JSON.stringify({ command: data }));
-		}
-	}
-	else {
-		console.log("Socket not ready:", connected, socket.readyState);
-	}
-	});
+	terminalRef.current = term;
+    
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    term.loadAddon(new WebLinksAddon());
+    
+    term.open(terminalElement);
+    fitAddon.fit();
     
     // Handle window resize
     const handleResize = () => {
@@ -127,7 +102,32 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     };
     
     window.addEventListener('resize', handleResize);
-    
+
+	// Handle user input (handle characters one by one):
+	let currentCommand = '';
+	term.onData((data) => {
+	  console.log("Terminal received key:", data);
+	  // ONLY check socket.readyState, NOT connected state
+	  if (socket.readyState === WebSocket.OPEN) {
+		console.log("Sending key to socket:", data);
+		if (data === '\r') {
+		  // Enter key - send complete command with newline
+		  socket.send(JSON.stringify({ command: currentCommand + '\r\n' }));
+		  currentCommand = '';
+		} else if (data === '\u007f') {
+		  // Backspace - remove last character
+		  currentCommand = currentCommand.slice(0, -1);
+		  socket.send(JSON.stringify({ command: data }));
+		} else {
+		  // Regular character - add to command and send for echo
+		  currentCommand += data;
+		  socket.send(JSON.stringify({ command: data }));
+		}
+	  } else {
+		console.log("Socket not ready:", socket.readyState);
+	  }
+	});;
+
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
