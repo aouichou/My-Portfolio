@@ -1,6 +1,4 @@
-# Update entrypoint.sh with correct paths
 #!/bin/bash
-
 # Create sandbox directories in coder's home directory
 mkdir -p /home/coder/sandboxes
 mkdir -p /home/coder/projects
