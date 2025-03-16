@@ -37,8 +37,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
 	async def disconnect(self, close_code):
 		# Clean up terminal connection when browser disconnects
-		if hasattr(self, 'terminal_ws') and not self.terminal_ws.closed:
-			await self.terminal_ws.close()
+		if hasattr(self, 'terminal_ws'):
+			try:
+				await self.terminal_ws.close()
+			except Exception as e:
+				print(f"Error closing terminal connection: {e}")
 		
 		# Cancel forwarding task if active
 		if hasattr(self, 'forward_task') and not self.forward_task.done():
