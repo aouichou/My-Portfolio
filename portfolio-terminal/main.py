@@ -99,7 +99,8 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
         env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
         # Initialize terminal
-        child = spawn('bash --rcfile /app/bashrc -n', cwd=project_dir, env=env, echo=False, encoding='utf-8')
+        # child = spawn('bash --rcfile /app/bashrc -n', cwd=project_dir, env=env, echo=False, encoding='utf-8')
+        child = spawn('/bin/bash', ['--rcfile', '/app/bashrc'], cwd=project_dir, env=env, encoding='utf-8')
         child.setwinsize(24, 80)  # Initial size
         try:
             await asyncio.sleep(0.5)  # Short delay for shell to initialize

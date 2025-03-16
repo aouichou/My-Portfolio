@@ -8,6 +8,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import '@xterm/xterm/css/xterm.css';
 import { Project } from '@/library/types';
+import { Unicode11Addon } from '@xterm/addon-unicode11';
 
 interface LiveTerminalProps {
   project: Project;
@@ -98,6 +99,10 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     term.loadAddon(fitAddon);
     term.loadAddon(new WebLinksAddon());
     
+	const unicodeAddon = new Unicode11Addon();
+	term.loadAddon(unicodeAddon);
+	term.unicode.activeVersion = '11';
+
     term.open(terminalElement);
     fitAddon.fit();
     
@@ -124,6 +129,9 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 		  socket.send(JSON.stringify({ 
 			input: data  // Send raw character data
 		  }));
+		  if (data.charCodeAt(0) >= 32 || data === '\r' || data === '\n') {
+			term.write(data);
+		  }
 		} else {
 		  console.log("Socket not ready:", socket.readyState);
 		}
