@@ -16,7 +16,8 @@ RUN pip3 install -r requirements.txt
 
 # Create a non-root user
 RUN useradd -m -s /bin/bash coder
-RUN mkdir -p /home/coder/projects && chown -R coder:coder /home/coder
+RUN mkdir -p /home/coder/projects /home/coder/sandboxes
+RUN chown -R coder:coder /home/coder
 
 # Copy application files
 COPY --chown=coder:coder . /app

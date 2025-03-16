@@ -51,17 +51,19 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     socketRef.current = socket;
     
     socket.onopen = () => {
-	  console.log("Socket opened");
+	  console.log(`Socket opened at ${wsUrl}`);
       setConnected(true);
       term.write('Connected to terminal server...\r\n');
     };
     
-    socket.onclose = () => {
+    socket.onclose = (event) => {
+	  console.log(`Socket closed with code: ${event.code}, reason: ${event.reason}`);
       setConnected(false);
       term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
     };
     
     socket.onerror = (event) => {
+	  console.error('WebSocket error:', event);
       setError('WebSocket error occurred');
       term.write('\r\nError connecting to terminal server.\r\n');
     };

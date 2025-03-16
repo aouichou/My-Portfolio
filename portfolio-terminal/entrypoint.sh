@@ -2,6 +2,7 @@
 
 # Create sandbox directories
 mkdir -p /app/sandboxes
+mkdir -p /home/coder/projects
 
 # Start the terminal service
 exec uvicorn main:app --host 0.0.0.0 --port 8000

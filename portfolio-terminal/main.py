@@ -11,8 +11,26 @@ from pexpect import spawn, EOF
 import json
 import psutil
 import re
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+	# Startup code
+	print("Starting terminal service...")
+	yield
+	# Shutdown code - runs when the application is shutting down
+	print("Shutting down terminal service...")
+	# Terminate all active terminals
+	for session_id, child in active_terminals.items():
+		try:
+			child.close()
+			print(f"Terminated terminal session {session_id}")
+		except Exception as e:
+			print(f"Error terminating session {session_id}: {e}")
+	
+	print("Terminal service shutdown complete")
+
+app = FastAPI(lifespan=lifespan)
 
 active_terminals = {}
 error_counter = 0
@@ -21,18 +39,18 @@ last_error_timestamp = None
 
 
 redis_client = redis.Redis.from_url(
-    os.environ.get('REDIS_URL', 'redis://localhost:6379'),
-    decode_responses=True
+	os.environ.get('REDIS_URL', 'redis://localhost:6379'),
+	decode_responses=True
 )
 
 @app.get("/metrics")
 async def metrics():
-    memory = psutil.virtual_memory()
-    return {
-        "memory_used_percent": memory.percent,
-        "active_terminals": len(active_terminals),
-        "uptime": time.time() - app_start_time
-    }
+	memory = psutil.virtual_memory()
+	return {
+		"memory_used_percent": memory.percent,
+		"active_terminals": len(active_terminals),
+		"uptime": time.time() - app_start_time
+	}
 
 app_start_time = time.time()
 
@@ -43,9 +61,11 @@ async def health_check():
 @app.websocket("/terminal/{project_slug}/")
 async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	await websocket.accept()
+	print(f"WebSocket connection accepted for {project_slug}")
 
 	# Create unique session ID
 	session_id = str(uuid.uuid4())
+	print(f"Generated session ID: {session_id}")
 	
 	# Store terminal session in Redis
 	session_info = {
@@ -58,7 +78,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	
 	try:
 		# Create sandbox directory
-		sandbox_dir = f"/app/sandboxes/{session_id}"
+		sandbox_dir = f"/home/coder/sandboxes/{session_id}"
 		os.makedirs(sandbox_dir, exist_ok=True)
 		
 		# Download project files if needed
@@ -125,9 +145,13 @@ async def read_terminal_output(websocket, child):
 				None, lambda: child.read_nonblocking(size=1024, timeout=0.1)
 			)
 			if output:
-				await websocket.send_text(json.dumps({
-					'output': output.decode('utf-8', errors='replace')
-				}))
+				try:
+					await websocket.send_text(json.dumps({
+						'output': output.decode('utf-8', errors='replace')
+					}))
+				except Exception as e:
+					print(f"Error sending to WebSocket: {e}")
+					break  # Break the loop if WebSocket is disconnected
 		except EOF:
 			await websocket.send_text(json.dumps({
 				'output': "\r\nSession terminated.\r\n"
@@ -138,43 +162,51 @@ async def read_terminal_output(websocket, child):
 			await asyncio.sleep(0.1)
 
 def validate_command(command):
-    # Allowlist approach is more secure than denylist
-    allowed_patterns = [
-        r'^ls(\s+-[altrh]+)*(\s+[\w\./-]+)*$',
-        r'^cat(\s+[\w\./-]+)+$',
-        # Add more allowed command patterns
-    ]
-    
-    # Check if command matches any allowed pattern
-    if any(re.match(pattern, command) for pattern in allowed_patterns):
-        return True
-        
-    # Additional deny list for extra security
-    dangerous_commands = [
-        'rm -rf', 'sudo', 'chmod 777', ':(){', 'curl | bash',
-        'wget | bash', '> /dev', '> /proc', '> /sys'
-    ]
-    
-    for cmd in dangerous_commands:
-        if cmd in command:
-            return False
-    
-    # Default to a more permissive approach for now
-    return True
-
-@app.on_event("shutdown")
-async def shutdown_event():
-	# Terminate all active terminals
-	for session_id, child in active_terminals.items():
-		try:
-			child.close()
-		except:
-			pass
+	# Allowlist approach is more secure than denylist
+	allowed_patterns = [
+		# Basic navigation and file inspection
+		r'^ls(\s+-[altrh]+)*(\s+[\w\./-]+)*$',
+		r'^cat(\s+[\w\./-]+)+$',
+		r'^cd(\s+[\w\./-]+)?$',
+		r'^pwd$',
+		r'^echo\s+.*$',
+		r'^clear$',
+		
+		# Development commands
+		r'^make(\s+[\w-]+)?$',
+		r'^gcc(\s+-[a-zA-Z]+)*(\s+[\w\./-]+)+$',
+		r'^./[\w-]+$',  # Run executables in current directory
+		
+		# Basic file manipulation
+		r'^touch\s+[\w\./-]+$',
+		r'^mkdir(\s+-p)?\s+[\w\./-]+$',
+		
+		# Help commands
+		r'^help$',
+		r'^man\s+[\w-]+$'
+	]
+	
+	# Check if command matches any allowed pattern
+	if any(re.match(pattern, command) for pattern in allowed_patterns):
+		return True
+		
+	# Additional deny list for extra security
+	dangerous_commands = [
+		'rm -rf', 'sudo', 'chmod 777', ':(){', 'curl | bash',
+		'wget | bash', '> /dev', '> /proc', '> /sys'
+	]
+	
+	for cmd in dangerous_commands:
+		if cmd in command:
+			return False
+	
+	# Default to a more permissive approach for now
+	return True
 
 @app.get("/error-stats")
 async def error_statistics():
-    return {
-        "errors": error_counter,
-        "last_error": last_error_message,
-        "last_error_time": last_error_timestamp
-    }
+	return {
+		"errors": error_counter,
+		"last_error": last_error_message,
+		"last_error_time": last_error_timestamp
+	}
