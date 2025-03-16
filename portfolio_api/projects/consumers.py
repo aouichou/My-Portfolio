@@ -110,7 +110,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			
 			if 'command' in data:
 				command = data['command']
-				print(f"Processing command: {command}", lenght=len(command))
+				print(f"Processing command: '{command}', length: {len(command)}")
 				
 				# For single character input (interactive typing)
 				if len(command) == 1:
