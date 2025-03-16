@@ -105,10 +105,12 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 	
 	async def receive(self, text_data):
 		try:
+			print(f"Received WebSocket data: {text_data}")
 			data = json.loads(text_data)
 			
 			if 'command' in data:
 				command = data['command']
+				print(f"Processing command: {command}", lenght=len(command))
 				
 				# For single character input (interactive typing)
 				if len(command) == 1:
@@ -147,6 +149,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 					self.pty.resize(rows, cols)
 				
 		except Exception as e:
+			print(f"Error in receive: {e}")
 			await self.send(text_data=json.dumps({
 				'output': f"\r\nError executing command: {str(e)}\r\n"
 			}))

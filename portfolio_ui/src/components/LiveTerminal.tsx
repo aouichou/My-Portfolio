@@ -60,6 +60,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     socketRef.current = socket;
     
     socket.onopen = () => {
+	  console.log("Socket opened");
       setConnected(true);
       term.write('Connected to terminal server...\r\n');
     };
@@ -85,10 +86,17 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       }
     };
     
+	setTimeout(() => {
+		term.focus();
+		console.log("Terminal focused");
+	}, 1000);
+
     // Handle user input (handle characters one by one):
 	let currentCommand = '';
 	term.onData((data) => {
+	console.log("Terminal received key:", data);
 	if (connected && socket.readyState === WebSocket.OPEN) {
+		console.log("Sending key to socket:", data);
 		if (data === '\r') {
 		// Enter key - send complete command with newline
 		socket.send(JSON.stringify({ command: currentCommand + '\r\n' }));
@@ -102,6 +110,9 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 		currentCommand += data;
 		socket.send(JSON.stringify({ command: data }));
 		}
+	}
+	else {
+		console.log("Socket not ready:", connected, socket.readyState);
 	}
 	});
     
@@ -129,5 +140,15 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     };
   }, [slug]);
   
-  return <div id="terminal" className="h-full" />;
+  return (
+	<div className="flex flex-col h-full">
+	  <button 
+		className="bg-blue-600 text-white p-2 text-sm" 
+		onClick={() => terminalRef.current?.focus()}
+	  >
+		Click here if you can't type
+	  </button>
+	  <div id="terminal" className="h-full" />
+	</div>
+  );
 }
