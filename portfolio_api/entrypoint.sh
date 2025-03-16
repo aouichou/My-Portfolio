@@ -44,8 +44,12 @@ python manage.py migrate
 gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi &
 GUNICORN_PID=$!
 
+# Set PORT if not set
+export PORT=${PORT:-8081}
+echo "Daphne will listen on port $PORT"
+
 # Start daphne for WebSockets
-daphne -b 0.0.0.0 -p ${PORT:-8081} portfolio_api.asgi:application &
+daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application &
 DAPHNE_PID=$!
 
 # Create a simpler signal handler compatible with BusyBox shell
