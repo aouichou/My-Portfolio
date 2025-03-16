@@ -12,6 +12,7 @@ from django.conf import settings
 from channels.db import database_sync_to_async
 from projects.models import Project
 from guacamole import PTY
+import datetime
 
 class TerminalConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -170,3 +171,12 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         }
         
         return any(re.match(pattern, command) for pattern in allowed_commands)
+
+class HealthCheckConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+        await self.send(text_data=json.dumps({
+            'status': 'healthy',
+            'timestamp': datetime.datetime.now().isoformat()
+        }))
+        await self.close()

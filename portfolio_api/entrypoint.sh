@@ -18,25 +18,37 @@ python manage.py makemigrations
 python manage.py migrate
 
 # Create a superuser if it doesn't exist
-python -c "
-import os
-import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portfolio_api.settings')
-django.setup()
-from django.contrib.auth.models import User
-username = os.environ.get('DJANGO_ADMIN_USER', 'admin')
-email = os.environ.get('DJANGO_ADMIN_EMAIL', 'admin@example.com')
-password = os.environ.get('DJANGO_ADMIN_PASSWORD', 'admin')
-if not User.objects.filter(username=username).exists():
-    print(f'Creating superuser {username}')
-    User.objects.create_superuser(username, email, password)
-    print('Superuser created successfully')
-else:
-    user = User.objects.get(username=username)
-    print(f'User {username} already exists. Changing password...')
-    user.set_password(password)
-    user.save()
-    print('Password changed successfully')
-"
+# python -c "
+# import os
+# import django
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'portfolio_api.settings')
+# django.setup()
+# from django.contrib.auth.models import User
+# username = os.environ.get('DJANGO_ADMIN_USER', 'admin')
+# email = os.environ.get('DJANGO_ADMIN_EMAIL', 'admin@example.com')
+# password = os.environ.get('DJANGO_ADMIN_PASSWORD', 'admin')
+# if not User.objects.filter(username=username).exists():
+#     print(f'Creating superuser {username}')
+#     User.objects.create_superuser(username, email, password)
+#     print('Superuser created successfully')
+# else:
+#     user = User.objects.get(username=username)
+#     print(f'User {username} already exists. Changing password...')
+#     user.set_password(password)
+#     user.save()
+#     print('Password changed successfully')
+# "
 
-exec gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi
+# Start gunicorn in background for HTTP
+gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi &
+GUNICORN_PID=$!
+
+# Start daphne for WebSockets
+daphne -b 0.0.0.0 -p 8081 portfolio_api.asgi:application &
+DAPHNE_PID=$!
+
+# Forward signals to both processes
+trap "kill $GUNICORN_PID $DAPHNE_PID" SIGINT SIGTERM
+
+# Wait for either process to exit
+wait

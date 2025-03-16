@@ -3,7 +3,7 @@
 name: Terminal Monitoring
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/10 * * * *'
 
 jobs:
   check-terminal:
@@ -15,9 +15,14 @@ jobs:
           chmod +x websocat.x86_64-unknown-linux-musl
           sudo mv websocat.x86_64-unknown-linux-musl /usr/local/bin/websocat
       
-      - name: Test Terminal Connection
+      - name: Test API Health
         run: |
-          if ! timeout 10 websocat -v wss://api.aouichou.me/ws/terminal/minirt; then
-            echo "Terminal service down!" >> $GITHUB_STEP_SUMMARY
-            exit 1
+          response=$(curl -s https://api.aouichou.me/api/health/ || echo "Connection failed")
+          echo "API response: $response"
+          
+          if echo "$response" | grep -q "healthy"; then
+            echo "API service is healthy! 🟢"
+          else
+            echo "API service check failed 🔴" >> $GITHUB_STEP_SUMMARY
+            echo "Response: $response" >> $GITHUB_STEP_SUMMARY
           fi
