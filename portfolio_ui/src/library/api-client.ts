@@ -9,9 +9,9 @@ export { getMediaUrl, S3_BUCKET_URL };
 
 // Single source of truth for API URL with NO trailing slash
 export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 
-					  'https://portfolio-backend-dytv.onrender.com/api';
+                      'https://api.aouichou.me/api'; // Use api.aouichou.me instead of portfolio-backend-dytv.onrender.com
 
-// Create axios instance
+					  // Create axios instance
 export const api = axios.create({ 
   baseURL: API_URL,
   headers: {

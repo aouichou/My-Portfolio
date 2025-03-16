@@ -85,12 +85,25 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       }
     };
     
-    // Handle user input
-    term.onData((data) => {
-      if (connected && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ command: data }));
-      }
-    });
+    // Handle user input (handle characters one by one):
+	let currentCommand = '';
+	term.onData((data) => {
+	if (connected && socket.readyState === WebSocket.OPEN) {
+		if (data === '\r') {
+		// Enter key - send complete command with newline
+		socket.send(JSON.stringify({ command: currentCommand + '\r\n' }));
+		currentCommand = '';
+		} else if (data === '\u007f') {
+		// Backspace - remove last character
+		currentCommand = currentCommand.slice(0, -1);
+		socket.send(JSON.stringify({ command: data }));
+		} else {
+		// Regular character - add to command and send for echo
+		currentCommand += data;
+		socket.send(JSON.stringify({ command: data }));
+		}
+	}
+	});
     
     // Handle window resize
     const handleResize = () => {

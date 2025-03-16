@@ -110,29 +110,35 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			if 'command' in data:
 				command = data['command']
 				
-				# If control character, just pass it through (same logic)
-				if len(command) == 1 and ord(command) < 32:
+				# For single character input (interactive typing)
+				if len(command) == 1:
 					await self.pty.write(command)
-					output = await self.pty.read(timeout=1)
+					output = await self.pty.read(timeout=0.5)
 					await self.send(text_data=json.dumps({
 						'output': output.decode('utf-8', errors='replace')
 					}))
 					return
-				
-				# Validate command (same logic)
-				if not self.validate_command(command):
-					await self.send(text_data=json.dumps({
-						'output': f"Command not permitted: {command}\r\n"
-					}))
-					return
-				
-				# Execute command via AsyncPTY - UPDATED
-				await self.pty.write(command + '\n')
-				output = await self.pty.read(timeout=10)
+					
+				# For full commands (when Enter is pressed)
+				if command.endswith('\r') or command.endswith('\n'):
+					# Strip the newline character
+					command = command.rstrip('\r\n')
+					
+					# Validate complete commands only
+					if command and not self.validate_command(command):
+						await self.send(text_data=json.dumps({
+							'output': f"Command not permitted: {command}\r\n"
+						}))
+						return
+					
+				# Execute command
+				await self.pty.write(command)
+				output = await self.pty.read(timeout=5)
 				await self.send(text_data=json.dumps({
 					'output': output.decode('utf-8', errors='replace')
 				}))
 				
+			# Handle resize events
 			elif 'resize' in data:
 				# Resize terminal if supported
 				if hasattr(self, 'pty') and hasattr(self.pty, 'resize'):
