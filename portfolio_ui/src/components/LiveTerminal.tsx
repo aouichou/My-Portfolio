@@ -74,12 +74,15 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     };
     
     socket.onmessage = (event) => {
+	  console.log("Received message from server:", event.data);
       try {
         const data = JSON.parse(event.data);
         if (data.output) {
+		  console.log("Writing output to terminal:", data.output.substring(0, 30) + "...");
           term.write(data.output);
         }
       } catch (e) {
+		console.error("Error processing message:", e);
         term.write(event.data);
       }
     };

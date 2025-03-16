@@ -93,8 +93,10 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
                     f.write(f"# {project_slug}\n\nWelcome to the terminal demo!\n")
         
         env = os.environ.copy()
-        env['TERM'] = 'xterm-256color'  # Important for proper terminal behavior
+        env['TERM'] = 'xterm-256color'
         env['PS1'] = '\\[\\033[1;32m\\]\\u@\\h:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ '
+        env['HOME'] = '/home/coder'
+        env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
         # Initialize terminal
         child = spawn('bash --rcfile /app/bashrc -n', cwd=project_dir, env=env, echo=False, encoding='utf-8')
