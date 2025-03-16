@@ -165,7 +165,7 @@ async def read_terminal_output(websocket, child):
                 print(f"Read from terminal: {output[:20]}...")
                 try:
                     await websocket.send_text(json.dumps({
-                        'output': output.decode('utf-8', errors='replace')
+                        'output': output
                     }))
                 except Exception as e:
                     print(f"Error sending to WebSocket: {e}")
