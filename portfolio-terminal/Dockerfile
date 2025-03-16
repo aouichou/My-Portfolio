@@ -21,12 +21,13 @@ RUN chown -R coder:coder /home/coder
 
 # Copy application files
 COPY --chown=coder:coder . /app
+COPY bashrc /app/bashrc
+RUN chmod +x /app/bashrc
 WORKDIR /app
 
 # Setup security measures
 RUN mkdir -p /app/sandboxes
 RUN chown -R coder:coder /app/sandboxes
-RUN chmod 755 /app/entrypoint.sh
 RUN chmod 755 /app/entrypoint.sh
 
 # Expose port

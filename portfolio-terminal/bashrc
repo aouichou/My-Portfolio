@@ -1,5 +1,12 @@
+#!/bin/bash
 # Custom bashrc for terminal sandbox
-PS1="\[\033[1;32m\]\u@\h:\[\033[1;34m\]\w\[\033[0m\]\$ "
+PS1='\[\033[1;32m\]\u@\h:\[\033[1;34m\]\w\[\033[0m\]\$ '
+
+# Ensure proper terminal settings
+export TERM=xterm-256color
+export SHELL=/bin/bash
+stty erase ^H
+stty columns 80 rows 24
 
 # Limit resources
 ulimit -t 60       # CPU time (seconds)
@@ -10,3 +17,8 @@ ulimit -f 10240    # File size (KB) - 10MB
 alias ls='ls --color=auto'
 alias ll='ls -la'
 alias py='python3'
+alias clear='echo -e "\033c"'  # Fix clear command
+
+# Welcome message
+echo -e "\033[1;34mWelcome to the terminal demo for $(basename $(pwd))!\033[0m"
+echo -e "\033[1;30mType 'ls' to see available files\033[0m"

@@ -25,16 +25,19 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     if (!terminalElement) return;
     
     // Initialize terminal
-    const term = new Terminal({
-      cursorBlink: true,
-      fontSize: 14,
-      fontFamily: 'Consolas, monospace',
-      theme: {
-        background: '#1e1e1e',
-        foreground: '#d4d4d4',
-        cursor: '#a0a0a0',
-      }
-    });
+	const term = new Terminal({
+	  cursorBlink: true,
+	  fontSize: 14,
+	  fontFamily: 'Consolas, monospace',
+	  theme: {
+	    background: '#1e1e1e',
+	    foreground: '#d4d4d4',
+	    cursor: '#a0a0a0',
+	  },
+	  disableStdin: false,
+	  allowTransparency: true,
+	  convertEol: true,  // Important: Convert line feeds
+	});
     
     // Connect to WebSocket
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -109,38 +112,17 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	let currentCommand = '';
 
 	term.onData((data) => {
-	  console.log("Terminal received key:", data.charCodeAt(0));
-	  
-	  // ONLY check socket.readyState, NOT connected state
-	  if (socket.readyState === WebSocket.OPEN) {
-		// Handle Enter key properly (carriage return)
-		if (data === '\r') {
-		  // Send complete command with newline - ONCE
+		console.log("Terminal received key:", data.charCodeAt(0));
+		
+		if (socket.readyState === WebSocket.OPEN) {
+		  // Simply send raw data to the server - don't try to track commands locally
 		  socket.send(JSON.stringify({ 
-			command: currentCommand,
-			execute: true  // Signal to execute the command
+			input: data  // Send raw character data
 		  }));
-		  currentCommand = '';
-		} 
-		// Handle backspace
-		else if (data === '\u007f') {
-		  // Backspace - remove last character
-		  if (currentCommand.length > 0) {
-			currentCommand = currentCommand.slice(0, -1);
-			// Just send backspace character for handling by PTY
-			socket.send(JSON.stringify({ command: data }));
-		  }
-		} 
-		// Regular character input
-		else {
-		  // Add to command and send for echo
-		  currentCommand += data;
-		  socket.send(JSON.stringify({ command: data }));
+		} else {
+		  console.log("Socket not ready:", socket.readyState);
 		}
-	  } else {
-		console.log("Socket not ready:", socket.readyState);
-	  }
-	});;
+	  });
 
     // Cleanup
     return () => {

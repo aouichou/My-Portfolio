@@ -85,10 +85,24 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		project_dir = f"/home/coder/projects/{project_slug}"
 		if not os.path.exists(project_dir):
 			os.makedirs(project_dir, exist_ok=True)
-			# Here you'd download the project files
+			# Download project files from S3
+			files_downloaded = download_project_files(project_slug, project_dir)
+			if not files_downloaded:
+				# Create a minimal README if files couldn't be downloaded
+				with open(f"{project_dir}/README.md", "w") as f:
+					f.write(f"# {project_slug}\n\nWelcome to the terminal demo!\n")
 		
+		env = os.environ.copy()
+		env['TERM'] = 'xterm-256color'  # Important for proper terminal behavior
+		env['PS1'] = '\\[\\033[1;32m\\]\\u@\\h:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ '
+
 		# Initialize terminal
-		child = spawn(f'bash --rcfile /app/bashrc', cwd=project_dir)
+		child = spawn('bash --rcfile /app/bashrc -n', cwd=project_dir, env=env)
+		try:
+			await asyncio.sleep(0.5)  # Short delay for shell to initialize
+			child.expect_exact(['$', '#'], timeout=2)  # Wait for prompt
+		except Exception as e:
+			print(f"Error waiting for prompt: {e}")
 		active_terminals[session_id] = child
 		
 		# Send welcome message
@@ -104,24 +118,18 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 			data = await websocket.receive_text()
 			try:
 				message = json.loads(data)
-				if 'command' in message:
-					if message.get('execute', False):
-						# Full command execution
-						command = message['command']
-						if validate_command(command):
-							child.sendline(command)
-						else:
-							await websocket.send_text(json.dumps({
-								'output': f"Command not permitted: {command}\r\n"
-							}))
-					else:
-						# Single character input
-						child.send(message['command'])
+				
+				# NEW: Simplified input handling
+				if 'input' in message:
+					# Send raw input to the terminal
+					raw_input = message['input']
+					child.send(raw_input)
 				elif 'resize' in message:
 					# Handle terminal resize
 					resize = message['resize']
 					child.setwinsize(resize['rows'], resize['cols'])
 			except Exception as e:
+				print(f"Error processing message: {e}")
 				await websocket.send_text(json.dumps({
 					'output': f"\r\nError: {str(e)}\r\n"
 				}))
@@ -210,3 +218,45 @@ async def error_statistics():
 		"last_error": last_error_message,
 		"last_error_time": last_error_timestamp
 	}
+
+def download_project_files(project_slug, project_dir):
+	"""Download project files from S3 if they exist"""
+	try:
+		import boto3
+		import zipfile
+		import tempfile
+		
+		# Initialize S3 client with environment variables
+		s3 = boto3.client(
+			's3',
+			aws_access_key_id=os.environ.get('BUCKETEER_AWS_ACCESS_KEY_ID'),
+			aws_secret_access_key=os.environ.get('BUCKETEER_AWS_SECRET_ACCESS_KEY'),
+			region_name=os.environ.get('AWS_S3_REGION_NAME', 'eu-west-1')
+		)
+		
+		# The expected file path in S3 (matches your Django view)
+		s3_path = f'project-files/{project_slug}.zip'
+		bucket_name = os.environ.get('BUCKETEER_BUCKET_NAME')
+		
+		if not bucket_name:
+			print(f"Missing S3 bucket configuration")
+			return False
+			
+		# Create temp file for downloading
+		with tempfile.NamedTemporaryFile() as temp_file:
+			try:
+				# Download the zip file from S3
+				s3.download_file(bucket_name, s3_path, temp_file.name)
+				
+				# Extract the zip file to the project directory
+				with zipfile.ZipFile(temp_file.name, 'r') as zip_ref:
+					zip_ref.extractall(project_dir)
+					
+				print(f"Successfully extracted project files to {project_dir}")
+				return True
+			except Exception as e:
+				print(f"Failed to download/extract project files: {e}")
+				return False
+	except Exception as e:
+		print(f"Project file download error: {e}")
+		return False

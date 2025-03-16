@@ -7,12 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend || steps.check-commit-msg.outputs.force_deploy == 'true' }}
+      terminal: ${{ steps.filter.outputs.terminal || steps.check-commit-msg.outputs.force_deploy == 'true' }}
       frontend: ${{ steps.filter.outputs.frontend || steps.check-commit-msg.outputs.force_deploy == 'true' }}
+      shared: ${{ steps.filter.outputs.shared }}
       force_deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history to properly compare changes
+          fetch-depth: 0
       
       # Check if commit message contains force deploy flag
       - name: Check commit message
@@ -32,22 +34,28 @@ jobs:
           filters: |
             backend:
               - 'portfolio_api/**'
-              - 'portfolio-terminal/**'
               - 'docker-compose.yml'
               - 'nginx.conf'
+            terminal:
+              - 'portfolio-terminal/**'  
             frontend:
               - 'portfolio_ui/**'
+            shared:
+              - 'docker-compose.yml'
+              - 'nginx.conf'
 
       - name: Report changes
         run: |
           echo "Backend changes: ${{ steps.filter.outputs.backend }}"
+          echo "Terminal changes: ${{ steps.filter.outputs.terminal }}"
           echo "Frontend changes: ${{ steps.filter.outputs.frontend }}"
+          echo "Shared config changes: ${{ steps.filter.outputs.shared }}"
           echo "Force deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}"
 
   # Backend deployment job with condition
   deploy-backend:
     needs: [check-changes]
-    if: needs.check-changes.outputs.backend == 'true'
+    if: needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,8 +105,7 @@ jobs:
   # Frontend deployment job with condition
   deploy-frontend:
     needs: [check-changes]
-    # Run if frontend changed OR if backend job was skipped due to no changes
-    if: needs.check-changes.outputs.frontend == 'true' 
+    if: needs.check-changes.outputs.frontend == 'true' || needs.check-changes.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -131,14 +138,20 @@ jobs:
   # Terminal service deployment job
   deploy-terminal:
     needs: [check-changes]
-    if: needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.force_deploy == 'true'
+    if: needs.check-changes.outputs.terminal == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
       - name: Deploy reason
         run: |
-          echo "🚀 Deploying terminal service because backend changed or force deploy was requested"
+          if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
+            echo "🚀 Deploying terminal service because force deploy was requested"
+          elif [[ "${{ needs.check-changes.outputs.shared }}" == "true" ]]; then
+            echo "🚀 Deploying terminal service because shared configs changed"
+          else
+            echo "🚀 Deploying terminal service because terminal files changed"
+          fi
 
       - name: Render Deploy Action for Terminal Service
         uses: johnbeynon/render-deploy-action@v0.0.8
