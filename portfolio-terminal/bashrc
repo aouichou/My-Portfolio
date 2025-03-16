@@ -1,0 +1,12 @@
+# Custom bashrc for terminal sandbox
+PS1="\[\033[1;32m\]\u@\h:\[\033[1;34m\]\w\[\033[0m\]\$ "
+
+# Limit resources
+ulimit -t 60       # CPU time (seconds)
+ulimit -v 524288   # Virtual memory (KB) - 512MB
+ulimit -f 10240    # File size (KB) - 10MB
+
+# Define useful aliases
+alias ls='ls --color=auto'
+alias ll='ls -la'
+alias py='python3'

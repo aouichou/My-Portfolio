@@ -1,192 +1,76 @@
-# portfolio_api/projects/consumers.py
+# In portfolio_api/projects/consumers.py
 
-import json
-import asyncio
-import os
-import re
+import websockets
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .views import download_project_files
-import boto3
-import zipfile
-from django.conf import settings
-from channels.db import database_sync_to_async
-from projects.models import Project
-from pty_manager import AsyncPTY
-import datetime
+import json
+import os
+import asyncio
 
 class TerminalConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
 		self.project_slug = self.scope['url_route']['kwargs']['project_slug']
 		
-		# Accept the WebSocket connection
+		# Accept WebSocket connection from browser
 		await self.accept()
 		
-		# Send welcome message
-		await self.send(text_data=json.dumps({
-			'output': f"Initializing environment for {self.project_slug}...\r\n"
-		}))
+		# Get terminal service URL from environment
+		terminal_base_url = os.environ.get('TERMINAL_SERVICE_URL', 'wss://portfolio-terminal-4t9w.onrender.com')
+		self.terminal_url = f"{terminal_base_url}/terminal/{self.project_slug}/"
 		
-		# Setup project files and start PTY
-		asyncio.create_task(self.setup_terminal())
-	
-	async def setup_terminal(self):
 		try:
-			# Download project files
+			# Connect to terminal service
+			self.terminal_ws = await websockets.connect(self.terminal_url)
+			
+			# Start forwarding messages from terminal to browser
+			self.forward_task = asyncio.create_task(self.forward_from_terminal())
+			
+			# Send welcome message
 			await self.send(text_data=json.dumps({
-				'output': "Downloading project files...\r\n"
+				'output': f"Connecting to terminal for {self.project_slug}...\r\n"
 			}))
 			
-			# Create project directory
-			project_dir = os.path.join(os.getcwd(), 'projects', self.project_slug)
-			os.makedirs(project_dir, exist_ok=True)
-			
-			# Download and extract project files from S3
-			project = await database_sync_to_async(Project.objects.get)(slug=self.project_slug)
-			if project.demo_files_path:
-				success = await database_sync_to_async(self.download_and_extract)(
-					project.demo_files_path, project_dir)
-				if not success:
-					await self.send(text_data=json.dumps({
-						'output': "Warning: Could not download project files\r\n"
-					}))
-			
-			# Initialize the PTY
-			env = os.environ.copy()
-			env['TERM'] = 'xterm-256color'
-			
-			self.pty = AsyncPTY(
-				'/bin/bash',
-				cwd=project_dir,
-				env=env,
-				timeout=30
-			)
-			await self.pty.start()
+		except Exception as e:
+			# Handle connection errors
+			error_msg = f"Error connecting to terminal service: {str(e)}\r\n"
+			await self.send(text_data=json.dumps({'output': error_msg}))
+			await self.close()
 
-			# Write welcome message
-			await self.send(text_data=json.dumps({
-				'output': f"\r\nWelcome to the {self.project_slug} terminal demo!\r\n"
-						  f"Type 'ls' to see project files\r\n\r\n"
-						  f"{self.project_slug}:~$ "
-			}))
-			
-		except Exception as e:
-			await self.send(text_data=json.dumps({
-				'output': f"\r\nError setting up terminal: {str(e)}\r\n"
-			}))
-	
-	def download_and_extract(self, demo_files_path, project_dir):
-		try:
-			# Download from S3
-			s3 = boto3.client(
-				's3',
-				aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-				aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-				region_name=settings.AWS_S3_REGION_NAME
-			)
-			
-			zip_path = os.path.join(project_dir, 'project.zip')
-			s3.download_file(
-				settings.AWS_STORAGE_BUCKET_NAME,
-				demo_files_path,
-				zip_path
-			)
-			
-			# Extract files
-			with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-				zip_ref.extractall(project_dir)
-				
-			# Remove zip file
-			os.remove(zip_path)
-			return True
-			
-		except Exception as e:
-			print(f"Error downloading project files: {e}")
-			return False
-
-	async def receive(self, text_data):
-		try:
-			print(f"Received WebSocket data: {text_data}")
-			data = json.loads(text_data)
-			
-			if 'command' in data:
-				command = data['command']
-				print(f"Processing command: '{command}', length: {len(command)}")
-				
-				# Check if this is an execution request (Enter key)
-				if data.get('execute', False):
-					# Validate and execute full command
-					if command and not self.validate_command(command):
-						await self.send(text_data=json.dumps({
-							'output': f"Command not permitted: {command}\r\n"
-						}))
-						return
-					
-					# Send the command with a newline to execute it
-					await self.pty.write(command + '\r\n')
-					output = await self.pty.read(timeout=5)
-					await self.send(text_data=json.dumps({
-						'output': output.decode('utf-8', errors='replace')
-					}))
-					return
-					
-				# For single character input (interactive typing)
-				if len(command) == 1:
-					await self.pty.write(command)
-					output = await self.pty.read(timeout=0.5)
-					await self.send(text_data=json.dumps({
-						'output': output.decode('utf-8', errors='replace')
-					}))
-					return
-				
-			# Handle resize events
-			elif 'resize' in data:
-				# Resize terminal if supported
-				if hasattr(self, 'pty') and hasattr(self.pty, 'resize'):
-					rows = data['resize'].get('rows', 24)
-					cols = data['resize'].get('cols', 80)
-					self.pty.resize(rows, cols)
-				
-		except Exception as e:
-			print(f"Error in receive: {e}")
-			await self.send(text_data=json.dumps({
-				'output': f"\r\nError executing command: {str(e)}\r\n"
-			}))
-	
 	async def disconnect(self, close_code):
-		# Clean up the PTY when WebSocket closes
-		if hasattr(self, 'pty'):
-			self.pty.terminate()
-	
-	def validate_command(self, command):
-		# Basic command set (general purpose)
-		allowed_commands = {
-			# Development tools
-			r'^make(\s+[\w-]+)*$',
-			r'^gcc(\s+[-\w\.\/]+)*$',
-			r'^g\+\+(\s+[-\w\.\/]+)*$',
-			r'^python3?(\s+[\w\./-]+)*$',
-			r'^npm(\s+(run|install|start|test)\s+[\w-]+)$',
-			
-			# Basic shell commands
-			r'^ls(\s+-[altrh]+)*(\s+[\w\./-]+)*$',
-			r'^cat\s+[\w\./-]+$',
-			r'^cd\s+[\w\./-]+$',
-			r'^pwd$',
-			r'^echo(\s+.+)?$',
-			r'^grep(\s+-[ivnE]+)*(\s+[\w\./-]+)*$',
-			r'^find(\s+[\w\./-]+)(\s+-name\s+[\w\.\*-]+)?$',
-			
-			# Project-specific commands
-			r'^\.\/[\w\.-]+(\s+[\w\./-]+)*$',  # Run executable
-		}
+		# Clean up terminal connection when browser disconnects
+		if hasattr(self, 'terminal_ws') and not self.terminal_ws.closed:
+			await self.terminal_ws.close()
 		
-		return any(re.match(pattern, command) for pattern in allowed_commands)
+		# Cancel forwarding task if active
+		if hasattr(self, 'forward_task') and not self.forward_task.done():
+			self.forward_task.cancel()
+
+	async def forward_from_terminal(self):
+		try:
+			while True:
+				message = await self.terminal_ws.recv()
+				await self.send(text_data=message)
+		except websockets.ConnectionClosed:
+			await self.send(text_data=json.dumps({
+				'output': '\r\n\r\nTerminal connection closed. Refresh to reconnect.\r\n'
+			}))
+		except Exception as e:
+			await self.send(text_data=json.dumps({
+				'output': f'\r\n\r\nTerminal error: {str(e)}\r\n'
+			}))
+		finally:
+			# Close the WebSocket connection when forwarding ends
+			if not self.is_closed():
+				await self.close()
+				
+	async def receive(self, text_data):
+		if hasattr(self, 'terminal_ws') and not self.terminal_ws.closed:
+			await self.terminal_ws.send(text_data)
 
 class HealthCheckConsumer(AsyncWebsocketConsumer):
-	async def connect(self):
-		await self.accept()
-		await self.send(text_data=json.dumps({
-			'status': 'healthy',
-			'timestamp': datetime.datetime.now().isoformat()
-		}))
-		await self.close()
+    async def connect(self):
+        await self.accept()
+        await self.send(text_data=json.dumps({
+            'status': 'healthy',
+            'service': 'websocket'
+        }))
+        await self.close()

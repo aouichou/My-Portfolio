@@ -1,0 +1,13 @@
+# render.yaml
+services:
+  - type: web
+    name: portfolio-terminal
+    env: docker
+    dockerfilePath: ./portfolio-terminal/Dockerfile
+    dockerContext: ./portfolio-terminal
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: 8000

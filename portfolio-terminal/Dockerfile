@@ -1,0 +1,36 @@
+FROM ubuntu:22.04
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip \
+    build-essential gcc g++ make \
+    git curl wget \
+    nodejs npm \
+    bash-completion \
+    vim nano \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
+
+# Create a non-root user
+RUN useradd -m -s /bin/bash coder
+RUN mkdir -p /home/coder/projects && chown -R coder:coder /home/coder
+
+# Copy application files
+COPY --chown=coder:coder . /app
+WORKDIR /app
+
+# Setup security measures
+RUN mkdir -p /app/sandboxes
+RUN chmod 755 /app/entrypoint.sh
+
+# Expose port
+EXPOSE 8000
+
+# Run as non-root user
+USER coder
+
+# Start the service
+CMD ["/app/entrypoint.sh"]

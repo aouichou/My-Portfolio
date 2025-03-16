@@ -50,6 +50,20 @@ services:
     networks:
       - app-network
 
+  terminal:
+    build: 
+      context: ./portfolio-terminal
+    expose:
+      - "8000"
+    volumes:
+      - ./portfolio-terminal:/app
+    networks:
+      - app-network
+    restart: unless-stopped
+    environment:
+      - PORT=8000
+    depends_on: [redis]
+
   # certbot:
   #   image: certbot/certbot
   #   volumes:

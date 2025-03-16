@@ -26,3 +26,15 @@ jobs:
             echo "API service check failed 🔴" >> $GITHUB_STEP_SUMMARY
             echo "Response: $response" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Test Terminal Service Health
+        run: |
+          response=$(curl -s https://portfolio-terminal-4t9w.onrender.com/healthz || echo "Connection failed")
+          echo "Terminal response: $response"
+          
+          if echo "$response" | grep -q "healthy"; then
+            echo "Terminal service is healthy! 🟢"
+          else
+            echo "Terminal service check failed 🔴" >> $GITHUB_STEP_SUMMARY
+            echo "Response: $response" >> $GITHUB_STEP_SUMMARY
+          fi

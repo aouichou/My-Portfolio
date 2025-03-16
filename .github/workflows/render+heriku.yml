@@ -32,6 +32,7 @@ jobs:
           filters: |
             backend:
               - 'portfolio_api/**'
+              - 'portfolio-terminal/**'
               - 'docker-compose.yml'
               - 'nginx.conf'
             frontend:
@@ -45,7 +46,7 @@ jobs:
 
   # Backend deployment job with condition
   deploy-backend:
-    needs: check-changes
+    needs: [check-changes]
     if: needs.check-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -126,3 +127,21 @@ jobs:
           heroku_app_name: "portfolio-frontend"
           email: "a.ouichou@student.42.fr" 
           dockerfile_directory: "./portfolio_ui/"
+
+  # Terminal service deployment job
+  deploy-terminal:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.force_deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy reason
+        run: |
+          echo "🚀 Deploying terminal service because backend changed or force deploy was requested"
+
+      - name: Render Deploy Action for Terminal Service
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_TERMINAL_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
