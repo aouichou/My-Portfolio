@@ -106,23 +106,38 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	term.loadAddon(unicodeAddon);
 	term.unicode.activeVersion = '11';
 
-    term.open(terminalElement);
-    fitAddon.fit();
-    
-    // Handle window resize
-    const handleResize = () => {
-      fitAddon.fit();
-      if (connected && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-          resize: { cols: term.cols, rows: term.rows }
-        }));
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-
-	// Handle user input (handle characters one by one):
-	let currentCommand = '';
+	// Define resize function
+	const resizeTerminal = () => {
+		// Short delay to ensure DOM layout is complete
+		setTimeout(() => {
+		try {
+			fitAddon.fit();
+			
+			// Send the resize command to the server
+			if (connected && socket.readyState === WebSocket.OPEN) {
+			console.log(`Terminal resized to ${term.cols}x${term.rows}`);
+			socket.send(JSON.stringify({
+				resize: { cols: term.cols, rows: term.rows }
+			}));
+			}
+		} catch (e) {
+			console.error("Fit error:", e);
+		}
+		}, 100);
+	};
+	
+	// Open terminal in the container
+	term.open(terminalElement);
+	resizeTerminal();  // Initial fit
+	
+	// Handle window resize events
+	window.addEventListener('resize', resizeTerminal);
+	
+	document.addEventListener('visibilitychange', () => {
+		if (!document.hidden) {
+		  resizeTerminal();
+		}
+	  });
 
 	term.onData((data) => {
 		console.log("Terminal received key:", data.charCodeAt(0));
@@ -142,7 +157,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', resizeTerminal);
       if (socketRef.current) {
         socketRef.current.close();
       }
@@ -153,14 +168,8 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   }, [slug]);
   
   return (
-	<div className="flex flex-col h-full">
-	  <button 
-		className="bg-blue-600 text-white p-2 text-sm" 
-		onClick={() => terminalRef.current?.focus()}
-	  >
-		Click here if you can't type
-	  </button>
-	  <div id="terminal" className="h-full" />
+	<div className="terminal-wrapper relative h-full">
+		<div id="terminal" className="absolute top-0 left-0 right-0 bottom-0" />
 	</div>
   );
 }

@@ -12,14 +12,29 @@ import json
 import psutil
 import re
 from contextlib import asynccontextmanager
+import asyncio
+import aiohttp
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup code
     print("Starting terminal service...")
+    
+    # Start health check task
+    health_check_task = asyncio.create_task(periodic_health_checks())
+    
     yield
-    # Shutdown code - runs when the application is shutting down
+    
+    # Shutdown code
     print("Shutting down terminal service...")
+    
+    # Cancel health check task
+    health_check_task.cancel()
+    try:
+        await health_check_task
+    except asyncio.CancelledError:
+        pass
+        
     # Terminate all active terminals
     for session_id, child in active_terminals.items():
         try:
@@ -31,6 +46,28 @@ async def lifespan(app: FastAPI):
     print("Terminal service shutdown complete")
 
 app = FastAPI(lifespan=lifespan)
+
+async def periodic_health_checks():
+    """Send periodic health checks to other services to prevent shutdown"""
+    services = {
+        "backend": os.environ.get("BACKEND_URL", "https://api.aouichou.me"),
+        "frontend": os.environ.get("FRONTEND_URL", "https://aouichou.me")
+    }
+    
+    while True:
+        try:
+            async with aiohttp.ClientSession() as session:
+                for name, url in services.items():
+                    try:
+                        async with session.get(f"{url}/healthz", timeout=5) as response:
+                            print(f"Health check to {name}: {response.status}")
+                    except Exception as e:
+                        print(f"Failed health check to {name}: {str(e)}")
+        except Exception as e:
+            print(f"Error in health checks: {str(e)}")
+        
+        # Wait for 10 minutes before next check
+        await asyncio.sleep(600)  # 600 seconds = 10 minutes
 
 active_terminals = {}
 error_counter = 0
@@ -114,8 +151,8 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 
         # Initialize terminal
         # child = spawn('bash --rcfile /app/bashrc -n', cwd=project_dir, env=env, echo=False, encoding='utf-8')
-        child = spawn('/bin/bash', ['--rcfile', '/app/bashrc'], cwd=project_dir, env=env, encoding='utf-8')
-        child.setwinsize(24, 80)  # Initial size
+        child = spawn('/bin/zsh', ['--login'], cwd=project_dir, env=env, encoding='utf-8')
+        child.setwinsize(36, 120)  # Initial size
         try:
             await asyncio.sleep(0.5)  # Short delay for shell to initialize
             child.expect_exact(['$', '#'], timeout=2)  # Wait for prompt

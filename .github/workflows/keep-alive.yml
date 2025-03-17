@@ -1,0 +1,20 @@
+# .github/workflows/keep-alive.yml
+
+name: Keep Services Alive
+on:
+  schedule:
+    # Run every 20 minutes
+    - cron: '*/20 * * * *'
+
+jobs:
+  ping-services:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend service
+        run: curl -s -o /dev/null -w "%{http_code}" https://api.aouichou.me/healthz || echo "Backend ping failed"
+      
+      - name: Ping terminal service
+        run: curl -s -o /dev/null -w "%{http_code}" https://portfolio-terminal-4t9w.onrender.com/healthz || echo "Terminal ping failed"
+      
+      - name: Ping frontend
+        run: curl -s -o /dev/null -w "%{http_code}" https://aouichou.me || echo "Frontend ping failed"
