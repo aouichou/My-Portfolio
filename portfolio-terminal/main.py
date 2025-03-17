@@ -81,16 +81,30 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
         sandbox_dir = f"/home/coder/sandboxes/{session_id}"
         os.makedirs(sandbox_dir, exist_ok=True)
         
-        # Download project files if needed
+        # Replace the project directory check with this:
         project_dir = f"/home/coder/projects/{project_slug}"
+        should_download = False
+        
         if not os.path.exists(project_dir):
             os.makedirs(project_dir, exist_ok=True)
+            should_download = True
+        else:
+            # Directory exists, but check if it's empty or just contains README
+            files = os.listdir(project_dir)
+            if not files or (len(files) == 1 and 'README.md' in files):
+                should_download = True
+                print(f"Project directory exists but contains only default files: {files}")
+        
+        if should_download:
+            print(f"Attempting to download project files for {project_slug}")
             # Download project files from S3
             files_downloaded = download_project_files(project_slug, project_dir)
             if not files_downloaded:
                 # Create a minimal README if files couldn't be downloaded
                 with open(f"{project_dir}/README.md", "w") as f:
                     f.write(f"# {project_slug}\n\nWelcome to the terminal demo!\n")
+        else:
+            print(f"Using existing project directory: {project_dir}, contains: {os.listdir(project_dir)}")
         
         env = os.environ.copy()
         env['TERM'] = 'xterm-256color'
