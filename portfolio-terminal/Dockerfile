@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     nodejs npm \
     bash-completion \
     vim nano \
+	libreadline-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
