@@ -239,6 +239,7 @@ def download_project_files(project_slug, project_dir):
         import boto3
         import zipfile
         import tempfile
+        import os
         
         # Initialize S3 client with environment variables
         s3 = boto3.client(
@@ -259,26 +260,55 @@ def download_project_files(project_slug, project_dir):
         print(f"Looking for S3 object: {s3_path} in bucket {bucket_name}")
 
         try:
-            s3.head_object(Bucket=bucket_name, Key=s3_path)
+            obj = s3.head_object(Bucket=bucket_name, Key=s3_path)
+            print(f"Found object in S3. Size: {obj['ContentLength']} bytes")
         except s3.exceptions.ClientError as e:
             if e.response['Error']['Code'] == '404':
                 print(f"Project file {s3_path} doesn't exist in S3 bucket")
                 return False
             else:
+                print(f"Error checking S3 object: {e}")
                 raise
 
         # Create temp file for downloading
-        with tempfile.NamedTemporaryFile() as temp_file:
+        with tempfile.NamedTemporaryFile(suffix='.zip') as temp_file:
             try:
                 # Download the zip file from S3
+                print(f"Downloading {s3_path} to {temp_file.name}")
                 s3.download_file(bucket_name, s3_path, temp_file.name)
                 
+                # Check if file downloaded correctly
+                file_size = os.path.getsize(temp_file.name)
+                print(f"Downloaded file size: {file_size} bytes")
+                if file_size == 0:
+                    print("Error: Downloaded file is empty")
+                    return False
+                
                 # Extract the zip file to the project directory
+                print(f"Opening ZIP file {temp_file.name}")
                 with zipfile.ZipFile(temp_file.name, 'r') as zip_ref:
-                    zip_ref.extractall(project_dir)
+                    # List zip contents
+                    files = zip_ref.namelist()
+                    print(f"ZIP contains {len(files)} files: {files[:5]}{'...' if len(files) > 5 else ''}")
                     
-                print(f"Successfully extracted project files to {project_dir}")
+                    # Extract files
+                    print(f"Extracting to {project_dir}")
+                    zip_ref.extractall(project_dir)
+                
+                # Verify extraction
+                extracted = os.listdir(project_dir)
+                print(f"Files in project dir after extraction: {extracted}")
+                if len(extracted) == 0:
+                    print("Warning: No files found after extraction")
+                    
                 return True
+            except zipfile.BadZipFile as e:
+                print(f"Bad ZIP file: {e}")
+                # Try to get file format info
+                with open(temp_file.name, 'rb') as f:
+                    header = f.read(10)
+                print(f"File header: {header.hex()}")
+                return False
             except Exception as e:
                 print(f"Failed to download/extract project files: {e}")
                 return False

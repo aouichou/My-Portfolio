@@ -27,7 +27,9 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     
     // Initialize terminal
 	const term = new Terminal({
+	  cursorStyle: 'block',
 	  cursorBlink: true,
+	  macOptionIsMeta: true,
 	  fontSize: 14,
 	  fontFamily: 'Consolas, monospace',
 	  theme: {
@@ -131,7 +133,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 			input: data  // Send raw character data
 		  }));
 		  if (data.charCodeAt(0) >= 32 || data === '\r' || data === '\n') {
-			term.write(data);
+			// term.write(data);
 		  }
 		} else {
 		  console.log("Socket not ready:", socket.readyState);
