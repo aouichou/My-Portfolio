@@ -114,9 +114,6 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
     redis_client.setex(f"terminal_session:{session_id}", 3600, json.dumps(session_info))
     
     try:
-        # Create sandbox directory
-        sandbox_dir = f"/home/coder/sandboxes/{session_id}"
-        os.makedirs(sandbox_dir, exist_ok=True)
         
         # Replace the project directory check with this:
         project_dir = f"/home/coder/projects/{project_slug}"

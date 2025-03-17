@@ -31,11 +31,13 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	  cursorBlink: true,
 	  macOptionIsMeta: true,
 	  fontSize: 14,
-	  fontFamily: 'Consolas, monospace',
+	  fontFamily: "'MesloLGS NF', 'Fira Code', 'Cascadia Code', monospace",
 	  theme: {
 	    background: '#1e1e1e',
 	    foreground: '#d4d4d4',
 	    cursor: '#a0a0a0',
+		cursorAccent: '#000000',
+		selectionBackground: '#4d4d4d',
 	  },
 	  disableStdin: false,
 	  allowTransparency: true,
@@ -43,6 +45,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	  scrollback: 1000,
 	  tabStopWidth: 4,
 	  allowProposedApi: true,
+	  fontWeightBold: 'bold',
 	});
     
     // Connect to WebSocket

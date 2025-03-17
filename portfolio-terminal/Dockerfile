@@ -27,7 +27,12 @@ RUN apt-get update && apt-get install -y zsh curl git \
     && chown -R coder:coder /home/coder/.oh-my-zsh /home/coder/.zshrc
 
 # Add plugins
-RUN sed -i 's/plugins=(git)/plugins=(git colorize npm python vscode)/' /home/coder/.zshrc
+RUN sed -i 's/ZSH_THEME="agnoster"/ZSH_THEME="robbyrussell"/' /home/coder/.zshrc && \
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/coder/.oh-my-zsh/custom/themes/powerlevel10k && \
+    sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' /home/coder/.zshrc && \
+    echo 'POWERLEVEL9K_MODE="nerdfont-complete"' >> /home/coder/.zshrc && \
+    echo 'POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)' >> /home/coder/.zshrc && \
+    echo 'POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)' >> /home/coder/.zshrc
 
 # Add custom settings for better terminal experience
 RUN echo "export TERM=xterm-256color" >> /home/coder/.zshrc && \
