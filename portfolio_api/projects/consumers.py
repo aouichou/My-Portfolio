@@ -15,6 +15,14 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		
 		# Get terminal service URL from environment
 		terminal_base_url = os.environ.get('TERMINAL_SERVICE_URL', 'wss://portfolio-terminal-4t9w.onrender.com')
+		if terminal_base_url.startswith('wss://'):
+			# For production
+			self.terminal_url = f"{terminal_base_url}/terminal/{self.project_slug}/"
+		else:
+			# For development or if base URL doesn't include protocol
+			self.terminal_url = f"wss://{terminal_base_url}/terminal/{self.project_slug}/"
+		
+		print(f"Connecting to terminal service at: {self.terminal_url}")
 		self.terminal_url = f"{terminal_base_url}/terminal/{self.project_slug}/"
 		
 		try:

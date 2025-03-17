@@ -40,6 +40,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	  convertEol: true,  // Important: Convert line feeds
 	  scrollback: 1000,
 	  tabStopWidth: 4,
+	  allowProposedApi: true,
 	});
     
     // Connect to WebSocket
