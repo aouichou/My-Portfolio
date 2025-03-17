@@ -1,10 +1,9 @@
-# .github/workflows/keep-alive.yml
-
 name: Keep Services Alive
 on:
   schedule:
     # Run every 20 minutes
     - cron: '*/20 * * * *'
+  workflow_dispatch:
 
 jobs:
   ping-services:
