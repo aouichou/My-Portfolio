@@ -12,7 +12,7 @@
   <img src="docs/terminal_demo.gif" width="650px" alt="Interactive Terminal Demo">
 </p>
 
-**Live in-browser terminal execution** of real projects via WebSockets. [Try it yourself!](https://aouichou.me/demo/miniRT)
+**Live in-browser terminal execution** of real projects via WebSockets. [Try it yourself!](https://aouichou.me/demo/minishell)
 
 ### Terminal Implementation Highlights
 
