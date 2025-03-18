@@ -41,9 +41,9 @@ This design ensures greater security as the terminal service is never directly e
 ```mermaid
 graph TD
     User[User Browser] -->|HTTPS| CF[Cloudflare]
-    CF -->|HTTP/2| Next[Next.js Frontend/Heroku]
-    CF -->|HTTP/2 + WebSockets| Django[Django Backend/Render]
-    Django -->|Internal WebSocket| WS[Terminal Service/Render]
+    CF -->|HTTP/2| Next[Next.js Frontend]
+    CF -->|WebSocket| Django[Django Backend]
+    Django -->|Internal WebSocket| WS[Terminal Service]
     Django -->|JSON| DB[(PostgreSQL)]
     Django -->|Async Tasks| Redis[(Redis Cache)]
     Django -->|Files| S3[(S3 Storage)]
@@ -54,9 +54,6 @@ graph TD
     Actions -->|Deploy| Next
     Actions -->|Deploy| Django
     Actions -->|Deploy| WS
-    HealthCheck[Health Check Service] -->|Ping| Django
-    HealthCheck -->|Ping| Next
-    HealthCheck -->|Ping| WS
 ```
 
 ### Infrastructure Components

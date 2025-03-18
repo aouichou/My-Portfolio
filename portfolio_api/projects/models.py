@@ -26,8 +26,8 @@ class Project(models.Model):
 	has_interactive_demo = models.BooleanField(default=False, help_text="Enable terminal demo for this project")
 	demo_commands = models.JSONField(null=True, blank=True, help_text="JSON commands for interactive terminal")
 	demo_files_path = models.CharField(max_length=255, null=True, blank=True, help_text="Path to demo files in S3")
-	code_steps = models.JSONField(default=list, help_text="List of steps to run the code")
-	code_snippets = models.JSONField(default=list, help_text="List of code snippets")
+	code_steps = models.JSONField(null=True, blank=True, help_text="List of steps to run the code")
+	code_snippets = models.JSONField(null=True, blank=True, help_text="List of code snippets")
 	architecture_diagram = models.TextField(
 		blank=True,
 		help_text="""
