@@ -10,6 +10,8 @@ import FontLoader from '@/components/FontLoader';
 import BlockCloudflare from '@/components/BlockCloudflare';
 import DebugCSP from '@/components/DebugCSP';
 import { MermaidScriptLoader } from '@/components/MermaidScriptLoader';
+import ServiceWarmup from '@/components/ServiceWarmup'
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 const inter = Inter({
 	subsets: ['latin'],
@@ -40,6 +42,8 @@ export default function RootLayout({
 		  <BlockCloudflare />
 		  <FontLoader />
 		  <DebugCSP />
+		  <LoadingOverlay />
+		  <ServiceWarmup />
 		  <ClientLayout>
 			{children}
 			<Toaster position="top-center" />

@@ -45,6 +45,7 @@ export type GalleryImage = {
   demo_files_path?: string;
   demo_commands?: Record<string, string>;
   code_steps?: Record<string, string>;
+  code_snippets?: Record<string, string>;
 }
 
 declare global {

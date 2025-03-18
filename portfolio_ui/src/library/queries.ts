@@ -28,3 +28,13 @@ export function useProjectBySlug(slug: string, initialData?: Project) {
     enabled: !!slug
   });
 }
+
+export function useAllProjects() {
+	return useQuery({
+	queryKey: ['projects'],
+	queryFn: async () => {
+	  const projects = await getProjects();
+	  return projects.map(normalizeProject);
+	}
+  });
+}

@@ -2,15 +2,21 @@
 
 'use client';
 
-import { useFeaturedProjects } from '../library/queries';
 import Link from 'next/link';
 import ClientImage from './ClientImage';
 import { useEffect } from 'react';
 import LoadingSkeleton from './LoadingSkeleton';
 import { Project } from '../library/types';
+import { useFeaturedProjects, useAllProjects } from '../library/queries';
+import { motion } from 'framer-motion';
 
-export default function ProjectsGrid() {
-  const { data: projects, isLoading, error } = useFeaturedProjects();
+export default function ProjectsGrid({ showAll = false }) {
+	const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = useFeaturedProjects();
+	const { data: allProjects, isLoading: allLoading, error: allError } = useAllProjects();
+	
+	const projects = showAll ? allProjects : featuredProjects;
+	const isLoading = showAll ? allLoading : featuredLoading;
+	const error = showAll ? allError : featuredError;
 
   // Only log in development, not production
   if (process.env.NODE_ENV === 'development') {
@@ -29,21 +35,33 @@ export default function ProjectsGrid() {
         <h2 className="text-4xl font-bold mb-12 text-center dark:text-white">
           Featured Work
         </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects?.map((project: Project) => (
-            <Link
-              key={project.id}
-              href={`/projects/${project.slug}`}
-              className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
-            >
-              <div className="relative h-48 w-full">
-                <ClientImage
-                  src={project.thumbnail_url || project.thumbnail}
-                  alt={project.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-6">
+		<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+		{projects?.map((project: Project, index: number) => (
+			<motion.div
+			key={project.id}
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.3, delay: index * 0.1 }}
+			whileHover={{ 
+				y: -10, 
+				scale: 1.03,
+				boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+			}}
+			whileTap={{ scale: 0.98 }}
+			className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
+			>
+			<Link
+				href={`/projects/${project.slug}`}
+				className="block h-full"
+			>
+				<div className="relative h-48 w-full">
+				<ClientImage
+					src={project.thumbnail_url || project.thumbnail}
+					alt={project.title}
+					className="w-full h-full object-cover"
+				/>
+				</div>
+				<div className="p-6">
                 <h3 className="text-2xl font-bold mb-3 dark:text-white">
                   {project.title}
                 </h3>
@@ -82,6 +100,7 @@ export default function ProjectsGrid() {
                 </div>
               </div>
             </Link>
+		  </motion.div>
           ))}
         </div>
       </div>

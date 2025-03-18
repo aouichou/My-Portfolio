@@ -289,6 +289,23 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
         </section>
       ))}
 
+		{/* Code Walkthrough */}
+		{project.code_steps && Object.keys(project.code_steps).length > 0 && (
+		<section className="my-16">
+			<h2 className="text-3xl font-bold mb-8">Code Walkthrough</h2>
+			<CodeWalkthrough 
+			projectTitle={project.title}
+			steps={Object.entries(project.code_steps).map(([title, content]) => ({
+				title,
+				content: content as string,
+				description: "",
+				code: content as string,
+				language: "javascript/python/C/typescript"
+			}))}
+			/>
+		</section>
+		)}
+
       {/* GitHub Contributions */}
       {project.code_url && (
         <section className="my-16">
@@ -296,16 +313,6 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
           <GithubContributions repoUrl={project.code_url} />
         </section>
       )}
-
-      {/* {project.code_steps && (
-      <section className="my-16">
-          <h2 className="text-3xl font-bold mb-8">Code Walkthrough</h2>
-          <CodeWalkthrough 
-          projectTitle={project.title}
-          steps={project.code_steps}
-          />
-      </section>
-      )} */}
 
       {/* Code Showcase */}
       {(project.code_snippet || project.styles_snippet) && (
@@ -364,7 +371,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
         </div>
         )}
         
-        {/* Replace the old ProjectTerminalDemo with a link to the new demo page */}
+        {/* demo page */}
         {project.has_interactive_demo && (
         <section className="my-16">
             <h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Interactive Demo</h2>
