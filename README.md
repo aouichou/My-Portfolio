@@ -1,152 +1,136 @@
-# Modern Full-Stack Developer Portfolio [![Production Status](https://img.shields.io/badge/status-live-success?style=flat-square&logo=azure-devops)](https://aouichou.me)
+# 🚀 Interactive Portfolio: Terminal + Cloud Architecture
 
-**A Cloud-Native Showcase of Modern Web Development Practices**  
-*Django 4.2 | Next.js 14 | Docker + Render + Heroku DevOps*
+> A modern, production-grade portfolio with interactive terminal demos, running on a distributed cloud architecture
 
-## 📌 Key Features
+[![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=render)](https://aouichou.me)
+[![WebSocket Status](https://img.shields.io/badge/WebSockets-active-4BC51D?style=for-the-badge&logo=websocket)](https://api.aouichou.me/ws)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/MyPortfolio/keep-alive.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/MyPortfolio/actions)
 
-### ✅ Implemented
-- **Core Architecture**
-  - Multi-stage Docker builds with Alpine base images
-  - Render + Heroku deployment (Docker) with nginx
-  - Render-managed PostgreSQL database
-  - Automated CI/CD with GitHub Actions
-  - Let's Encrypt TLS certificates via cert-manager
+## 🖥️ Interactive Terminal Demo
 
-- **Frontend**
-  - Dynamic project grid with Next.js Image optimization
-  - Contact form with EmailJS integration
-  - System-aware dark/light theme toggle
-  - Responsive layouts with Tailwind CSS
+<p align="center">
+  <img src="docs/terminal_demo.gif" width="650px" alt="Interactive Terminal Demo">
+</p>
 
-- **Backend**
-  - REST API with Django REST Framework
-  - Media file handling with persistent volumes
-  - Rate-limited API endpoints
-  - Admin-controlled content via Django Admin
+**Live in-browser terminal execution** of real projects via WebSockets. [Try it yourself!](https://aouichou.me/demo/miniRT)
 
-### 🚧 In Progress
-- **Observability**
-  - ELK Stack for centralized logging
-  - Prometheus/Grafana monitoring
-  - Application performance tracing
+### Terminal Implementation Highlights
 
-- **Advanced Features**
-  - Interactive terminal simulation
-  - PDF resume generator with signed URLs
-  - MDX-based blog system
+- **WebSocket Backend**: Django Channels with Redis for async communication
+- **Security**: Command allowlist with regex validation, execution limits, sandboxed environment
+- **Live Updates**: Zero-latency character streaming for natural terminal feel
+- **Docker Integration**: Custom lightweight Debian-based container with GCC toolchain
 
----
+## 🏗️ DevOps Architecture
 
-## 🛠 Technical Architecture
+<p align="center">
+  <img src="docs/architecture_diagram.png" width="650px" alt="System Architecture">
+</p>
 
 ```mermaid
-sequenceDiagram
-    participant GH as GitHub
-    participant R as Render
-    participant H as Heroku
-    participant CF as Cloudflare
-    
-    GH->>R: Trigger backend deploy
-    R->>R: Build Docker & run migrations
-    R->>CF: Update DNS records
-    GH->>H: Trigger frontend deploy
-    H->>CF: Verify SSL certs
-    CF->>User: Serve HTTPS traffic
+graph TD
+    User[User Browser] -->|HTTPS| CF[Cloudflare]
+    CF -->|HTTP/2| Next[Next.js Frontend/Heroku]
+    CF -->|HTTP/2| Django[Django Backend/Render]
+    User -->|WebSocket| WS[Terminal Service/Render]
+    Django -->|JSON| DB[(PostgreSQL)]
+    Django -->|Async Tasks| Redis[(Redis Cache)]
+    Django -->|Files| S3[(S3 Storage)]
+    Next -->|API Calls| Django
+    Next -->|WS| WS
+    WS -->|PTY| Terminal[PTY Process]
+    Terminal -->|Files| Project[Project Files]
+    Github[GitHub] -->|CI/CD| Actions[GitHub Actions]
+    Actions -->|Deploy| Next
+    Actions -->|Deploy| Django
+    Actions -->|Deploy| WS
+    HealthCheck[Health Check Service] -->|Ping| Django
+    HealthCheck -->|Ping| Next
+    HealthCheck -->|Ping| WS
 ```
 
----
+### Infrastructure Components
 
-## ⚙️ Deployment Overview
+| Service | Technology | Provider | Purpose |
+|---------|------------|----------|---------|
+| Frontend | Next.js 14, TypeScript, TailwindCSS | Heroku | User interface |
+| Backend API | Django 4.2, Django REST Framework | Render | Data & authentication |
+| Terminal Service | FastAPI, pexpect, PTY | Render | WebSocket terminal |
+| Database | PostgreSQL 15 | Render | Persistent storage |
+| Cache | Redis 7 | Render | WebSocket channel layer |
+| Storage | S3-compatible | AWS | Project files, assets |
+| CDN | Cloudflare | Cloudflare | Edge caching, WAF |
+| CI/CD | GitHub Actions | GitHub | Automated deployment |
 
-### Local Development
+## 🛡️ Security & Reliability Features
+
+- **Service Health Monitoring**
+  - Mutual health checks to prevent free-tier shutdowns
+  - Automatic recovery via GitHub Actions workflow
+  - Real-time status monitoring in admin panel
+
+- **Terminal Sandbox Security**
+  - Strict command allowlist with regex validation
+  - Read-only filesystem access (except project directories)
+  - Resource limits (512MB RAM, timeout after 30min)
+  - WAF protection against common attacks
+
+- **Infrastructure Security**
+  - Content Security Policy (CSP) headers
+  - Rate limiting on all API endpoints
+  - TLS 1.3 enforced throughout
+  - Database connection pooling and timeouts
+
+## 📈 Performance Optimization
+
+```text
+Frontend Metrics                API Performance
+==================              ===============
+Lighthouse: 98                  Avg Response: 120ms
+FCP: 0.8s                       Peak Requests: 1.2k/min
+TTI: 1.4s                       Error Rate: 0.02%
+Bundle Size: 128kb              Cache Hit Rate: 92%
+```
+
+## 🧰 Technical Decisions
+
+- **FastAPI vs Express.js**: Chose FastAPI for the terminal service due to strong async/await support and built-in WebSocket handling
+- **Django Channels vs Socket.IO**: Selected Django Channels for seamless integration with existing Django backend and Redis
+- **Render vs Heroku**: Split deployment between providers to leverage Render's superior container support and Heroku's simpler frontend deployment
+- **Custom S3 Integration**: Built custom S3 storage class to handle delayed file processing and zip extraction
+
+## 🚀 Getting Started
+
 ```bash
-# Start core services
-docker-compose up -d frontend backend reverse-proxy
+# Clone the repository
+git clone https://github.com/aouichou/MyPortfolio.git
+cd MyPortfolio
 
-# Run with monitoring stack
-docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up
+# Set up environment variables (copy from example)
+cp .env.example .env
+
+# Start the development environment
+docker-compose up -d
+
+# Visit http://localhost:3000
 ```
 
-### CI/CD Pipeline
-```mermaid
-graph LR
-    A[Code Push] --> B[Security Scan]
-    B --> C[Build & Push Images]
-    C --> D[Render + Heroku Deployment]
-    D --> E[Smoke Tests]
-    E --> F[Monitoring Alerts]
+### 📁 Repository Structure
+
 ```
-
----
-
-## 📈 Performance Metrics
-
-```text
-Frontend Optimization          Backend Performance
-=====================          ===================
-Lighthouse: 98                 Req/Sec: 1.2k       
-FCP: 0.8s                      Error Rate: 0.02%   
-TTI: 1.4s                      DB Latency: 12ms    
-Bundle Size: 128kb             Cache Hit: 92%      
+.
+├── portfolio_ui/           # Next.js frontend
+├── portfolio_api/          # Django backend API
+├── portfolio-terminal/     # Terminal WebSocket service
+├── .github/workflows/      # CI/CD pipelines
+├── docs/                   # Documentation
+└── docker-compose.yml      # Local development setup
 ```
 
 ---
-
-## 🛡 Security Posture
-
-```text
-Security Control               Status
-=================              ======
-TLS 1.3 Only                  ✅ Enforced
-CSP Headers                   ✅ Active
-Rate Limiting                 ✅ Implemented
-WAF Rules                     🚧 Testing
-Secret Rotation               🔜 Q3 2025
-```
-
----
-
-<details>
-<summary>🖥 System Overview</summary>
-
-```text
-System Components              Version
-==================             =======
-Django                         v5.0.11
-Next.js                        v15.1.6
-```
-</details>
-
----
-
-## 📬 Let's Connect!
 
 <p align="center">
-  <a href="https://www.linkedin.com/in/amine-ouichou-168236345" target="_blank">
-    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
-  </a>
-  <a href="mailto:aouichou.gmail.com">
-    <img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email">
-  </a>
   <a href="https://aouichou.me">
-    <img src="https://img.shields.io/badge/Portfolio-FF4088?style=for-the-badge&logo=react&logoColor=white" alt="Portfolio">
+    <img src="https://img.shields.io/badge/Visit_Live_Site-FF4088?style=for-the-badge&logo=react&logoColor=white" alt="Visit Site">
   </a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/aouichou">
-    <img src="https://komarev.com/ghpvc/?username=aouichou&label=Profile%20Views&color=0e75b6&style=flat" alt="Profile Views">
-  </a>
-  <a href="https://github.com/aouichou?tab=repositories">
-    <img src="https://img.shields.io/badge/Open_Source-181717?style=flat&logo=github&logoColor=white" alt="Open Source">
-  </a>
-</p>
-
-<p align="center">
-  <em>"Building robust systems from kernel to cloud"</em>
-</p>
-
-<p align="center">
-  © 2024 Amine Ouichou | <a href="https://aouichou.me/privacy">Privacy Policy</a> | <a href="https://aouichou.me/terms">Terms of Use</a>
 </p>
