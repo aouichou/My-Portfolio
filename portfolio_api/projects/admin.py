@@ -51,7 +51,22 @@ class ProjectAdminForm(forms.ModelForm):
   "make": "Compiling...\\n[####################] 100%\\nCompilation successful!",
   "run": "Running project...\\nProject output here"
 }'''
-			})
+			}),
+			'code_steps': forms.Textarea(attrs={
+				'rows': 15,
+				'style': 'font-family: monospace; font-size: 12px;',
+				'placeholder': '''{
+  "Initialize Project": "import { createApp } from 'vue'\\nimport App from './App.vue'\\n\\nconst app = createApp(App)\\napp.mount('#app')",
+  "Setup Routes": "const routes = [\\n  { path: '/', component: Home },\\n  { path: '/about', component: About }\\n]\\n\\nconst router = createRouter({\\n  history: createWebHistory(),\\n  routes\\n})"
+}'''
+			}),
+			'code_snippets': forms.Textarea(attrs={
+				'rows': 15,
+				'style': 'font-family: monospace; font-size: 12px;',
+				'placeholder': '''{
+  "Terminal Client": "const socket = new WebSocket(`wss://api.aouichou.me/ws/terminal/${slug}/`);\\n\\nsocket.onmessage = (event) => {\\n  const data = JSON.parse(event.data);\\n  if (data.output) {\\n    term.write(data.output);\\n  }\\n};\\n\\nterm.onData((input) => {\\n  socket.send(JSON.stringify({ input }));\\n});"
+}'''
+			}),
 		}
 
 	def save(self, commit=True):
@@ -104,6 +119,11 @@ class ProjectAdmin(admin.ModelAdmin):
 		('Architecture Diagram', {
 			'fields': ('diagram_type', 'architecture_diagram'),
 			'classes': ('wide',)
+		}),
+		('Code Examples', {
+			'fields': ('code_steps', 'code_snippets'),
+			'classes': ('wide',),
+			'description': 'Add code walkthrough steps and key code snippets to highlight in the project detail page.'
 		}),
 		('Interactive Terminal Demo', {
 			'fields': ('has_interactive_demo', 'demo_commands', 'demo_files'),

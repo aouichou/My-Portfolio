@@ -38,3 +38,25 @@ export function useAllProjects() {
 	}
   });
 }
+
+export async function getAllProjects() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const res = await fetch(`${apiUrl}/api/projects/`, {
+      next: { revalidate: 60 },
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!res.ok) {
+      console.warn('API returned error status', res.status);
+      return []; // Return empty array instead of throwing
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error('Failed to fetch projects:', error);
+    return []; // Return empty array on error
+  }
+}

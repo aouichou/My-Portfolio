@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     bash-completion \
     vim nano \
     libreadline-dev \
+	valgrind \
     libx11-dev \
     libxext-dev \
     libxrandr-dev \

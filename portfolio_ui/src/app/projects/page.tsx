@@ -1,20 +1,43 @@
 // portfolio_ui/src/app/projects/page.tsx
 
+import ProjectsGrid from '@/components/ProjectsGrid';
 import { Metadata } from 'next';
-import ProjectsGrid  from '@/components/ProjectsGrid';
+import { getAllProjects } from '@/library/queries';
 
 export const metadata: Metadata = {
-  title: 'All Projects | Portfolio',
-  description: 'Browse all my projects and work samples',
+  title: 'All Projects | My Portfolio',
+  description: 'Browse all my projects and experiments',
 };
 
-export default function AllProjectsPage() {
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <h1 className="text-5xl font-bold mb-12">All Projects</h1>
+// Mark the page as dynamically rendered to prevent build-time API issues
+export const dynamic = 'force-dynamic';
+
+export default async function ProjectsPage() {
+  try {
+    // Fetch all projects, not just featured ones
+    const projects = await getAllProjects();
+    
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="text-4xl font-bold mb-8 text-center">All Projects</h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 text-center mb-12 max-w-3xl mx-auto">
+          A comprehensive collection of all my work, from web applications to low-level systems programming
+        </p>
+        
         <ProjectsGrid showAll={true} />
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    // Return a fallback UI when API isn't available during build
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="text-4xl font-bold mb-8 text-center">All Projects</h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 text-center mb-12 max-w-3xl mx-auto">
+          A comprehensive collection of all my work, from web applications to low-level systems programming
+        </p>
+        
+        <ProjectsGrid showAll={true} />
+      </div>
+    );
+  }
 }

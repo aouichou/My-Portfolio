@@ -27,7 +27,19 @@ export default function ProjectsGrid({ showAll = false }) {
   }
 
   if (error) return <div className="py-20 text-center">Failed to load projects. Please try again later.</div>;
-  if (isLoading) return <LoadingSkeleton />;
+  if (isLoading) {
+    return <LoadingSkeleton />; // Show loading skeleton
+  }
+
+  // Instead of returning undefined, return a message if no projects
+  if (!projects || projects.length === 0) {
+    return (
+      <div className="py-20 text-center">
+        <h3 className="text-2xl font-bold">No projects found</h3>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Projects will appear here once they're available.</p>
+      </div>
+    );
+  }
 
   return (
     <section id="projects" className="py-20 bg-gray-50 dark:bg-gray-800">
@@ -38,7 +50,7 @@ export default function ProjectsGrid({ showAll = false }) {
 		<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 		{projects?.map((project: Project, index: number) => (
 			<motion.div
-			key={project.id}
+			key={project.id || index}
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -103,6 +115,37 @@ export default function ProjectsGrid({ showAll = false }) {
 		  </motion.div>
           ))}
         </div>
+
+		{!showAll && (
+          <div className="mt-16 text-center">
+            <Link href="/projects" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              View All Projects
+            </Link>
+          </div>
+        )}
+
+		
+		<section className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 py-16 my-16">
+		  <div className="container mx-auto px-4">
+			<div className="max-w-4xl mx-auto text-center">
+			  <h2 className="text-3xl font-bold mb-4">Portfolio Architecture</h2>
+			  <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+				Discover how this portfolio site is built with Next.js, Django, WebSockets, and cloud services.
+				Learn about the architecture, terminal implementation, and DevOps practices.
+			  </p>
+			  <Link href="/showcase" 
+				className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+				Explore the Architecture
+				<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+				  <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+				</svg>
+			  </Link>
+			</div>
+		  </div>
+		</section>
       </div>
     </section>
   );

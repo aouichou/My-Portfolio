@@ -5,54 +5,55 @@ from django.utils.text import slugify
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 from .storage import CustomS3Storage
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.postgres.fields import ArrayField
 
 s3_storage = CustomS3Storage()
 
 class Project(models.Model):
-	title = models.CharField(max_length=200)
-	slug = models.SlugField(unique=True, blank=True)
-	readme = models.TextField(blank=True)
-	description = models.TextField()
-	tech_stack = models.JSONField(default=list)
-	live_url = models.URLField(blank=True)
-	code_url = models.URLField(blank=True)
-	thumbnail = models.ImageField(upload_to='projects/', storage=s3_storage, blank=True, help_text="Thumbnail image for project", null=True)
-	is_featured = models.BooleanField(default=False)
-	score = models.IntegerField(null=True, blank=True)
-	features = models.JSONField(default=list, help_text="List of key features")
-	challenges = models.TextField(blank=True, help_text="Technical challenges overcome")
-	lessons = models.TextField(blank=True, help_text="Key lessons learned")
-	video_url = models.URLField(blank=True)
-	has_interactive_demo = models.BooleanField(default=False, help_text="Enable terminal demo for this project")
-	demo_commands = models.JSONField(null=True, blank=True, help_text="JSON commands for interactive terminal")
-	demo_files_path = models.CharField(max_length=255, null=True, blank=True, help_text="Path to demo files in S3")
-	code_steps = models.JSONField(null=True, blank=True, help_text="List of steps to run the code")
-	code_snippets = models.JSONField(null=True, blank=True, help_text="List of code snippets")
-	architecture_diagram = models.TextField(
-		blank=True,
-		help_text="""
-		Supported formats:
-		- Mermaid.js (preferred)
-		- PlantUML
-		- ASCII diagram
-		- SVG XML
-		""",
-		null=True
-	)
-	
-	DIAGRAM_TYPES = [
-		('MERMAID', 'Mermaid.js'),
-		('PLANTUML', 'PlantUML'),
-		('ASCII', 'ASCII Art'),
-		('SVG', 'SVG XML'),
-		('CUSTOM', 'Custom Format'),
+	DIAGRAM_CHOICES = [
+		('mermaid', 'Mermaid.js'),
+		('flowchart', 'Flowchart.js'),
+		('custom', 'Custom SVG/Image')
 	]
-	diagram_type = models.CharField(
-		max_length=10,
-		choices=DIAGRAM_TYPES,
-		default='MERMAID',
-		help_text="Format of the architecture diagram"
+	
+	title = models.CharField(max_length=255)
+	slug = models.SlugField(unique=True, max_length=100)
+	description = models.TextField()
+	thumbnail = models.URLField(blank=True, null=True, help_text="URL to project thumbnail image")
+	thumbnail_url = models.URLField(blank=True, null=True, help_text="Alternative URL for thumbnail")
+	is_featured = models.BooleanField(default=False)
+	score = models.IntegerField(
+		validators=[MinValueValidator(0), MaxValueValidator(125)],
+		default=0,
+		help_text="Project score (0-125)"
 	)
+	readme = models.TextField(blank=True, null=True, help_text="Full README content in Markdown format")
+	tech_stack = ArrayField(
+		models.CharField(max_length=100),
+		blank=True,
+		null=True,
+		help_text="List of technologies used in the project"
+	)
+	features = models.JSONField(blank=True, null=True, help_text="List of project features with completion percentages")
+	challenges = models.TextField(blank=True, null=True, help_text="Challenges faced during development")
+	lessons = models.TextField(blank=True, null=True, help_text="Lessons learned from the project")
+	live_url = models.URLField(blank=True, null=True, help_text="Link to live demo")
+	code_url = models.URLField(blank=True, null=True, help_text="Link to source code")
+	video_url = models.URLField(blank=True, null=True, help_text="Link to project video demonstration")
+	diagram_type = models.CharField(
+		max_length=20,
+		choices=DIAGRAM_CHOICES,
+		default='mermaid',
+		help_text="Type of architecture diagram"
+	)
+	architecture_diagram = models.TextField(blank=True, null=True, help_text="Architecture diagram code (for Mermaid/Flowchart) or image URL")
+	has_interactive_demo = models.BooleanField(default=False, help_text="Whether this project has an interactive terminal demo")
+	demo_commands = models.JSONField(blank=True, null=True, help_text="Demo commands for interactive terminal")
+	demo_files_path = models.CharField(blank=True, null=True, max_length=255, help_text="Path to demo files in S3")
+	
+	code_steps = models.JSONField(blank=True, null=True, help_text="List of steps to run the code")
+	code_snippets = models.JSONField(blank=True, null=True, help_text="List of code snippets")
 	
 	def save(self, *args, **kwargs):
 		# Allow bypassing validation for initial imports
