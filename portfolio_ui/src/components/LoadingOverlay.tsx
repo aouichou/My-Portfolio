@@ -1,4 +1,4 @@
-// portfolio_ui/src/components/LoadingOverlay.tsx - Updated version
+// portfolio_ui/src/components/LoadingOverlay.tsx
 
 'use client';
 
@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react';
 
 export default function LoadingOverlay() {
   const [isVisible, setIsVisible] = useState(false);
-  const [status, setStatus] = useState('checking');
   const [retryCount, setRetryCount] = useState(0);
   
   useEffect(() => {
@@ -24,59 +23,34 @@ export default function LoadingOverlay() {
     
     const checkServices = async () => {
       try {
-        console.log("Checking service availability...");
+        console.log("Checking backend service availability...");
         
-        // First check if the backend is responsive
+        // We only need to check the backend since it proxies to the terminal service
         try {
           const backendResponse = await fetch('https://api.aouichou.me/healthz', {
-            signal: getTimeoutSignal(3000)
+            signal: getTimeoutSignal(5000)
           });
           
           console.log("Backend health check response:", backendResponse.status);
           
-          if (!backendResponse.ok) {
-            setStatus('backend');
+          if (backendResponse.ok) {
+            console.log("Backend is available");
+            setIsVisible(false);
+          } else {
+            console.log("Backend returned non-OK status");
             setIsVisible(true);
-            return;
           }
         } catch (e) {
           console.error("Backend health check failed:", e);
-          setStatus('backend');
           setIsVisible(true);
-          return;
         }
-        
-        // Then check if terminal service is responsive
-        try {
-          const terminalResponse = await fetch('https://portfolio-terminal-4t9w.onrender.com/healthz', {
-            signal: getTimeoutSignal(3000)
-          });
-          
-          console.log("Terminal service health check response:", terminalResponse.status);
-          
-          if (!terminalResponse.ok) {
-            setStatus('terminal');
-            setIsVisible(true);
-            return;
-          }
-        } catch (e) {
-          console.error("Terminal health check failed:", e);
-          setStatus('terminal');
-          setIsVisible(true);
-          return;
-        }
-        
-        // All services are running successfully
-        console.log("All services are available");
-        setIsVisible(false);
       } catch (e) {
         console.error("Service check error:", e);
-        setStatus('unknown');
         setIsVisible(true);
       }
     };
     
-    // Initial check
+    // Check immediately on component mount
     checkServices();
     
     // Set up automatic retry if services are down
@@ -101,19 +75,14 @@ export default function LoadingOverlay() {
         <div className="w-16 h-16 border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin mx-auto mb-4"></div>
         <h3 className="text-xl font-bold mb-2">Starting Services</h3>
         
-        {status === 'backend' && (
-          <p className="mb-4">Our backend service is warming up. This usually takes about 30 seconds.</p>
-        )}
+        <p className="mb-4">
+          Our backend service is warming up. This can take up to 30-45 seconds on first load.
+        </p>
         
-        {status === 'terminal' && (
-          <p className="mb-4">The terminal service is starting. This usually takes about 45 seconds.</p>
-        )}
-        
-        {status === 'unknown' && (
-          <p className="mb-4">Connecting to services. This may take up to a minute on first load.</p>
-        )}
-        
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Free hosting services spin down after inactivity. Thanks for your patience! ({retryCount}/5 auto-retries)</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Free hosting services spin down after inactivity. Thanks for your patience!
+          <br/>Auto-retry: {retryCount}/5
+        </p>
         
         <button 
           onClick={() => {

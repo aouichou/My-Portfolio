@@ -21,6 +21,17 @@
 - **Live Updates**: Zero-latency character streaming for natural terminal feel
 - **Docker Integration**: Custom lightweight Debian-based container with GCC toolchain
 
+### Proxied Terminal Connection
+
+The terminal operates through a multi-layered WebSocket architecture:
+
+1. **Browser → Django**: User's browser connects to Django backend via WebSockets
+2. **Django → Terminal Service**: Django maintains an internal WebSocket connection to the Terminal service
+3. **Terminal Service → PTY**: Terminal service manages PTY processes for command execution
+4. **Bi-directional Communication**: Data flows in both directions through this chain
+
+This design ensures greater security as the terminal service is never directly exposed to the internet.
+
 ## 🏗️ DevOps Architecture
 
 <p align="center">
@@ -31,13 +42,12 @@
 graph TD
     User[User Browser] -->|HTTPS| CF[Cloudflare]
     CF -->|HTTP/2| Next[Next.js Frontend/Heroku]
-    CF -->|HTTP/2| Django[Django Backend/Render]
-    User -->|WebSocket| WS[Terminal Service/Render]
+    CF -->|HTTP/2 + WebSockets| Django[Django Backend/Render]
+    Django -->|Internal WebSocket| WS[Terminal Service/Render]
     Django -->|JSON| DB[(PostgreSQL)]
     Django -->|Async Tasks| Redis[(Redis Cache)]
     Django -->|Files| S3[(S3 Storage)]
     Next -->|API Calls| Django
-    Next -->|WS| WS
     WS -->|PTY| Terminal[PTY Process]
     Terminal -->|Files| Project[Project Files]
     Github[GitHub] -->|CI/CD| Actions[GitHub Actions]
