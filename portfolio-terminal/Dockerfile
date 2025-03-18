@@ -8,7 +8,15 @@ RUN apt-get update && apt-get install -y \
     nodejs npm \
     bash-completion \
     vim nano \
-	libreadline-dev \
+    libreadline-dev \
+    libx11-dev \
+    libxext-dev \
+    libxrandr-dev \
+    libxi-dev \
+    libxrender-dev \
+    libbsd-dev \
+    mesa-common-dev \
+    libglu1-mesa-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
