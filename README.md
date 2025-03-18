@@ -4,7 +4,7 @@
 
 [![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=render)](https://aouichou.me)
 [![WebSocket Status](https://img.shields.io/badge/WebSockets-active-4BC51D?style=for-the-badge&logo=websocket)](https://api.aouichou.me/ws)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/MyPortfolio/keep-alive.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions/workflows/render+heriku.yml))]
+[![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/MyPortfolio/keep-alive.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
 
 ## 🖥️ Interactive Terminal Demo
 
