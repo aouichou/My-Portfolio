@@ -33,16 +33,16 @@ const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) =
     return null;
   }
   
-  // Always use MermaidComponent for MERMAID type diagrams
   if (type === 'MERMAID') {
-    // Fix common syntax issues in the diagram data
-    const fixedDiagram = diagram
-      .replace(/\[([\w\s\.-]+)\]/g, '("$1")') // Convert [text] to ("text")
-      .trim();
-      
+    // Remove any leading/trailing whitespace and remove indentation
+    const cleanedDiagram = diagram
+      .trim()
+      .replace(/^\s+/gm, '')
+      .replace(/\[([\w\s\.-]+)\]/g, '("$1")');
+    
     return (
-      <div className="w-full overflow-hidden">
-        <MermaidComponent chart={fixedDiagram} />
+      <div className="w-full">
+        <MermaidComponent chart={cleanedDiagram} />
       </div>
     );
   }

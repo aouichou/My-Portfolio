@@ -50,6 +50,21 @@ export default function RootLayout({
 			{children}
 			<Toaster position="top-center" />
 		  </ClientLayout>
+
+		{/* Ascript to trigger mermaid rendering after everything is loaded */}
+		<script
+          dangerouslySetInnerHTML={{
+            __html: `
+              document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                  if (window.renderMermaidDiagrams) {
+                    window.renderMermaidDiagrams();
+                  }
+                }, 1000);
+              });
+            `
+          }}
+        />
 		</body>
 	  </html>
 	);

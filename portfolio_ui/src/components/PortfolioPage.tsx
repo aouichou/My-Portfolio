@@ -5,7 +5,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-
+import CheckMermaid from './CheckMermaid';
 interface SectionVisibility {
 	[key: string]: boolean;
   }
@@ -89,7 +89,7 @@ export default function PortfolioPage() {
       <div className="sticky top-0 bg-white dark:bg-gray-900 shadow-md z-10 px-4 py-2">
         <div className="container mx-auto max-w-6xl">
           <div className="flex overflow-x-auto space-x-4 scrollbar-hide">
-            {['overview', 'architecture', 'terminal', 'devops', 'security'].map((tab) => (
+			{['overview', 'architecture', 'cloud', 'terminal', 'devops', 'security'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -334,20 +334,20 @@ export default function PortfolioPage() {
 			<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
 				<div className="mermaid">
 				{`graph TD
-					User("User Browser") -->|HTTPS| CF("Cloudflare")
-					CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
-					CF -->|HTTPS| Render("Render: Django Backend")
-					Render -->|Internal WebSocket| Terminal("Terminal Service")
-					Render -->|SQL| DB[("PostgreSQL")]
-					Render -->|Cache| Redis[("Redis")]
-					Render -->|Files| S3[("S3 Storage")]
-					Heroku -->|API Calls| Render
-					Terminal -->|PTY| Process("PTY Process")
-					Process -->|Files| Projects("Project Files")
-					Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
-					Actions -->|Deploy| Heroku
-					Actions -->|Deploy| Render
-					Actions -->|Deploy| Terminal`}
+User("User Browser") -->|HTTPS| CF("Cloudflare")
+CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
+CF -->|HTTPS| Render("Render: Django Backend")
+Render -->|Internal WebSocket| Terminal("Terminal Service")
+Render -->|SQL| DB[("PostgreSQL")]
+Render -->|Cache| Redis[("Redis")]
+Render -->|Files| S3[("S3 Storage")]
+Heroku -->|API Calls| Render
+Terminal -->|PTY| Process("PTY Process")
+Process -->|Files| Projects("Project Files")
+Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
+Actions -->|Deploy| Heroku
+Actions -->|Deploy| Render
+Actions -->|Deploy| Terminal`}
 				</div>
 			</div>
             </div>
@@ -430,7 +430,115 @@ export default function PortfolioPage() {
             </div>
           </motion.div>
         </section>
-		
+
+		{/* Cloud Deployment Section */}
+		<section id="cloud" className={activeTab === 'cloud' ? 'block' : 'hidden'}>
+			<motion.h2 
+				className="text-3xl font-bold mb-8"
+				variants={fadeIn}
+				initial="hidden"
+				animate={isVisible['cloud'] ? 'visible' : 'hidden'}
+				transition={{ duration: 0.6 }}
+			>
+				Cloud Deployment Architecture
+			</motion.h2>
+			
+			<motion.div
+				className="mb-16"
+				variants={fadeIn}
+				initial="hidden"
+				animate={isVisible['cloud'] ? 'visible' : 'hidden'}
+				transition={{ delay: 0.1, duration: 0.6 }}
+			>
+				<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+				<h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
+				   <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
+					<div className="mermaid">
+					{`graph TD
+User("User Browser") -->|HTTPS| CF("Cloudflare")
+CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
+CF -->|HTTPS| Render("Render: Django Backend")
+Render -->|Internal Network| Terminal("Terminal Service")
+Render -->|SQL| DB[("PostgreSQL")]
+Render -->|Cache| Redis[("Redis")]
+Render -->|Files| S3[("S3 Storage")]
+Heroku -->|API Calls| Render
+Heroku -.->|No Direct Access| Terminal
+style Terminal fill:#f9f,stroke:#333,stroke-width:2px
+style Heroku fill:#79b8ff,stroke:#0366d6
+style Render fill:#ffdf5d,stroke:#d9a634
+style CF fill:#8256d0,stroke:#4c2889`}
+					</div>
+				   </div>
+				<div className="mt-8">
+					<h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>
+					<div className="grid md:grid-cols-2 gap-6">
+					<div>
+						<ul className="list-disc pl-5 space-y-2 text-gray-600 dark:text-gray-300">
+						<li><span className="font-medium">Provider Specialization</span>: Each service runs on the platform best suited for it</li>
+						<li><span className="font-medium">Cost Optimization</span>: Leveraging free tiers across multiple providers</li>
+						<li><span className="font-medium">Vendor Lock-in Avoidance</span>: Distributed across multiple cloud providers</li>
+						<li><span className="font-medium">Increased Reliability</span>: Reduced risk of single provider outages</li>
+						</ul>
+					</div>
+					<div>
+						<ul className="list-disc pl-5 space-y-2 text-gray-600 dark:text-gray-300">
+						<li><span className="font-medium">Service Isolation</span>: Each component can scale independently</li>
+						<li><span className="font-medium">Security Compartmentalization</span>: Limited access between services</li>
+						<li><span className="font-medium">Geographic Distribution</span>: Services closer to their dependencies</li>
+						<li><span className="font-medium">Custom Optimization</span>: Each service configured optimally for its platform</li>
+						</ul>
+					</div>
+					</div>
+				</div>
+				</div>
+			</motion.div>
+			
+			<motion.div
+				variants={fadeIn}
+				initial="hidden"
+				animate={isVisible['cloud'] ? 'visible' : 'hidden'}
+				transition={{ delay: 0.2, duration: 0.6 }}
+			>
+				<h3 className="text-2xl font-bold mb-6">Platform-Specific Optimizations</h3>
+				
+				<div className="grid md:grid-cols-3 gap-8">
+				<div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+					<h4 className="font-bold text-lg mb-2 text-blue-600">Heroku Optimizations</h4>
+					<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+					<li>Build cache for faster deployments</li>
+					<li>Brotli compression for assets</li>
+					<li>Automatic HTTPS certification</li>
+					<li>Eco dyno for cost efficiency</li>
+					<li>Integrated logging and monitoring</li>
+					</ul>
+				</div>
+				
+				<div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+					<h4 className="font-bold text-lg mb-2 text-blue-600">Render Optimizations</h4>
+					<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+					<li>Private service networking</li>
+					<li>Persistent disk for terminal sessions</li>
+					<li>Zero-downtime deployments</li>
+					<li>Custom deployment scripts</li>
+					<li>Automated health checks</li>
+					</ul>
+				</div>
+				
+				<div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+					<h4 className="font-bold text-lg mb-2 text-blue-600">AWS Integrations</h4>
+					<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+					<li>S3 for persistent media storage</li>
+					<li>CloudFront for global asset delivery</li>
+					<li>IAM roles for secure access</li>
+					<li>Versioned object storage</li>
+					<li>Lifecycle rules for cost management</li>
+					</ul>
+				</div>
+				</div>
+			</motion.div>
+			</section>
+
 		{/* Terminal Section */}
 		<section id="terminal" className={activeTab === 'terminal' ? 'block' : 'hidden'}>
 		  <motion.h2 
@@ -919,6 +1027,7 @@ export default function PortfolioPage() {
 		  </motion.div>
 		</section>
 		</main>
+		<CheckMermaid />
 		</div>
   );
 }

@@ -9,12 +9,13 @@ interface MermaidProps {
   chart: string;
 }
 
-// Track initialization
-let initializePromise: Promise<void> | null = null;
+export const MermaidComponent = ({ chart }: MermaidProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mermaidInitialized = useRef(false);
 
-const ensureMermaidInitialized = async () => {
-  if (!initializePromise) {
-    initializePromise = new Promise<void>((resolve) => {
+  useEffect(() => {
+    // Only initialize once per component
+    if (!mermaidInitialized.current) {
       mermaid.initialize({
         startOnLoad: false,
         theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
@@ -25,94 +26,77 @@ const ensureMermaidInitialized = async () => {
           curve: 'linear',
         }
       });
-      resolve();
-    });
-  }
-  return initializePromise;
-};
+      mermaidInitialized.current = true;
+    }
 
-export const MermaidComponent = ({ chart }: MermaidProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef(chart);
-
-  useEffect(() => {
-    chartRef.current = chart; // Update ref when prop changes
-    
     const renderDiagram = async () => {
       if (!containerRef.current) return;
       
       try {
-        // Ensure mermaid is initialized
-        await ensureMermaidInitialized();
-        
-        // Clean container
+        // Clean the container first
         containerRef.current.innerHTML = '';
         
-        // Prepare diagram
+        // Generate a unique ID
         const id = `mermaid-${Math.random().toString(36).substring(2, 11)}`;
-        const diagramElement = document.createElement('div');
-        diagramElement.id = id;
-        diagramElement.className = 'mermaid';
-        diagramElement.textContent = chart;
-        containerRef.current.appendChild(diagramElement);
         
-        console.log(`Rendering diagram with ID ${id}`);
-        console.log(`Diagram content (first 50 chars): ${chart.substring(0, 50)}...`);
+        // Create a wrapper element with the mermaid class
+        const mermaidDiv = document.createElement('div');
+        mermaidDiv.className = 'mermaid';
+        mermaidDiv.id = id;
         
-        // Force render with delay
+        // We need to ensure there's no indentation in the diagram text
+        const cleanedChart = chart.trim().replace(/^\s+/gm, '');
+        mermaidDiv.textContent = cleanedChart;
+        
+        // Add to container and render
+        containerRef.current.appendChild(mermaidDiv);
+        
+        console.log(`Rendering mermaid diagram with ID: ${id}`);
+        console.log(`Diagram content:\n${cleanedChart}`);
+        
+        // Render with a slight delay to ensure the element is in the DOM
         setTimeout(async () => {
           try {
             await mermaid.run({
               querySelector: `#${id}`
             });
             console.log(`Successfully rendered diagram ${id}`);
-          } catch (innerError) {
-            console.error(`Inner rendering error for ${id}:`, innerError);
-            showErrorMessage(innerError);
+          } catch (err) {
+            console.error(`Failed to render diagram:`, err);
+            showError(err);
           }
         }, 100);
       } catch (error) {
-        console.error('Mermaid component error:', error);
-        showErrorMessage(error);
+        console.error('Error in mermaid diagram rendering:', error);
+        showError(error);
       }
     };
     
-    const showErrorMessage = (error: unknown) => {
-      if (!containerRef.current) return;
-      
-      containerRef.current.innerHTML = `
-        <div class="p-4 border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-800 rounded-lg">
-          <h4 class="text-red-800 dark:text-red-300 font-medium mb-2">Error rendering diagram</h4>
-          <pre class="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/40 p-2 rounded overflow-x-auto">${
-            error instanceof Error ? error.message : String(error)
-          }</pre>
-          <div class="mt-4">
-            <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">Diagram source:</p>
-            <pre class="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded overflow-x-auto">${
-              chart.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            }</pre>
+    const showError = (error: any) => {
+      if (containerRef.current) {
+        containerRef.current.innerHTML = `
+          <div class="p-4 border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-800 rounded-lg">
+            <h4 class="text-red-800 dark:text-red-300 font-medium">Diagram Rendering Error</h4>
+            <pre class="mt-2 text-xs overflow-auto p-2 bg-white dark:bg-gray-800 rounded">${error?.message || String(error)}</pre>
+            <div class="mt-4">
+              <h5 class="font-medium text-sm">Diagram Source:</h5>
+              <pre class="mt-1 text-xs overflow-auto p-2 bg-white dark:bg-gray-800 rounded">${chart.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     };
     
-    // Render after a small delay to ensure component is mounted
-    const timer = setTimeout(() => {
-      renderDiagram();
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    renderDiagram();
   }, [chart]);
 
   return (
-    <div className="mermaid-container bg-white dark:bg-gray-800 p-6 rounded-xl border overflow-x-auto" ref={containerRef}>
+    <div className="mermaid-container bg-white dark:bg-gray-800 p-6 rounded-xl border shadow-sm overflow-auto" ref={containerRef}>
       <div className="animate-pulse flex space-x-4">
         <div className="flex-1 space-y-4 py-1">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-          </div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
         </div>
       </div>
     </div>

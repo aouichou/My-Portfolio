@@ -254,3 +254,42 @@
 .mermaid-container .edgePath .path {
   @apply stroke-gray-800 dark:stroke-gray-200;
 }
+
+.mermaid {
+	background-color: white;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	overflow: auto;
+  }
+  
+  .dark .mermaid {
+	background-color: rgb(31, 41, 55); /* gray-800 */
+  }
+  
+  /* Fix for svg text */
+  .dark .mermaid .label {
+	color: white;
+	fill: white;
+  }
+  
+  .mermaid .label {
+	color: black;
+	fill: black;
+  }
+  
+  /* Fix for node styling */
+  .mermaid .node rect,
+  .mermaid .node circle,
+  .mermaid .node ellipse,
+  .mermaid .node polygon {
+	fill: white;
+	stroke: #999;
+  }
+  
+  .dark .mermaid .node rect,
+  .dark .mermaid .node circle,
+  .dark .mermaid .node ellipse,
+  .dark .mermaid .node polygon {
+	fill: rgb(31, 41, 55);
+	stroke: #ccc;
+  }
