@@ -29,8 +29,21 @@ interface ProjectDetailProps {
 }
 
 const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) => {
+  if (!diagram) {
+    return null; // Return null if no diagram data
+  }
+  
   if (type === 'MERMAID') {
-    return <MermaidComponent chart={diagram} />;
+    return (
+      <>
+        <MermaidComponent chart={diagram} />
+        {/* Fallback in case of error */}
+        <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hidden fallback-diagram">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Diagram couldn't be rendered. View raw code:</p>
+          <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded overflow-auto">{diagram}</pre>
+        </div>
+      </>
+    );
   }
   
   if (type === 'SVG') {
