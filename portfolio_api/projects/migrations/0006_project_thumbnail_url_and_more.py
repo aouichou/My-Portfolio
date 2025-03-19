@@ -87,11 +87,11 @@ class Migration(migrations.Migration):
             name='slug',
             field=models.SlugField(max_length=100, unique=True),
         ),
-        migrations.AlterField(
-            model_name='project',
-            name='tech_stack',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=100), blank=True, help_text='List of technologies used in the project', null=True, size=None),
-        ),
+		migrations.AlterField(
+			model_name='project',
+			name='tech_stack',
+			field=models.JSONField(blank=True, null=True, help_text='List of technologies used in the project'),
+		),
         migrations.AlterField(
             model_name='project',
             name='thumbnail',

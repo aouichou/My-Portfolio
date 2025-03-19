@@ -6,7 +6,6 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 from .storage import CustomS3Storage
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.postgres.fields import ArrayField
 
 s3_storage = CustomS3Storage()
 
@@ -29,12 +28,7 @@ class Project(models.Model):
 		help_text="Project score (0-125)"
 	)
 	readme = models.TextField(blank=True, null=True, help_text="Full README content in Markdown format")
-	tech_stack = ArrayField(
-		models.CharField(max_length=100),
-		blank=True,
-		null=True,
-		help_text="List of technologies used in the project"
-	)
+	tech_stack = models.JSONField(blank=True, null=True, help_text="List of technologies used in the project")
 	features = models.JSONField(blank=True, null=True, help_text="List of project features with completion percentages")
 	challenges = models.TextField(blank=True, null=True, help_text="Challenges faced during development")
 	lessons = models.TextField(blank=True, null=True, help_text="Lessons learned from the project")
