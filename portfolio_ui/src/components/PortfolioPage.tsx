@@ -334,23 +334,23 @@ export default function PortfolioPage() {
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
               <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
             <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-                <div className="mermaid">
+            <div className="mermaid">
 {`graph TD
-User("User Browser") -->|HTTPS| CF("Cloudflare")
-CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
-CF -->|HTTPS| Render("Render: Django Backend")
-Render -->|Internal WebSocket| Terminal("Terminal Service")
-Render -->|SQL| DB[("PostgreSQL")]
-Render -->|Cache| Redis[("Redis")]
-Render -->|Files| S3[("S3 Storage")]
-Heroku -->|API Calls| Render
-Terminal -->|PTY| Process("PTY Process")
-Process -->|Files| Projects("Project Files")
-Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
-Actions -->|Deploy| Heroku
-Actions -->|Deploy| Render
-Actions -->|Deploy| Terminal`}
-                </div>
+A[User Browser] -->|HTTPS| B[Cloudflare]
+B -->|HTTP/2| C[Next.js Frontend]
+B -->|HTTPS| D[Django Backend]
+D -->|WebSocket| E[Terminal Service]
+D -->|SQL| F[(PostgreSQL)]
+D -->|Cache| G[(Redis)]
+D -->|Files| H[(S3 Storage)]
+C -->|API| D
+E -->|PTY| I[Process]
+I -->|Files| J[Projects]
+K[GitHub] -->|CI/CD| L[Actions]
+L -->|Deploy| C
+L -->|Deploy| D
+L -->|Deploy| E`}
+</div>
             </div>
             </div>
           </motion.div>
@@ -455,25 +455,17 @@ Actions -->|Deploy| Terminal`}
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
                 <h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
                    <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-                    <div className="mermaid">
+                   <div className="mermaid">
 {`graph TD
-User("User Browser") --> CF("Cloudflare")
-CF --> Heroku("Heroku: Next.js")
-CF --> Render("Render: Django")
-Render --> Terminal("Terminal Service")
-Render --> DB[("PostgreSQL")]
-Render --> Redis[("Redis")]
-Render --> S3[("S3 Storage")]
-Heroku --> Render
-classDef heroku fill:#79b8ff,stroke:#0366d6;
-classDef render fill:#ffdf5d,stroke:#d9a634;
-classDef terminal fill:#f9f,stroke:#333,stroke-width:2px;
-classDef cloudflare fill:#8256d0,stroke:#4c2889;
-class Heroku heroku;
-class Render render;
-class Terminal terminal;
-class CF cloudflare;`}
-                    </div>
+A[User] --> B[Cloudflare]
+B --> C[Heroku: Next.js]
+B --> D[Render: Django]
+D --> E[Terminal Service]
+D --> F[(PostgreSQL)]
+D --> G[(Redis)]
+D --> H[(S3)]
+C --> D`}
+</div>
                    </div>
                 <div className="mt-8">
                     <h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>

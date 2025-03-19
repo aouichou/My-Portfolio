@@ -23,6 +23,7 @@ import ScrollToTop from '@/components/ScrollToTop';
 import Link from 'next/link';
 import CodeWalkthrough from '@/components/CodeWalkthrough';
 import AutoRenderMermaid from '@/components/AutoRenderMermaid';
+import { useEffect } from 'react';
 
 interface ProjectDetailProps {
   slug: string;
@@ -82,7 +83,19 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
   
   const [activeTab, setActiveTab] = useState('overview');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  
+
+	useEffect(() => {
+		// Force rendering of diagrams when project data is loaded
+		if (project?.architecture_diagram) {
+			console.log("Project detail: Forcing diagram render");
+			setTimeout(() => {
+			if (window.renderMermaidDiagrams) {
+				window.renderMermaidDiagrams();
+			}
+			}, 1000);
+		}
+		}, [project]);
+
   // Loading state
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;

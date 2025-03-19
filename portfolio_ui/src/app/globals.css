@@ -231,22 +231,22 @@
 
 /* Mermaid diagram styling */
 
-.mermaid {
+/* .mermaid {
 	min-height: 100px;
 	background: white;
 	padding: 1rem;
 	border-radius: 0.5rem;
-  }
+  } */
   
-  .dark .mermaid {
-	background: #1f2937; /* dark:bg-gray-800 */
+  /* .dark .mermaid {
+	background: #1f2937;
   }
-  
+   */
   /* Fix for svg text */
-  .dark .mermaid .label {
+  /* .dark .mermaid .label {
 	fill: white !important;
 	color: white !important;
-  }
+  } */
   
   .mermaid .label {
 	color: black;
@@ -270,12 +270,46 @@
 	stroke: #ccc;
   }
 
-  .mermaid svg {
+  /* .mermaid svg {
 	max-width: 100%;
 	height: auto !important;
-  }
+  } */
 
-  .mermaid-container {
+  /* .mermaid-container {
 	min-height: 200px;
 	width: 100%;
-  }
+  } */
+
+/* Better mermaid diagram rendering */
+.mermaid {
+  min-height: 100px;
+  background: white;
+  overflow: visible !important;
+  padding: 1rem;
+}
+
+.dark .mermaid {
+  background: #1f2937; /* dark:bg-gray-800 */
+  color: white;
+}
+
+/* Make SVG diagrams visible and properly sized */
+.mermaid svg {
+  max-width: 100%;
+  height: auto !important;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Container for diagrams */
+.mermaid-container {
+  min-height: 150px;
+  width: 100%;
+  overflow: auto;
+}
+
+/* Fix text appearance in dark mode */
+.dark .mermaid .label {
+  color: white;
+  fill: white;
+}
