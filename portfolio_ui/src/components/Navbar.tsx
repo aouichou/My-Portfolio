@@ -1,8 +1,8 @@
 // portfolio_ui/src/components/Navbar.tsx
 
-import HomeButton from '@/components/HomeButton';
-
 'use client';
+
+import HomeButton from '@/components/HomeButton';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
