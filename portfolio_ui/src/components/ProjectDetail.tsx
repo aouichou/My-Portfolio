@@ -269,7 +269,6 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
       </div>
     </section>
 
-		// Update this section for architecture diagram
 		{project.architecture_diagram && (
 		  <section className="my-16">
 			<h2 className="text-3xl font-bold mb-8">System Architecture</h2>
