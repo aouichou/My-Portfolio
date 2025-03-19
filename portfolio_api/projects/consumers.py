@@ -63,17 +63,29 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 				await self.send(text_data=message)
 		except websockets.ConnectionClosed as e:
 			print(f"Error in forward_from_terminal: {e}")
-			await self.send(text_data=json.dumps({
-				'output': '\r\n\r\nTerminal connection closed. Refresh to reconnect.\r\n'
-			}))
+			try:
+				await self.send(text_data=json.dumps({
+					'output': '\r\n\r\nTerminal connection closed. Refresh to reconnect.\r\n'
+				}))
+			except:
+				# Connection might already be closed
+				pass
 		except Exception as e:
-			await self.send(text_data=json.dumps({
-				'output': f'\r\n\r\nTerminal error: {str(e)}\r\n'
-			}))
+			try:
+				await self.send(text_data=json.dumps({
+					'output': f'\r\n\r\nTerminal error: {str(e)}\r\n'
+				}))
+			except:
+				# Connection might already be closed
+				pass
 		finally:
 			# Close the WebSocket connection when forwarding ends
-			if not self.is_closed():
+			try:
+				# Replace the is_closed check with a direct try/except
 				await self.close()
+			except Exception:
+				# Connection is likely already closed
+				pass
 				
 	async def receive(self, text_data):
 		if hasattr(self, 'terminal_ws'):
