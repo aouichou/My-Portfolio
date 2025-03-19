@@ -21,15 +21,19 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
       try {
         // Initialize if needed
         if (!mermaidInitialized.current) {
-          mermaid.initialize({
-            startOnLoad: false,
-            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
-            securityLevel: 'loose',
-            flowchart: {
-              htmlLabels: true,
-              curve: 'linear',
-            }
-          });
+		mermaid.initialize({
+		  startOnLoad: false,
+		  theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+		  securityLevel: 'loose',
+		  flowchart: {
+			htmlLabels: true,
+			curve: 'linear',
+			diagramPadding: 8,
+			nodeSpacing: 50,
+			rankSpacing: 50,
+			useMaxWidth: false
+		  }
+		});
           mermaidInitialized.current = true;
         }
         
