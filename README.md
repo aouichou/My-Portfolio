@@ -40,17 +40,17 @@ This design ensures greater security as the terminal service is never directly e
 
 ```mermaid
 graph TD
-    User[User Browser] -->|HTTPS| CF[Cloudflare]
-    CF -->|HTTP/2| Next[Next.js Frontend]
-    CF -->|WebSocket| Django[Django Backend]
-    Django -->|Internal WebSocket| WS[Terminal Service]
-    Django -->|JSON| DB[(PostgreSQL)]
-    Django -->|Async Tasks| Redis[(Redis Cache)]
-    Django -->|Files| S3[(S3 Storage)]
+    User("User Browser") -->|HTTPS| CF("Cloudflare")
+    CF -->|HTTP/2| Next("Next.js Frontend")
+    CF -->|WebSocket| Django("Django Backend")
+    Django -->|Internal WebSocket| WS("Terminal Service")
+    Django -->|JSON| DB[("PostgreSQL")]
+    Django -->|Async Tasks| Redis[("Redis Cache")]
+    Django -->|Files| S3[("S3 Storage")]
     Next -->|API Calls| Django
-    WS -->|PTY| Terminal[PTY Process]
-    Terminal -->|Files| Project[Project Files]
-    Github[GitHub] -->|CI/CD| Actions[GitHub Actions]
+    WS -->|PTY| Terminal("PTY Process")
+    Terminal -->|Files| Project("Project Files")
+    Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
     Actions -->|Deploy| Next
     Actions -->|Deploy| Django
     Actions -->|Deploy| WS
