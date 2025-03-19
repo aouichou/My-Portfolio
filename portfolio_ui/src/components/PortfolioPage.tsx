@@ -335,21 +335,21 @@ export default function PortfolioPage() {
               <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
             <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
                 <div className="mermaid">
-                {`graph TD
-                    User("User Browser") -->|HTTPS| CF("Cloudflare")
-                    CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
-                    CF -->|HTTPS| Render("Render: Django Backend")
-                    Render -->|Internal WebSocket| Terminal("Terminal Service")
-                    Render -->|SQL| DB[("PostgreSQL")]
-                    Render -->|Cache| Redis[("Redis")]
-                    Render -->|Files| S3[("S3 Storage")]
-                    Heroku -->|API Calls| Render
-                    Terminal -->|PTY| Process("PTY Process")
-                    Process -->|Files| Projects("Project Files")
-                    Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
-                    Actions -->|Deploy| Heroku
-                    Actions -->|Deploy| Render
-                    Actions -->|Deploy| Terminal`}
+{`graph TD
+User("User Browser") -->|HTTPS| CF("Cloudflare")
+CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
+CF -->|HTTPS| Render("Render: Django Backend")
+Render -->|Internal WebSocket| Terminal("Terminal Service")
+Render -->|SQL| DB[("PostgreSQL")]
+Render -->|Cache| Redis[("Redis")]
+Render -->|Files| S3[("S3 Storage")]
+Heroku -->|API Calls| Render
+Terminal -->|PTY| Process("PTY Process")
+Process -->|Files| Projects("Project Files")
+Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
+Actions -->|Deploy| Heroku
+Actions -->|Deploy| Render
+Actions -->|Deploy| Terminal`}
                 </div>
             </div>
             </div>
@@ -456,23 +456,23 @@ export default function PortfolioPage() {
                 <h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
                    <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
                     <div className="mermaid">
-                    {`graph TD
-                        User("User Browser") --> CF("Cloudflare")
-                        CF --> Heroku("Heroku: Next.js")
-                        CF --> Render("Render: Django")
-                        Render --> Terminal("Terminal Service")
-                        Render --> DB[("PostgreSQL")]
-                        Render --> Redis[("Redis")]
-                        Render --> S3[("S3 Storage")]
-                        Heroku --> Render
-                        classDef heroku fill:#79b8ff,stroke:#0366d6;
-                        classDef render fill:#ffdf5d,stroke:#d9a634;
-                        classDef terminal fill:#f9f,stroke:#333,stroke-width:2px;
-                        classDef cloudflare fill:#8256d0,stroke:#4c2889;
-                        class Heroku heroku;
-                        class Render render;
-                        class Terminal terminal;
-                        class CF cloudflare;`}
+{`graph TD
+User("User Browser") --> CF("Cloudflare")
+CF --> Heroku("Heroku: Next.js")
+CF --> Render("Render: Django")
+Render --> Terminal("Terminal Service")
+Render --> DB[("PostgreSQL")]
+Render --> Redis[("Redis")]
+Render --> S3[("S3 Storage")]
+Heroku --> Render
+classDef heroku fill:#79b8ff,stroke:#0366d6;
+classDef render fill:#ffdf5d,stroke:#d9a634;
+classDef terminal fill:#f9f,stroke:#333,stroke-width:2px;
+classDef cloudflare fill:#8256d0,stroke:#4c2889;
+class Heroku heroku;
+class Render render;
+class Terminal terminal;
+class CF cloudflare;`}
                     </div>
                    </div>
                 <div className="mt-8">
