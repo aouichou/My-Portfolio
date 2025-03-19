@@ -21,6 +21,7 @@ export default function ClientLayout({
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+		<MermaidScriptLoader />
 		  <Navbar />
           {/* {showHomeButton && <HomeButton />} */}
           <div className={pathname === '/' ? '' : 'pt-16'}>
