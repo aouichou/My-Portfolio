@@ -22,6 +22,7 @@ import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
 import Link from 'next/link';
 import CodeWalkthrough from '@/components/CodeWalkthrough';
+import AutoRenderMermaid from '@/components/AutoRenderMermaid';
 
 interface ProjectDetailProps {
   slug: string;
@@ -93,6 +94,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
   }
 
   return (
+	
     <MotionDiv
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -125,6 +127,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
             ))}
         </MotionDiv>
 
+		<AutoRenderMermaid />
         <div className="flex justify-center gap-4 mb-12">
             {project.live_url && (
                 <a
@@ -266,22 +269,22 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
       </div>
     </section>
 
-        {/* Architecture Diagram */}
-        {project.architecture_diagram && (
-          <section className="my-16">
-            <h2 className="text-3xl font-bold mb-8">System Architecture</h2>
-            <MotionDiv
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <DiagramRenderer 
-                diagram={project.architecture_diagram} 
-                type={project.diagram_type || 'MERMAID'} 
-              />
-            </MotionDiv>
-          </section>
-        )}
+		// Update this section for architecture diagram
+		{project.architecture_diagram && (
+		  <section className="my-16">
+			<h2 className="text-3xl font-bold mb-8">System Architecture</h2>
+			<MotionDiv
+			  initial={{ opacity: 0, y: 20 }}
+			  animate={{ opacity: 1, y: 0 }}
+			  transition={{ duration: 0.5 }}
+			>
+			  <DiagramRenderer 
+				diagram={project.architecture_diagram} 
+				type={project.diagram_type || 'MERMAID'} 
+			  />
+			</MotionDiv>
+		  </section>
+		)}
 
       {/* Interactive Gallery */}
       {project.galleries?.map((gallery: Gallery) => (

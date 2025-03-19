@@ -14,80 +14,80 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
   const mermaidInitialized = useRef(false);
 
   useEffect(() => {
-    // Only initialize once per component
-    if (!mermaidInitialized.current) {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
-        securityLevel: 'loose',
-        fontFamily: 'var(--font-geist-mono)',
-        flowchart: {
-          htmlLabels: true,
-          curve: 'linear',
-        }
-      });
-      mermaidInitialized.current = true;
-    }
-
+    // Define rendering function
     const renderDiagram = async () => {
       if (!containerRef.current) return;
       
       try {
-        // Clean the container first
+        // Initialize if needed
+        if (!mermaidInitialized.current) {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+            securityLevel: 'loose',
+            flowchart: {
+              htmlLabels: true,
+              curve: 'linear',
+            }
+          });
+          mermaidInitialized.current = true;
+        }
+        
+        // Clean any previous content
         containerRef.current.innerHTML = '';
         
-        // Generate a unique ID
+        // Create a unique ID for this diagram
         const id = `mermaid-${Math.random().toString(36).substring(2, 11)}`;
         
-        // Create a wrapper element with the mermaid class
-        const mermaidDiv = document.createElement('div');
-        mermaidDiv.className = 'mermaid';
-        mermaidDiv.id = id;
+        // Create diagram element
+        const element = document.createElement('div');
+        element.className = 'mermaid';
+        element.id = id;
         
-        // We need to ensure there's no indentation in the diagram text
-        const cleanedChart = chart.trim().replace(/^\s+/gm, '');
-        mermaidDiv.textContent = cleanedChart;
+        // Very important - remove all leading whitespace from each line
+        const processedChart = chart.split('\n')
+          .map(line => line.trimStart())
+          .join('\n')
+          .trim();
         
-        // Add to container and render
-        containerRef.current.appendChild(mermaidDiv);
+        element.textContent = processedChart;
+        containerRef.current.appendChild(element);
         
-        console.log(`Rendering mermaid diagram with ID: ${id}`);
-        console.log(`Diagram content:\n${cleanedChart}`);
+        console.log(`Rendering diagram ${id}:`, processedChart.substring(0, 50) + '...');
         
-        // Render with a slight delay to ensure the element is in the DOM
-        setTimeout(async () => {
-          try {
-            await mermaid.run({
-              querySelector: `#${id}`
-            });
-            console.log(`Successfully rendered diagram ${id}`);
-          } catch (err) {
-            console.error(`Failed to render diagram:`, err);
-            showError(err);
-          }
-        }, 100);
+        // Render using mermaid
+        await mermaid.run({
+          querySelector: `#${id}`
+        });
+        
       } catch (error) {
-        console.error('Error in mermaid diagram rendering:', error);
-        showError(error);
-      }
-    };
-    
-    const showError = (error: any) => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = `
-          <div class="p-4 border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-800 rounded-lg">
-            <h4 class="text-red-800 dark:text-red-300 font-medium">Diagram Rendering Error</h4>
-            <pre class="mt-2 text-xs overflow-auto p-2 bg-white dark:bg-gray-800 rounded">${error?.message || String(error)}</pre>
-            <div class="mt-4">
-              <h5 class="font-medium text-sm">Diagram Source:</h5>
-              <pre class="mt-1 text-xs overflow-auto p-2 bg-white dark:bg-gray-800 rounded">${chart.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+        console.error('Mermaid render error:', error);
+        if (containerRef.current) {
+          containerRef.current.innerHTML = `
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded">
+              <p class="font-medium text-red-700 dark:text-red-300">Error rendering diagram</p>
+              <pre class="mt-2 text-xs bg-white dark:bg-black/30 p-2 rounded overflow-auto">${
+                error instanceof Error ? error.message : String(error)
+              }</pre>
             </div>
-          </div>
-        `;
+            <div class="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded">
+              <p class="text-sm font-medium">Diagram source:</p>
+              <pre class="mt-2 text-xs bg-white dark:bg-black/30 p-2 rounded overflow-auto">${
+                chart.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+              }</pre>
+            </div>
+          `;
+        }
       }
     };
     
+    // First render attempt
     renderDiagram();
+    
+    // Second attempt after a delay
+    const timer = setTimeout(renderDiagram, 1000);
+    
+    return () => clearTimeout(timer);
   }, [chart]);
 
   return (

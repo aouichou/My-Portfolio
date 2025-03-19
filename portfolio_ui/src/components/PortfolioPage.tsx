@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import CheckMermaid from './CheckMermaid';
+import AutoRenderMermaid from './AutoRenderMermaid';
+
 interface SectionVisibility {
 	[key: string]: boolean;
   }
@@ -40,6 +42,7 @@ export default function PortfolioPage() {
   }, []);
 
   return (
+	
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black">
       <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-24 px-4">
         <div className="container mx-auto max-w-6xl px-4 py-4">
@@ -50,7 +53,7 @@ export default function PortfolioPage() {
             Back to Projects
           </Link>
         </div>
-
+		<AutoRenderMermaid />
         <div className="container mx-auto max-w-6xl">
           <motion.h1 
             className="text-5xl md:text-7xl font-bold mb-6"
@@ -453,22 +456,25 @@ Actions -->|Deploy| Terminal`}
 				<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
 				<h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
 				   <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-					<div className="mermaid">
-					{`graph TD
-User("User Browser") -->|HTTPS| CF("Cloudflare")
-CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
-CF -->|HTTPS| Render("Render: Django Backend")
-Render -->|Internal Network| Terminal("Terminal Service")
-Render -->|SQL| DB[("PostgreSQL")]
-Render -->|Cache| Redis[("Redis")]
-Render -->|Files| S3[("S3 Storage")]
-Heroku -->|API Calls| Render
-Heroku -.->|No Direct Access| Terminal
-style Terminal fill:#f9f,stroke:#333,stroke-width:2px
-style Heroku fill:#79b8ff,stroke:#0366d6
-style Render fill:#ffdf5d,stroke:#d9a634
-style CF fill:#8256d0,stroke:#4c2889`}
-					</div>
+<div className="mermaid">
+{`graph TD
+User("User Browser") --> CF("Cloudflare")
+CF --> Heroku("Heroku: Next.js")
+CF --> Render("Render: Django")
+Render --> Terminal("Terminal Service")
+Render --> DB[("PostgreSQL")]
+Render --> Redis[("Redis")]
+Render --> S3[("S3 Storage")]
+Heroku --> Render
+classDef heroku fill:#79b8ff,stroke:#0366d6;
+classDef render fill:#ffdf5d,stroke:#d9a634;
+classDef terminal fill:#f9f,stroke:#333,stroke-width:2px;
+classDef cloudflare fill:#8256d0,stroke:#4c2889;
+class Heroku heroku;
+class Render render;
+class Terminal terminal;
+class CF cloudflare;`}
+</div>
 				   </div>
 				<div className="mt-8">
 					<h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>
