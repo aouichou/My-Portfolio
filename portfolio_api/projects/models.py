@@ -19,7 +19,14 @@ class Project(models.Model):
 	title = models.CharField(max_length=255)
 	slug = models.SlugField(unique=True, max_length=100)
 	description = models.TextField()
-	thumbnail = models.URLField(blank=True, null=True, help_text="URL to project thumbnail image")
+	thumbnail = models.ImageField(
+		upload_to='projects/',
+		storage=s3_storage,
+		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])],
+		blank=True, 
+		null=True,
+		help_text="Project thumbnail image"
+	)
 	thumbnail_url = models.URLField(blank=True, null=True, help_text="Alternative URL for thumbnail")
 	is_featured = models.BooleanField(default=False)
 	score = models.IntegerField(
