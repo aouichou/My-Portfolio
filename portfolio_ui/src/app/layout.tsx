@@ -12,7 +12,6 @@ import DebugCSP from '@/components/DebugCSP';
 import MermaidScriptLoader from '@/components/MermaidScriptLoader';
 import ServiceWarmup from '@/components/ServiceWarmup'
 import LoadingOverlay from '@/components/LoadingOverlay';
-import CheckMermaid from "@/components/CheckMermaid";
 
 const inter = Inter({
 	subsets: ['latin'],
@@ -51,7 +50,6 @@ export default function RootLayout({
 			{children}
 			<Toaster position="top-center" />
 		  </ClientLayout>
-		  <CheckMermaid />
 
 		{/* Ascript to trigger mermaid rendering after everything is loaded */}
 		<script

@@ -230,46 +230,22 @@
   }
 
 /* Mermaid diagram styling */
-.mermaid-container {
-  @apply bg-white dark:bg-gray-800 p-6 rounded-xl border;
-}
-
-/* Make sure mermaid diagrams are visible */
-.mermaid-container .node rect,
-.mermaid-container .node circle,
-.mermaid-container .node ellipse,
-.mermaid-container .node polygon,
-.mermaid-container .node path {
-  @apply fill-white dark:fill-gray-800 stroke-gray-800 dark:stroke-white;
-}
-
-.mermaid-container .label {
-  @apply text-gray-800 dark:text-white;
-}
-
-.mermaid-container .cluster rect {
-  @apply fill-gray-50 dark:fill-gray-700 stroke-gray-300 dark:stroke-gray-600;
-}
-
-.mermaid-container .edgePath .path {
-  @apply stroke-gray-800 dark:stroke-gray-200;
-}
 
 .mermaid {
-	background-color: white;
+	min-height: 100px;
+	background: white;
 	padding: 1rem;
 	border-radius: 0.5rem;
-	overflow: auto;
   }
   
   .dark .mermaid {
-	background-color: rgb(31, 41, 55); /* gray-800 */
+	background: #1f2937; /* dark:bg-gray-800 */
   }
   
   /* Fix for svg text */
   .dark .mermaid .label {
-	color: white;
-	fill: white;
+	fill: white !important;
+	color: white !important;
   }
   
   .mermaid .label {
@@ -292,4 +268,14 @@
   .dark .mermaid .node polygon {
 	fill: rgb(31, 41, 55);
 	stroke: #ccc;
+  }
+
+  .mermaid svg {
+	max-width: 100%;
+	height: auto !important;
+  }
+
+  .mermaid-container {
+	min-height: 200px;
+	width: 100%;
   }

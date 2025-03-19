@@ -5,7 +5,6 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import CheckMermaid from './CheckMermaid';
 import AutoRenderMermaid from './AutoRenderMermaid';
 
 interface SectionVisibility {
@@ -1033,7 +1032,6 @@ export default function PortfolioPage() {
           </motion.div>
         </section>
         </main>
-        <CheckMermaid />
         </div>
   );
 }
