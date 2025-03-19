@@ -6,8 +6,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ThemeProvider } from '../context/ThemeContext';
 import HomeButton from '../components/HomeButton';
-import { usePathname } from 'next/navigation';
 import Navbar from '../components/Navbar';
+import { usePathname } from 'next/navigation';
 
 export default function ClientLayout({
   children,
@@ -15,7 +15,10 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const [queryClient] = useState(() => new QueryClient());
-  const showHomeButton = true; // Set to true to always show the home button
+  const pathname = usePathname();
+  
+  // Keep HomeButton for legacy support on deep pages, but the main nav is now Navbar
+  const showHomeButton = pathname !== '/' && pathname.split('/').filter(Boolean).length > 1;
 
   return (
     <ThemeProvider>
@@ -23,8 +26,7 @@ export default function ClientLayout({
         <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           <Navbar />
           {showHomeButton && <HomeButton />}
-          {/* Add padding-top to prevent content from hiding under the navbar */}
-          <div className="pt-16">
+          <div className={pathname === '/' ? '' : 'pt-16'}>
             {children}
           </div>
         </div>

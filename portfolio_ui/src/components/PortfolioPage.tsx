@@ -134,7 +134,7 @@ export default function PortfolioPage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Modern Stack</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Built with Next.js 14, TypeScript, Django 4.2, and WebSockets for real-time interaction.
+                Built with Next.js 15, TypeScript, Django 5, and WebSockets for real-time interaction.
               </p>
             </motion.div>
             
