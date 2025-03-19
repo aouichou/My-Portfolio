@@ -28,26 +28,25 @@ interface ProjectDetailProps {
   initialProject?: Project;
 }
 
-
 const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) => {
-    if (type === 'MERMAID') {
-      return <MermaidComponent chart={diagram} />;
-    }
-    
-    if (type === 'SVG') {
-      return <div dangerouslySetInnerHTML={{ __html: diagram }} />;
-    }
+  if (type === 'MERMAID') {
+    return <MermaidComponent chart={diagram} />;
+  }
   
-    if (type === 'ASCII') {
-      return <pre className="font-mono bg-muted p-4 rounded-lg">{diagram}</pre>;
-    }
-  
-    return (
-      <div className="text-muted-foreground">
-        Unsupported diagram type: {type}
-      </div>
-    );
-  };
+  if (type === 'SVG') {
+    return <div dangerouslySetInnerHTML={{ __html: diagram }} />;
+  }
+
+  if (type === 'ASCII') {
+    return <pre className="font-mono bg-muted p-4 rounded-lg">{diagram}</pre>;
+  }
+
+  return (
+    <div className="text-muted-foreground">
+      Unsupported diagram type: {type}
+    </div>
+  );
+};
 
 const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
   return (
