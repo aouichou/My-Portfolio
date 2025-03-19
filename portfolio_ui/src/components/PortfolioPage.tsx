@@ -332,23 +332,23 @@ export default function PortfolioPage() {
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
               <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
 			<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-			<div className="mermaid">
-			  {`graph TD
-				User[User Browser] -->|HTTPS| CF[Cloudflare]
-				CF -->|HTTP/2| Next[Next.js Frontend]
-				CF -->|WebSocket| Django[Django Backend]
-				Django -->|Internal WebSocket| WS[Terminal Service]
-				Django -->|JSON| DB[(PostgreSQL)]
-				Django -->|Async Tasks| Redis[(Redis Cache)]
-				Django -->|Files| S3[(S3 Storage)]
-				Next -->|API Calls| Django
-				WS -->|PTY| Terminal[PTY Process]
-				Terminal -->|Files| Project[Project Files]
-				Github[GitHub] -->|CI/CD| Actions[GitHub Actions]
-				Actions -->|Deploy| Next
-				Actions -->|Deploy| Django
-				Actions -->|Deploy| WS`}
-			</div>
+				<div className="mermaid">
+				{`graph TD
+					User("User Browser") -->|HTTPS| CF("Cloudflare")
+					CF -->|HTTP/2| Heroku("Heroku: Next.js Frontend")
+					CF -->|HTTPS| Render("Render: Django Backend")
+					Render -->|Internal WebSocket| Terminal("Terminal Service")
+					Render -->|SQL| DB[("PostgreSQL")]
+					Render -->|Cache| Redis[("Redis")]
+					Render -->|Files| S3[("S3 Storage")]
+					Heroku -->|API Calls| Render
+					Terminal -->|PTY| Process("PTY Process")
+					Process -->|Files| Projects("Project Files")
+					Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
+					Actions -->|Deploy| Heroku
+					Actions -->|Deploy| Render
+					Actions -->|Deploy| Terminal`}
+				</div>
 			</div>
             </div>
           </motion.div>

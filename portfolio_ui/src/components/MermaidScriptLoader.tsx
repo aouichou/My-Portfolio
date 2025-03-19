@@ -6,54 +6,80 @@ import { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
 
 export function MermaidScriptLoader() {
-  // Use a ref to track initialization inside this component
   const isInitialized = useRef(false);
   
   useEffect(() => {
-    // Initialize mermaid with proper config
-    if (!isInitialized.current) {
+    // Ensure this runs only once per instance
+    if (isInitialized.current) return;
+    
+    console.log('Initializing Mermaid...');
+    
+    // Force re-initialization with fresh config
+    try {
       mermaid.initialize({
         startOnLoad: true,
         theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
         securityLevel: 'loose',
         fontFamily: 'var(--font-geist-mono)',
+        flowchart: {
+          htmlLabels: true,
+          curve: 'linear',
+        },
+        er: {
+          useMaxWidth: false,
+        }
       });
       isInitialized.current = true;
+      console.log('Mermaid initialized successfully');
+    } catch (e) {
+      console.error('Error initializing Mermaid:', e);
     }
     
-    // Render mermaid diagrams
-    const renderMermaid = async () => {
+    // Function to render all mermaid diagrams
+    const renderAllDiagrams = async () => {
       try {
-        // This will find all elements with class 'mermaid' and render them
-        await mermaid.run({
-          querySelector: '.mermaid'
-        });
+        const diagrams = document.querySelectorAll('.mermaid');
+        console.log(`Found ${diagrams.length} mermaid diagrams to render`);
+        
+        if (diagrams.length > 0) {
+          await mermaid.run({
+            querySelector: '.mermaid',
+          });
+          console.log('Mermaid diagrams rendered successfully');
+        }
       } catch (error) {
-        console.error('Mermaid global rendering error:', error);
+        console.error('Failed to render mermaid diagrams:', error);
       }
     };
     
-    // Wait a moment for the DOM to be fully ready
-    setTimeout(renderMermaid, 200);
+    // Render after a delay to ensure DOM is ready
+    const timerId = setTimeout(() => {
+      renderAllDiagrams();
+    }, 500);
     
-    // Register a theme observer to re-render on theme changes
+    // Also render on theme changes
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'class' && 
-            (mutation.target as Element).classList.contains('dark')) {
-          // Re-initialize with dark theme
+            mutation.target === document.documentElement) {
+          const isDark = document.documentElement.classList.contains('dark');
+          console.log(`Theme changed to ${isDark ? 'dark' : 'light'}, reinitializing Mermaid`);
+          
           mermaid.initialize({
-            startOnLoad: false,
-            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+            theme: isDark ? 'dark' : 'default',
           });
-          renderMermaid();
+          
+          setTimeout(renderAllDiagrams, 100);
         }
       });
     });
     
     observer.observe(document.documentElement, { attributes: true });
     
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timerId);
+      observer.disconnect();
+    };
   }, []);
   
   return null;

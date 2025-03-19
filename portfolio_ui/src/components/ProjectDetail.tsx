@@ -30,19 +30,20 @@ interface ProjectDetailProps {
 
 const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) => {
   if (!diagram) {
-    return null; // Return null if no diagram data
+    return null;
   }
   
+  // Always use MermaidComponent for MERMAID type diagrams
   if (type === 'MERMAID') {
+    // Fix common syntax issues in the diagram data
+    const fixedDiagram = diagram
+      .replace(/\[([\w\s\.-]+)\]/g, '("$1")') // Convert [text] to ("text")
+      .trim();
+      
     return (
-      <>
-        <MermaidComponent chart={diagram} />
-        {/* Fallback in case of error */}
-        <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hidden fallback-diagram">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Diagram couldn't be rendered. View raw code:</p>
-          <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded overflow-auto">{diagram}</pre>
-        </div>
-      </>
+      <div className="w-full overflow-hidden">
+        <MermaidComponent chart={fixedDiagram} />
+      </div>
     );
   }
   
@@ -51,12 +52,14 @@ const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) =
   }
 
   if (type === 'ASCII') {
-    return <pre className="font-mono bg-muted p-4 rounded-lg">{diagram}</pre>;
+    return <pre className="font-mono bg-gray-50 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto">{diagram}</pre>;
   }
 
   return (
-    <div className="text-muted-foreground">
-      Unsupported diagram type: {type}
+    <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/30 rounded-lg">
+      <p className="text-yellow-800 dark:text-yellow-200">
+        Unsupported diagram type: {type}
+      </p>
     </div>
   );
 };
