@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 export default function HomeButton() {
   return (
     <motion.div
-      className="fixed top-4 left-4 z-50"
+      className="inline-block"
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
@@ -17,10 +17,10 @@ export default function HomeButton() {
       whileTap={{ scale: 0.95 }}
     >
       <Link href="/" aria-label="Go to home page" className="block">
-        <div className="bg-white dark:bg-gray-800 h-14 w-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 transform hover:-translate-y-1 active:translate-y-0" style={{
+        <div className="bg-white dark:bg-gray-800 h-12 w-12 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 transform hover:-translate-y-1 active:translate-y-0" style={{
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
         }}>
-          <div className="relative h-10 w-10">
+          <div className="relative h-9 w-9">
             <Image 
               src="/favicon.ico" 
               alt="Home" 

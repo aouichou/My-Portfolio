@@ -127,8 +127,7 @@ export default function ProjectsGrid({ showAll = false }) {
           </div>
         )}
 
-		
-		<section className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 py-16 my-16">
+		{/* <section className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 py-16 my-16">
 		  <div className="container mx-auto px-4">
 			<div className="max-w-4xl mx-auto text-center">
 			  <h2 className="text-3xl font-bold mb-4">Portfolio Architecture</h2>
@@ -145,7 +144,7 @@ export default function ProjectsGrid({ showAll = false }) {
 			  </Link>
 			</div>
 		  </div>
-		</section>
+		</section> */}
       </div>
     </section>
   );

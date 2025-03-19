@@ -2,12 +2,11 @@
 
 'use client';
 
-import HomeButton from '@/components/HomeButton';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import { useState, useEffect } from 'react';
+import HomeButton from './HomeButton';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -34,23 +33,14 @@ export default function Navbar() {
     }`}>
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-6">
-            <HomeButton />
-			<Link href="/" className="font-bold text-xl flex items-center">
-              <span className={scrolled ? 'text-gray-900 dark:text-white' : 'text-white'}>
+          <div className="flex items-center space-x-3">
+            {/* Home button and name properly aligned */}
+            <Link href="/" className="flex items-center space-x-3">
+              <HomeButton />
+              <span className={`font-bold text-xl ${scrolled ? 'text-gray-900 dark:text-white' : 'text-white'}`}>
                 Amine Ouichou
               </span>
             </Link>
-            {/* <Link 
-              href="/"
-              className={`px-3 py-2 rounded-md ${
-                isActive('/') 
-                  ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' 
-                  : `${scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-white/90'} hover:text-blue-600 dark:hover:text-blue-400`
-              } transition-colors`}
-            >
-              Home
-            </Link> */}
           </div>
           
           <div className="flex items-center space-x-1 md:space-x-4">
