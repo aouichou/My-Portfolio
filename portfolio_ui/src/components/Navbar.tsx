@@ -1,5 +1,7 @@
 // portfolio_ui/src/components/Navbar.tsx
 
+import HomeButton from '@/components/HomeButton';
+
 'use client';
 
 import Link from 'next/link';
@@ -33,12 +35,13 @@ export default function Navbar() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-6">
-            <Link href="/" className="font-bold text-xl flex items-center">
+            <HomeButton />
+			<Link href="/" className="font-bold text-xl flex items-center">
               <span className={scrolled ? 'text-gray-900 dark:text-white' : 'text-white'}>
                 Amine Ouichou
               </span>
             </Link>
-            <Link 
+            {/* <Link 
               href="/"
               className={`px-3 py-2 rounded-md ${
                 isActive('/') 
@@ -47,7 +50,7 @@ export default function Navbar() {
               } transition-colors`}
             >
               Home
-            </Link>
+            </Link> */}
           </div>
           
           <div className="flex items-center space-x-1 md:space-x-4">
