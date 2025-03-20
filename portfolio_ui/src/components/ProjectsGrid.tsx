@@ -11,8 +11,8 @@ import { useFeaturedProjects, useAllProjects } from '../library/queries';
 import { motion } from 'framer-motion';
 
 export default function ProjectsGrid({ showAll = false }) {
-	const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = useFeaturedProjects();
-	const { data: allProjects, isLoading: allLoading, error: allError } = useAllProjects();
+    const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = useFeaturedProjects();
+    const { data: allProjects, isLoading: allLoading, error: allError } = useAllProjects();
 	
 	const projects = showAll ? allProjects : featuredProjects;
 	const isLoading = showAll ? allLoading : featuredLoading;
@@ -45,23 +45,23 @@ export default function ProjectsGrid({ showAll = false }) {
     <section id="projects" className="py-20 bg-gray-50 dark:bg-gray-800">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-bold mb-12 text-center dark:text-white">
-          Featured Work
+          {showAll ? 'All Projects' : 'Featured Work'}
         </h2>
-		<div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-		{projects?.map((project: Project, index: number) => (
-			<motion.div
-			key={project.id || index}
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3, delay: index * 0.1 }}
-			whileHover={{ 
-				y: -10, 
-				scale: 1.03,
-				boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-			}}
-			whileTap={{ scale: 0.98 }}
-			className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
-			>
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {projects?.map((project: Project, index: number) => (
+            <motion.div
+              key={project.id || `project-${index}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: Math.min(index * 0.1, 0.5) }} // Cap delay at 0.5s
+              whileHover={{ 
+                y: -10, 
+                scale: 1.03,
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
+            >
 			<Link
 				href={`/projects/${project.slug}`}
 				className="block h-full"
@@ -85,20 +85,29 @@ export default function ProjectsGrid({ showAll = false }) {
                   ))}
                 </div>
                 <div className="flex gap-4 mt-4">
-				<button
-					onClick={(e) => {
-						e.preventDefault();
-						if (project.has_interactive_demo) {
-						window.location.href = `/demo/${project.slug}`;
-						} else if (project.live_url) {
-						window.open(project.live_url, '_blank');
-						}
-					}}
-					className="btn-primary-sm"
-					disabled={!project.live_url && !project.has_interactive_demo}
-					>
-					{project.has_interactive_demo ? 'Try Demo' : 'Live Demo'}
-				</button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); // Prevent event bubbling
+                    try {
+                      if (project.has_interactive_demo) {
+                        window.location.href = `/demo/${project.slug}`;
+                      } else if (project.live_url) {
+                        window.open(project.live_url, '_blank', 'noopener,noreferrer');
+                      }
+                    } catch (error) {
+                      console.error("Navigation error:", error);
+                      // Show a toast notification instead
+                      if (window.toast) {
+                        window.toast.error("Couldn't open demo. Please try again.");
+                      }
+                    }
+                  }}
+                  className="btn-primary-sm"
+                  disabled={!project.live_url && !project.has_interactive_demo}
+                >
+                  {project.has_interactive_demo ? 'Try Demo' : 'Live Demo'}
+                </button>
                   <button
                     onClick={(e) => {
                       e.preventDefault();

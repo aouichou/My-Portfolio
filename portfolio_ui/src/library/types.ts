@@ -53,5 +53,10 @@ declare global {
 	  mermaid?: {
 		initialize: (config: any) => void;
 	  };
+	  toast?: {
+		error: (message: string) => void;
+		success: (message: string) => void;
+		info: (message: string) => void;
+	  };
 	}
   }

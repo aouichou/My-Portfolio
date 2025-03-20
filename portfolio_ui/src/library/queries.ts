@@ -5,15 +5,66 @@ import { getProjects, getProjectBySlug as apiGetProjectBySlug } from './api-clie
 import { normalizeProject } from './utils';
 import { Project } from './types';
 
-export function useFeaturedProjects() {
-  return useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const projects = await getProjects();
-      return projects.map(normalizeProject);
-    }
-  });
-}
+type ProjectFromAPI = {
+  id: string | number;
+  title: string;
+  slug: string;
+  description: string;
+  is_featured: boolean;
+  score: number;
+  
+  // Fields that may be null/undefined
+  readme?: string;
+  tech_stack: string[];
+  features?: string[];
+  challenges?: string;
+  lessons?: string;
+  live_url?: string;
+  code_url?: string;
+  thumbnail?: string;
+  thumbnail_url?: string;
+  video_url?: string;
+  architecture_diagram?: string;
+  diagram_type?: string;
+  
+  // Interactive demo fields
+  has_interactive_demo: boolean;
+  demo_commands?: Record<string, string>;
+  demo_files_path?: string;
+  
+  // Code details
+  code_steps?: Record<string, string>;
+  code_snippets?: Record<string, string>;
+  
+  // Galleries (complex nested structure)
+  galleries?: Array<{
+    id: number;
+    name: string;
+    description?: string;
+    order: number;
+    images: Array<{
+      id: number;
+      image: string;
+      caption?: string;
+      order: number;
+      image_url?: string;
+    }>;
+  }>;
+};
+
+  export function useFeaturedProjects() {
+	return useQuery({
+	  queryKey: ['featuredProjects'],
+	  queryFn: async () => {
+		const projects: ProjectFromAPI[] = await getProjects();
+		// Explicit type for 'p' parameter
+		const featuredProjects = projects.filter((p: ProjectFromAPI) => p.is_featured);
+		return featuredProjects.map(normalizeProject);
+	  },
+	  staleTime: 1000 * 60 * 5, // 5 minutes cache
+	  refetchOnWindowFocus: false
+	});
+  }
 
 export function useProjectBySlug(slug: string, initialData?: Project) {
   return useQuery({
@@ -31,13 +82,15 @@ export function useProjectBySlug(slug: string, initialData?: Project) {
 
 export function useAllProjects() {
 	return useQuery({
-	queryKey: ['projects'],
-	queryFn: async () => {
-	  const projects = await getProjects();
-	  return projects.map(normalizeProject);
-	}
-  });
-}
+	  queryKey: ['allProjects'],
+	  queryFn: async () => {
+		const projects: ProjectFromAPI[] = await getProjects();
+		return projects.map(normalizeProject);
+	  },
+	  staleTime: 1000 * 60 * 5,
+	  refetchOnWindowFocus: false
+	});
+  }
 
 export async function getAllProjects() {
   try {

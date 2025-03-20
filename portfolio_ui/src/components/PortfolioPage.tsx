@@ -29,6 +29,26 @@ export default function PortfolioPage() {
 	}
   }, [activeTab]);
 
+	useEffect(() => {
+	const observer = new IntersectionObserver((entries) => {
+		entries.forEach(entry => {
+		if (entry.isIntersecting) {
+			setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
+		}
+		});
+	}, {
+		// Trigger earlier on small screens by checking window width
+		threshold: window.innerWidth < 768 ? 0.05 : 0.2,
+		rootMargin: window.innerWidth < 768 ? '0px 0px -10% 0px' : '0px',
+	});
+	
+	document.querySelectorAll('section[id]').forEach(section => {
+		observer.observe(section);
+	});
+	
+	return () => observer.disconnect();
+	}, []);
+
   // Intersection observer for animations
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -342,21 +362,21 @@ export default function PortfolioPage() {
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
               <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
             <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-			<MermaidComponent chart={`graph TD
-A[User Browser] -->|HTTPS| B[Cloudflare]
-B -->|HTTP/2| C[Next.js]
-B -->|HTTPS| D[Django]
-D -->|WebSocket| E[Terminal]
-D -->|SQL| F[(PostgreSQL)]
-D -->|Cache| G[(Redis)]
-D -->|Files| H[(S3)]
-C -->|API| D
-E -->|PTY| I[Process]
-I -->|Files| J[Projects]
-K[GitHub] -->|CI/CD| L[Actions]
-L --> C
-L --> D
-L --> E`} />
+			<figure className="my-8">
+			<img
+				src="/diagrams/architecture-diagram-dark.svg"
+				alt="System Architecture"
+				className="hidden dark:block w-full h-auto"
+				/>
+				<img
+				src="/diagrams/architecture-diagram-light.svg"
+				alt="System Architecture"
+				className="dark:hidden w-full h-auto"
+				/>
+				<figcaption className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+					Figure 1: System Architecture Diagram
+				</figcaption>
+				</figure>
             </div>
             </div>
           </motion.div>
@@ -369,40 +389,40 @@ L --> E`} />
           >
             <h3 className="text-2xl font-bold mb-6">Key Components</h3>
             
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h4 className="font-bold text-lg mb-2 text-blue-600">Frontend Service</h4>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
-                  <li>Next.js 14 with TypeScript</li>
-                  <li>Tailwind CSS for styling</li>
-                  <li>React Query for data fetching</li>
-                  <li>Deployed on Heroku</li>
-                  <li>Xterm.js for terminal UI</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h4 className="font-bold text-lg mb-2 text-blue-600">Backend Service</h4>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
-                  <li>Django 4.2 REST API</li>
-                  <li>Django Channels for WebSockets</li>
-                  <li>PostgreSQL database</li>
-                  <li>Redis for caching/pub-sub</li>
-                  <li>S3 storage for media</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h4 className="font-bold text-lg mb-2 text-blue-600">Terminal Service</h4>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
-                  <li>FastAPI with WebSockets</li>
-                  <li>PTY process management</li>
-                  <li>Sandboxed Docker environment</li>
-                  <li>Command validation & security</li>
-                  <li>Project file management</li>
-                </ul>
-              </div>
-            </div>
+			<div className="grid md:grid-cols-3 gap-8">
+			  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+				<h4 className="font-bold text-lg mb-2 text-blue-600">Frontend Service</h4>
+				<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+				  <li><span className="font-medium">Next.js 15</span> with TypeScript</li>
+				  <li><span className="font-medium">Tailwind CSS</span> for styling</li>
+				  <li><span className="font-medium">React Query</span> for data fetching</li>
+				  <li>Deployed on <span className="font-medium">Heroku</span></li>
+				  <li><span className="font-medium">Xterm.js</span> for terminal UI</li>
+				</ul>
+			  </div>
+			  
+			  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+				<h4 className="font-bold text-lg mb-2 text-blue-600">Backend Service</h4>
+				<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+				  <li><span className="font-medium">Django 5</span> REST API</li>
+				  <li><span className="font-medium">Django Channels</span> for WebSockets</li>
+				  <li><span className="font-medium">PostgreSQL</span> database</li>
+				  <li><span className="font-medium">Redis</span> for caching/pub-sub</li>
+				  <li><span className="font-medium">S3</span> storage for media</li>
+				</ul>
+			  </div>
+			  
+			  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+				<h4 className="font-bold text-lg mb-2 text-blue-600">Terminal Service</h4>
+				<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+				  <li><span className="font-medium">FastAPI</span> with WebSockets</li>
+				  <li><span className="font-medium">PTY</span> process management</li>
+				  <li>Sandboxed <span className="font-medium">Docker</span> environment</li>
+				  <li>Command validation & security</li>
+				  <li>Project file management</li>
+				</ul>
+			  </div>
+			</div>
           </motion.div>
           
           <motion.div
@@ -439,6 +459,39 @@ L --> E`} />
           </motion.div>
         </section>
 
+			<motion.div
+			className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-100 dark:border-blue-800/30 shadow-sm"
+			variants={fadeIn}
+			initial="hidden"
+			animate={isVisible['architecture'] ? 'visible' : 'hidden'}
+			transition={{ delay: 0.3, duration: 0.6 }}
+			>
+			<h3 className="text-2xl font-bold mb-4">My Architecture Choices</h3>
+			<p className="text-gray-700 dark:text-gray-300 mb-4">
+				When designing this portfolio, I made deliberate architectural choices that balance modern web best practices with practical constraints:
+			</p>
+			<div className="space-y-4">
+				<div>
+				<h4 className="font-semibold text-blue-700 dark:text-blue-300">Why a Multi-Service Architecture?</h4>
+				<p className="text-gray-600 dark:text-gray-400">
+					I chose to split the application across multiple services to demonstrate microservice principles while keeping each component focused on its core responsibility. This separation allowed me to select the best technology for each specific need - Next.js for a snappy UI, Django for a robust API, and a dedicated terminal service for secure command execution.
+				</p>
+				</div>
+				<div>
+				<h4 className="font-semibold text-blue-700 dark:text-blue-300">Why These Technologies?</h4>
+				<p className="text-gray-600 dark:text-gray-400">
+					My technology stack reflects my full-stack expertise. I selected Next.js and React for frontend as they provide the best developer experience and performance. For backend, Django offers a mature ecosystem with excellent security features. I added Redis for inter-service communication and PostgreSQL for robust data storage. This combination delivers high performance while showcasing my versatility across the stack.
+				</p>
+				</div>
+				<div>
+				<h4 className="font-semibold text-blue-700 dark:text-blue-300">My Cloud Deployment Strategy</h4>
+				<p className="text-gray-600 dark:text-gray-400">
+					Rather than using a single cloud provider, I intentionally distributed services across multiple platforms to optimize cost efficiency and demonstrate multi-cloud orchestration skills. This approach also avoids vendor lock-in and allows each component to run in its most suitable environment.
+				</p>
+				</div>
+			</div>
+			</motion.div>
+
         {/* Cloud Deployment Section */}
         <section id="cloud" className={activeTab === 'cloud' ? 'block' : 'hidden'}>
             <motion.h2 
@@ -461,15 +514,21 @@ L --> E`} />
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
                 <h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
                    <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-				   <MermaidComponent chart={`graph TD
-A[User] --> B[Cloudflare]
-B --> C[Heroku Frontend]
-B --> D[Render Backend]
-D --> E[Terminal Service]
-D --> F[(PostgreSQL)]
-D --> G[(Redis)]
-D --> H[(S3)]
-C --> D`} />
+					   <figure className="my-8">
+				   <img
+						src="/diagrams/cloud-deployment-dark.svg"
+						alt="Cloud Deployment"
+						className="hidden dark:block w-full h-auto"
+						/>
+						<img
+						src="/diagrams/cloud-deployment-light.svg"
+						alt="Cloud Deployment"
+						className="dark:hidden w-full h-auto"
+						/>
+						<figcaption className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+							Figure 1: System Architecture Diagram
+						</figcaption>
+						</figure>
                    </div>
                 <div className="mt-8">
                     <h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>

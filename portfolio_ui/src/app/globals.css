@@ -326,3 +326,11 @@
   .dark .navbar-transparent .theme-toggle {
 	@apply bg-gray-700/50 border border-gray-600;
   }
+
+  img[alt*="diagram"] {
+	transition: filter 0.3s ease;
+  }
+  
+  img[alt*="diagram"]:hover {
+	filter: brightness(1.1) contrast(1.05);
+  }
