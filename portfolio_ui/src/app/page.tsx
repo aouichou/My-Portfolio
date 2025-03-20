@@ -21,11 +21,7 @@ export default function Home() {
 			  </svg>
 			</div>
 		  </div>
-		</div>
-	  </div>
-	</section>
-      <ProjectsGrid />
-	  <div className="flex-1">
+		  <div className="flex-1">
 			<h3 className="text-lg font-semibold text-purple-800 dark:text-purple-300 mb-1">Portfolio Architecture Deep Dive</h3>
 			<p className="text-gray-600 dark:text-gray-300 mb-4">
 			  Curious how this site works behind the scenes? Explore the cloud-native architecture, terminal implementation, and DevOps practices.
@@ -38,6 +34,10 @@ export default function Home() {
 			  </svg>
 			</Link>
 		  </div>
+		</div>
+	  </div>
+	</section>
+      <ProjectsGrid />
 	  <ContactForm />
     </main>
   );

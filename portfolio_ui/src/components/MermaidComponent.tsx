@@ -17,7 +17,15 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
     // Define rendering function
     const renderDiagram = async () => {
       if (!containerRef.current) return;
-      
+  
+	try {
+		// Wait for mermaid to be initialized
+		let retries = 0;
+		while (!mermaid.initialize && retries < 5) {
+		  await new Promise(resolve => setTimeout(resolve, 200));
+		  retries++;
+		}
+	
       try {
         // Clean any previous content
         containerRef.current.innerHTML = '';
@@ -65,6 +73,12 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
           `;
         }
       }
+	} catch (error) {
+		console.error('Mermaid initialization error:', error);
+		if (containerRef.current) {
+					  containerRef.current.innerHTML = ``;
+		}
+	} 	
     };
     
     // First render attempt
