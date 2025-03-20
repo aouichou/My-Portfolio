@@ -25,7 +25,7 @@ export default function ClientLayout({
           {/* {showHomeButton && <HomeButton />} */}
           <div className={pathname === '/' ? '' : 'pt-16'}>
             {children}
-          </div>3
+          </div>
 		  <Footer />
         </div>
       </QueryClientProvider>

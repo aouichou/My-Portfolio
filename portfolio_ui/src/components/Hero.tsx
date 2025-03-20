@@ -24,7 +24,7 @@ export default function Hero() {
             download="amine-ouichou-resume.pdf"
             className="btn-primary bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 flex items-center"
           >
-            <HiOutlineDocumentDownload className="h-5 w-5 mr-2" />
+            <HiOutlineDocumentDownload className="h-3 w-6 mr-2" />
             Download Resume
           </a>
         </div>

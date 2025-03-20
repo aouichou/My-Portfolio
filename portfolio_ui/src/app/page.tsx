@@ -16,7 +16,6 @@ export default function Home() {
       <ProjectsGrid />
 	  <ArchitectureShowcase /> 
 	  <ContactForm />
-	  <Footer />
     </main>
   );
 }
