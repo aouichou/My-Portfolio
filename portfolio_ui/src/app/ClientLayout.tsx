@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { ThemeProvider } from '../context/ThemeContext';
 import Navbar from '../components/Navbar';
 import { usePathname } from 'next/navigation';
+import Footer from '../components/Footer';
 
 export default function ClientLayout({
   children,
@@ -24,7 +25,8 @@ export default function ClientLayout({
           {/* {showHomeButton && <HomeButton />} */}
           <div className={pathname === '/' ? '' : 'pt-16'}>
             {children}
-          </div>
+          </div>3
+		  <Footer />
         </div>
       </QueryClientProvider>
     </ThemeProvider>

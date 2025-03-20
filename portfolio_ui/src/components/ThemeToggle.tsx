@@ -20,7 +20,7 @@ export default function ThemeToggle() {
     <motion.button
       type="button"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="relative flex h-8 w-14 items-center justify-center rounded-full p-1 bg-gradient-to-r from-blue-600/20 to-purple-600/20 dark:from-blue-900/30 dark:to-purple-900/30"
+      className="relative flex h-8 w-14 items-center justify-center rounded-full p-1 bg-gradient-to-r from-blue-600/40 to-purple-600/40 dark:from-blue-900/50 dark:to-purple-900/50 border border-gray-200/30 dark:border-gray-700/30 shadow-sm"
       whileTap={{ scale: 0.95 }}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >

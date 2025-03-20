@@ -313,3 +313,16 @@
   color: white;
   fill: white;
 }
+
+.btn-primary {
+	@apply inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors shadow-md hover:shadow-lg text-base;
+  }
+  
+  .btn-outline {
+	@apply inline-block px-6 py-3 bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-full font-medium transition-colors text-base;
+  }
+  
+  /* Fix for theme toggle in dark mode */
+  .dark .navbar-transparent .theme-toggle {
+	@apply bg-gray-700/50 border border-gray-600;
+  }
