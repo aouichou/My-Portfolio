@@ -22,10 +22,10 @@ export default function Hero() {
           <a 
             href="/resume.pdf"
             download="amine-ouichou-resume.pdf"
-            className="btn-primary bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 flex items-center"
+            className="px-8 py-2.5 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white rounded-full font-medium transition-colors shadow-md hover:shadow-lg text-base flex items-center"
           >
-            <HiOutlineDocumentDownload className="h-3 w-6 mr-2" />
             Download Resume
+            <HiOutlineDocumentDownload className="h-5 w-5 ml-2" />
           </a>
         </div>
       </div>
