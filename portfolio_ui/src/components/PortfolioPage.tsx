@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import AutoRenderMermaid from './AutoRenderMermaid';
+import {MermaidComponent } from './MermaidComponent';
+
 
 interface SectionVisibility {
     [key: string]: boolean;
@@ -21,6 +23,12 @@ export default function PortfolioPage() {
     visible: { opacity: 1, y: 0 }
   };
   
+  useEffect(() => {
+	if (window.renderMermaidDiagrams) {
+	  window.renderMermaidDiagrams();
+	}
+  }, [activeTab]);
+
   // Intersection observer for animations
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -334,8 +342,7 @@ export default function PortfolioPage() {
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
               <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
             <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-            <div className="mermaid">
-{`graph TD
+            <MermaidComponent chart={`graph TD
 A[User Browser] -->|HTTPS| B[Cloudflare]
 B -->|HTTP/2| C[Next.js Frontend]
 B -->|HTTPS| D[Django Backend]
@@ -349,8 +356,7 @@ I -->|Files| J[Projects]
 K[GitHub] -->|CI/CD| L[Actions]
 L -->|Deploy| C
 L -->|Deploy| D
-L -->|Deploy| E`}
-</div>
+L -->|Deploy| E`} />
             </div>
             </div>
           </motion.div>
@@ -455,8 +461,7 @@ L -->|Deploy| E`}
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
                 <h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
                    <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-                   <div className="mermaid">
-{`graph TD
+                   <MermaidComponent chart={`graph TD
 A[User] --> B[Cloudflare]
 B --> C[Heroku: Next.js]
 B --> D[Render: Django]
@@ -464,8 +469,7 @@ D --> E[Terminal Service]
 D --> F[(PostgreSQL)]
 D --> G[(Redis)]
 D --> H[(S3)]
-C --> D`}
-</div>
+C --> D`} />
                    </div>
                 <div className="mt-8">
                     <h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>

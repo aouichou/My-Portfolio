@@ -19,24 +19,6 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
       if (!containerRef.current) return;
       
       try {
-        // Initialize if needed
-        if (!mermaidInitialized.current) {
-		mermaid.initialize({
-		  startOnLoad: false,
-		  theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
-		  securityLevel: 'loose',
-		  flowchart: {
-			htmlLabels: true,
-			curve: 'linear',
-			diagramPadding: 8,
-			nodeSpacing: 50,
-			rankSpacing: 50,
-			useMaxWidth: false
-		  }
-		});
-          mermaidInitialized.current = true;
-        }
-        
         // Clean any previous content
         containerRef.current.innerHTML = '';
         

@@ -25,7 +25,7 @@ export function MermaidScriptLoader() {
         fontFamily: 'var(--font-geist-mono)',
         htmlLabels: true,
         flowchart: {
-          curve: 'basis',
+		  curve: 'linear',
           useMaxWidth: false,
         },
       });
