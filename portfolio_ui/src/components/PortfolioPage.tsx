@@ -334,13 +334,13 @@ export default function PortfolioPage() {
 			<h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
 			<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 flex justify-center">
 				<img
-				src="/diagrams/architecture-diagram-dark.svg"
+				src="/diagrams/architecture-diagram-dark.png"
 				alt="System Architecture"
 				className="hidden dark:block h-[647px] w-auto"
 				style={{ maxWidth: '100%' }}
 				/>
 				<img
-				src="/diagrams/architecture-diagram-light.svg"
+				src="/diagrams/architecture-diagram-light.png"
 				alt="System Architecture"
 				className="dark:hidden h-[647px] w-auto"
 				style={{ maxWidth: '100%' }}
@@ -453,13 +453,13 @@ export default function PortfolioPage() {
 				<h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
 				<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 flex justify-center">
 					<img
-					src="/diagrams/cloud-deployment-dark.svg"
+					src="/diagrams/cloud-deployment-dark.png"
 					alt="Cloud Deployment"
 					className="hidden dark:block h-[606px] w-auto"
 					style={{ maxWidth: '100%' }}
 					/>
 					<img
-					src="/diagrams/cloud-deployment-light.svg"
+					src="/diagrams/cloud-deployment-light.png"
 					alt="Cloud Deployment"
 					className="dark:hidden h-[606px] w-auto"
 					style={{ maxWidth: '100%' }}
