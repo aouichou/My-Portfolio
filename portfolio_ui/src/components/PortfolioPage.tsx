@@ -20,13 +20,6 @@ export default function PortfolioPage() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
-  
-  useEffect(() => {
-	if (window.renderMermaidDiagrams) {
-	  window.renderMermaidDiagrams();
-	}
-  }, [activeTab]);
-
 		useEffect(() => {
 			const observer = new IntersectionObserver((entries) => {
 			entries.forEach(entry => {
@@ -339,18 +332,18 @@ export default function PortfolioPage() {
           >
 			<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
 			<h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
-			<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700">
+			<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 flex justify-center">
 				<img
 				src="/diagrams/architecture-diagram-dark.svg"
 				alt="System Architecture"
-				className="hidden dark:block w-full h-auto max-h-[650px]"
-				style={{ objectFit: 'contain' }}
+				className="hidden dark:block h-[647px] w-auto"
+				style={{ maxWidth: '100%' }}
 				/>
 				<img
 				src="/diagrams/architecture-diagram-light.svg"
 				alt="System Architecture"
-				className="dark:hidden w-full h-auto max-h-[650px]"
-				style={{ objectFit: 'contain' }}
+				className="dark:hidden h-[647px] w-auto"
+				style={{ maxWidth: '100%' }}
 				/>
 				<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
 				Figure 1: System Architecture Diagram
@@ -458,18 +451,18 @@ export default function PortfolioPage() {
             >
 				<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
 				<h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
-				<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700">
+				<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 flex justify-center">
 					<img
 					src="/diagrams/cloud-deployment-dark.svg"
 					alt="Cloud Deployment"
-					className="hidden dark:block w-full h-auto max-h-[610px]"
-					style={{ objectFit: 'contain' }}
+					className="hidden dark:block h-[606px] w-auto"
+					style={{ maxWidth: '100%' }}
 					/>
 					<img
 					src="/diagrams/cloud-deployment-light.svg"
 					alt="Cloud Deployment"
-					className="dark:hidden w-full h-auto max-h-[610px]"
-					style={{ objectFit: 'contain' }}
+					className="dark:hidden h-[606px] w-auto"
+					style={{ maxWidth: '100%' }}
 					/>
 					<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
 					Figure 2: Cloud Deployment Architecture
