@@ -359,26 +359,38 @@ export default function PortfolioPage() {
             animate={isVisible['architecture'] ? 'visible' : 'hidden'}
             transition={{ delay: 0.1, duration: 0.6 }}
           >
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-              <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
-            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-			<figure className="my-8">
-			<img
-				src="/diagrams/architecture-diagram-dark.svg"
-				alt="System Architecture"
-				className="hidden dark:block w-full h-auto"
-				/>
-				<img
-				src="/diagrams/architecture-diagram-light.svg"
-				alt="System Architecture"
-				className="dark:hidden w-full h-auto"
-				/>
-				<figcaption className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-					Figure 1: System Architecture Diagram
-				</figcaption>
-				</figure>
-            </div>
-            </div>
+			<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+			  <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
+			  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-visible">
+				<object
+				  data="/diagrams/architecture-diagram-dark.svg"
+				  type="image/svg+xml"
+				  className="hidden dark:block w-full h-[650px]"
+				  aria-label="System Architecture Diagram (Dark Mode)"
+				>
+				  <img
+					src="/diagrams/architecture-diagram-dark.svg"
+					alt="System Architecture"
+					className="w-full"
+				  />
+				</object>
+				<object
+				  data="/diagrams/architecture-diagram-light.svg"
+				  type="image/svg+xml" 
+				  className="dark:hidden w-full h-[650px]"
+				  aria-label="System Architecture Diagram (Light Mode)"
+				>
+				  <img
+					src="/diagrams/architecture-diagram-light.svg"
+					alt="System Architecture"
+					className="w-full"
+				  />
+				</object>
+				<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+				  Figure 1: System Architecture Diagram
+				</div>
+			  </div>
+			</div>
           </motion.div>
           
           <motion.div
@@ -459,39 +471,6 @@ export default function PortfolioPage() {
           </motion.div>
         </section>
 
-			<motion.div
-			className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-100 dark:border-blue-800/30 shadow-sm"
-			variants={fadeIn}
-			initial="hidden"
-			animate={isVisible['architecture'] ? 'visible' : 'hidden'}
-			transition={{ delay: 0.3, duration: 0.6 }}
-			>
-			<h3 className="text-2xl font-bold mb-4">My Architecture Choices</h3>
-			<p className="text-gray-700 dark:text-gray-300 mb-4">
-				When designing this portfolio, I made deliberate architectural choices that balance modern web best practices with practical constraints:
-			</p>
-			<div className="space-y-4">
-				<div>
-				<h4 className="font-semibold text-blue-700 dark:text-blue-300">Why a Multi-Service Architecture?</h4>
-				<p className="text-gray-600 dark:text-gray-400">
-					I chose to split the application across multiple services to demonstrate microservice principles while keeping each component focused on its core responsibility. This separation allowed me to select the best technology for each specific need - Next.js for a snappy UI, Django for a robust API, and a dedicated terminal service for secure command execution.
-				</p>
-				</div>
-				<div>
-				<h4 className="font-semibold text-blue-700 dark:text-blue-300">Why These Technologies?</h4>
-				<p className="text-gray-600 dark:text-gray-400">
-					My technology stack reflects my full-stack expertise. I selected Next.js and React for frontend as they provide the best developer experience and performance. For backend, Django offers a mature ecosystem with excellent security features. I added Redis for inter-service communication and PostgreSQL for robust data storage. This combination delivers high performance while showcasing my versatility across the stack.
-				</p>
-				</div>
-				<div>
-				<h4 className="font-semibold text-blue-700 dark:text-blue-300">My Cloud Deployment Strategy</h4>
-				<p className="text-gray-600 dark:text-gray-400">
-					Rather than using a single cloud provider, I intentionally distributed services across multiple platforms to optimize cost efficiency and demonstrate multi-cloud orchestration skills. This approach also avoids vendor lock-in and allows each component to run in its most suitable environment.
-				</p>
-				</div>
-			</div>
-			</motion.div>
-
         {/* Cloud Deployment Section */}
         <section id="cloud" className={activeTab === 'cloud' ? 'block' : 'hidden'}>
             <motion.h2 
@@ -511,25 +490,37 @@ export default function PortfolioPage() {
                 animate={isVisible['cloud'] ? 'visible' : 'hidden'}
                 transition={{ delay: 0.1, duration: 0.6 }}
             >
-                <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-                <h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
-                   <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-auto">
-					   <figure className="my-8">
-				   <img
+				<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+				  <h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
+				  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-visible">
+					<object
+					  data="/diagrams/cloud-deployment-dark.svg"
+					  type="image/svg+xml"
+					  className="hidden dark:block w-full h-[610px]"
+					  aria-label="Cloud Deployment Architecture (Dark Mode)"
+					>
+					  <img
 						src="/diagrams/cloud-deployment-dark.svg"
 						alt="Cloud Deployment"
-						className="hidden dark:block w-full h-auto"
-						/>
-						<img
+						className="w-full"
+					  />
+					</object>
+					<object
+					  data="/diagrams/cloud-deployment-light.svg" 
+					  type="image/svg+xml"
+					  className="dark:hidden w-full h-[610px]"
+					  aria-label="Cloud Deployment Architecture (Light Mode)"
+					>
+					  <img
 						src="/diagrams/cloud-deployment-light.svg"
 						alt="Cloud Deployment"
-						className="dark:hidden w-full h-auto"
-						/>
-						<figcaption className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-							Figure 1: System Architecture Diagram
-						</figcaption>
-						</figure>
-                   </div>
+						className="w-full"
+					  />
+					</object>
+					<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+					  Figure 2: Cloud Deployment Architecture
+					</div>
+				  </div>
                 <div className="mt-8">
                     <h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -598,6 +589,39 @@ export default function PortfolioPage() {
                 </div>
             </motion.div>
             </section>
+
+			<motion.div
+			className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-100 dark:border-blue-800/30 shadow-sm"
+			variants={fadeIn}
+			initial="hidden"
+			animate={isVisible['architecture'] ? 'visible' : 'hidden'}
+			transition={{ delay: 0.3, duration: 0.6 }}
+			>
+			<h3 className="text-2xl font-bold mb-4">My Architecture Choices</h3>
+			<p className="text-gray-700 dark:text-gray-300 mb-4">
+				When designing this portfolio, I made deliberate architectural choices that balance modern web best practices with practical constraints:
+			</p>
+			<div className="space-y-4">
+				<div>
+				<h4 className="font-semibold text-blue-700 dark:text-blue-300">Why a Multi-Service Architecture?</h4>
+				<p className="text-gray-600 dark:text-gray-400">
+					I chose to split the application across multiple services to demonstrate microservice principles while keeping each component focused on its core responsibility. This separation allowed me to select the best technology for each specific need - Next.js for a snappy UI, Django for a robust API, and a dedicated terminal service for secure command execution.
+				</p>
+				</div>
+				<div>
+				<h4 className="font-semibold text-blue-700 dark:text-blue-300">Why These Technologies?</h4>
+				<p className="text-gray-600 dark:text-gray-400">
+					My technology stack reflects my full-stack expertise. I selected Next.js and React for frontend as they provide the best developer experience and performance. For backend, Django offers a mature ecosystem with excellent security features. I added Redis for inter-service communication and PostgreSQL for robust data storage. This combination delivers high performance while showcasing my versatility across the stack.
+				</p>
+				</div>
+				<div>
+				<h4 className="font-semibold text-blue-700 dark:text-blue-300">My Cloud Deployment Strategy</h4>
+				<p className="text-gray-600 dark:text-gray-400">
+					Rather than using a single cloud provider, I intentionally distributed services across multiple platforms to optimize cost efficiency and demonstrate multi-cloud orchestration skills. This approach also avoids vendor lock-in and allows each component to run in its most suitable environment.
+				</p>
+				</div>
+			</div>
+			</motion.div>
 
         {/* Terminal Section */}
         <section id="terminal" className={activeTab === 'terminal' ? 'block' : 'hidden'}>
