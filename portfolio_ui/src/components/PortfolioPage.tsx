@@ -5,8 +5,6 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import AutoRenderMermaid from './AutoRenderMermaid';
-import {MermaidComponent } from './MermaidComponent';
 
 
 interface SectionVisibility {
@@ -29,44 +27,25 @@ export default function PortfolioPage() {
 	}
   }, [activeTab]);
 
-	useEffect(() => {
-	const observer = new IntersectionObserver((entries) => {
-		entries.forEach(entry => {
-		if (entry.isIntersecting) {
-			setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
-		}
-		});
-	}, {
-		// Trigger earlier on small screens by checking window width
-		threshold: window.innerWidth < 768 ? 0.05 : 0.2,
-		rootMargin: window.innerWidth < 768 ? '0px 0px -10% 0px' : '0px',
-	});
-	
-	document.querySelectorAll('section[id]').forEach(section => {
-		observer.observe(section);
-	});
-	
-	return () => observer.disconnect();
-	}, []);
-
-  // Intersection observer for animations
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
-        }
-      });
-    }, {
-      threshold: 0.2,
-    });
-    
-    document.querySelectorAll('section[id]').forEach(section => {
-      observer.observe(section);
-    });
-    
-    return () => observer.disconnect();
-  }, []);
+		useEffect(() => {
+			const observer = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting) {
+				setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
+				}
+			});
+			}, {
+			// Trigger earlier on small screens by checking window width
+			threshold: window.innerWidth < 768 ? 0.05 : 0.2,
+			rootMargin: window.innerWidth < 768 ? '0px 0px -10% 0px' : '0px',
+			});
+			
+			document.querySelectorAll('section[id]').forEach(section => {
+			observer.observe(section);
+			});
+			
+			return () => observer.disconnect();
+		}, []);
 
   return (
     
@@ -80,7 +59,6 @@ export default function PortfolioPage() {
             Back to Projects
           </Link>
         </div>
-        <AutoRenderMermaid />
         <div className="container mx-auto max-w-6xl">
           <motion.h1 
             className="text-5xl md:text-7xl font-bold mb-6"
@@ -360,36 +338,24 @@ export default function PortfolioPage() {
             transition={{ delay: 0.1, duration: 0.6 }}
           >
 			<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-			  <h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
-			  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-visible">
-				<object
-				  data="/diagrams/architecture-diagram-dark.svg"
-				  type="image/svg+xml"
-				  className="hidden dark:block w-full h-[650px]"
-				  aria-label="System Architecture Diagram (Dark Mode)"
-				>
-				  <img
-					src="/diagrams/architecture-diagram-dark.svg"
-					alt="System Architecture"
-					className="w-full"
-				  />
-				</object>
-				<object
-				  data="/diagrams/architecture-diagram-light.svg"
-				  type="image/svg+xml" 
-				  className="dark:hidden w-full h-[650px]"
-				  aria-label="System Architecture Diagram (Light Mode)"
-				>
-				  <img
-					src="/diagrams/architecture-diagram-light.svg"
-					alt="System Architecture"
-					className="w-full"
-				  />
-				</object>
+			<h3 className="text-xl font-bold mb-6">System Architecture Diagram</h3>
+			<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700">
+				<img
+				src="/diagrams/architecture-diagram-dark.svg"
+				alt="System Architecture"
+				className="hidden dark:block w-full h-auto max-h-[650px]"
+				style={{ objectFit: 'contain' }}
+				/>
+				<img
+				src="/diagrams/architecture-diagram-light.svg"
+				alt="System Architecture"
+				className="dark:hidden w-full h-auto max-h-[650px]"
+				style={{ objectFit: 'contain' }}
+				/>
 				<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-				  Figure 1: System Architecture Diagram
+				Figure 1: System Architecture Diagram
 				</div>
-			  </div>
+			</div>
 			</div>
           </motion.div>
           
@@ -491,36 +457,24 @@ export default function PortfolioPage() {
                 transition={{ delay: 0.1, duration: 0.6 }}
             >
 				<div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-				  <h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
-				  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-visible">
-					<object
-					  data="/diagrams/cloud-deployment-dark.svg"
-					  type="image/svg+xml"
-					  className="hidden dark:block w-full h-[610px]"
-					  aria-label="Cloud Deployment Architecture (Dark Mode)"
-					>
-					  <img
-						src="/diagrams/cloud-deployment-dark.svg"
-						alt="Cloud Deployment"
-						className="w-full"
-					  />
-					</object>
-					<object
-					  data="/diagrams/cloud-deployment-light.svg" 
-					  type="image/svg+xml"
-					  className="dark:hidden w-full h-[610px]"
-					  aria-label="Cloud Deployment Architecture (Light Mode)"
-					>
-					  <img
-						src="/diagrams/cloud-deployment-light.svg"
-						alt="Cloud Deployment"
-						className="w-full"
-					  />
-					</object>
+				<h3 className="text-xl font-bold mb-6">Multi-Cloud Deployment Strategy</h3>
+				<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700">
+					<img
+					src="/diagrams/cloud-deployment-dark.svg"
+					alt="Cloud Deployment"
+					className="hidden dark:block w-full h-auto max-h-[610px]"
+					style={{ objectFit: 'contain' }}
+					/>
+					<img
+					src="/diagrams/cloud-deployment-light.svg"
+					alt="Cloud Deployment"
+					className="dark:hidden w-full h-auto max-h-[610px]"
+					style={{ objectFit: 'contain' }}
+					/>
 					<div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-					  Figure 2: Cloud Deployment Architecture
+					Figure 2: Cloud Deployment Architecture
 					</div>
-				  </div>
+				</div>
                 <div className="mt-8">
                     <h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -588,13 +542,12 @@ export default function PortfolioPage() {
                 </div>
                 </div>
             </motion.div>
-            </section>
 
 			<motion.div
 			className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-100 dark:border-blue-800/30 shadow-sm"
 			variants={fadeIn}
 			initial="hidden"
-			animate={isVisible['architecture'] ? 'visible' : 'hidden'}
+			animate={isVisible['cloud'] ? 'visible' : 'hidden'}
 			transition={{ delay: 0.3, duration: 0.6 }}
 			>
 			<h3 className="text-2xl font-bold mb-4">My Architecture Choices</h3>
@@ -622,6 +575,7 @@ export default function PortfolioPage() {
 				</div>
 			</div>
 			</motion.div>
+			</section>
 
         {/* Terminal Section */}
         <section id="terminal" className={activeTab === 'terminal' ? 'block' : 'hidden'}>

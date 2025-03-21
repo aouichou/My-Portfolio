@@ -9,7 +9,6 @@ import { Inter } from 'next/font/google';
 import FontLoader from '@/components/FontLoader';
 import BlockCloudflare from '@/components/BlockCloudflare';
 import DebugCSP from '@/components/DebugCSP';
-import MermaidScriptLoader from '@/components/MermaidScriptLoader';
 import ServiceWarmup from '@/components/ServiceWarmup'
 import LoadingOverlay from '@/components/LoadingOverlay';
 
@@ -44,7 +43,6 @@ export default function RootLayout({
 		  <FontLoader />
 		  <DebugCSP />
 		  <LoadingOverlay />
-		  <MermaidScriptLoader />
 		  <ServiceWarmup />
 		  <ClientLayout>
 			{children}

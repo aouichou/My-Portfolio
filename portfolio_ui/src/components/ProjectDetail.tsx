@@ -22,7 +22,6 @@ import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
 import Link from 'next/link';
 import CodeWalkthrough from '@/components/CodeWalkthrough';
-import AutoRenderMermaid from '@/components/AutoRenderMermaid';
 import { useEffect } from 'react';
 
 interface ProjectDetailProps {
@@ -140,7 +139,6 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
             ))}
         </MotionDiv>
 
-		<AutoRenderMermaid />
         <div className="flex justify-center gap-4 mb-12">
             {project.live_url && (
                 <a

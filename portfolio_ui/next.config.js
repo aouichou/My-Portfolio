@@ -21,17 +21,17 @@ const nextConfig = {
   },
   async headers() {
     // Define Content-Security-Policy
-    const ContentSecurityPolicy = `
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
-      style-src 'self' 'unsafe-inline';
-      img-src 'self' data: blob: https: http:;
-      font-src 'self' data: https:;
-      connect-src 'self' https: http: wss: ws:;
-      media-src 'self' data: blob: https: http:;
-      object-src 'none';
-      frame-src 'self';
-    `;
+	const ContentSecurityPolicy = `
+	  default-src 'self';
+	  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com;
+	  style-src 'self' 'unsafe-inline';
+	  img-src 'self' data: blob: https: http:;
+	  font-src 'self' data: https:;
+	  connect-src 'self' https: http: wss: ws:;
+	  media-src 'self' data: blob: https: http:;
+	  object-src 'none';
+	  frame-src 'self';
+	`;
 
     // Define all security headers inline
     const securityHeaders = [
