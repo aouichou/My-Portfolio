@@ -317,21 +317,55 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
         </section>
       ))}
 
-		{/* Code Walkthrough */}
+		// Replace the existing code walkthrough section with this
+		
+		{/* Installation Steps */}
 		{project.code_steps && Object.keys(project.code_steps).length > 0 && (
-		<section className="my-16">
+		  <section className="my-16">
+			<h2 className="text-3xl font-bold mb-8">Installation Guide</h2>
+			<div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl">
+			  <ol className="list-decimal list-inside space-y-4 ml-4">
+				{Object.entries(project.code_steps).map(([step, instruction]) => (
+				  <li key={step} className="text-lg">
+					<span className="font-medium">{step}:</span> {instruction as string}
+				  </li>
+				))}
+			  </ol>
+			</div>
+		  </section>
+		)}
+		
+		{/* Code Walkthrough using code_snippets */}
+		{project.code_snippets && Object.keys(project.code_snippets).length > 0 && (
+		  <section className="my-16">
 			<h2 className="text-3xl font-bold mb-8">Code Walkthrough</h2>
 			<CodeWalkthrough 
-			projectTitle={project.title}
-			steps={Object.entries(project.code_steps).map(([title, content]) => ({
-				title,
-				content: content as string,
-				description: "",
-				code: content as string,
-				language: "javascript/python/C/typescript"
-			}))}
+			  projectTitle={project.title}
+			  steps={Object.entries(project.code_snippets).map(([title, content]) => {
+				// Determine language based on title or content
+				let language = "c"; // Default to C for your 42 projects
+				if (title.includes("js") || title.includes("script")) language = "javascript";
+				if (title.includes("py")) language = "python";
+				if (title.includes("tsx") || title.includes("jsx")) language = "jsx";
+				if (title.includes("html")) language = "html";
+				if (title.includes("css")) language = "css";
+				
+				// Create formatted title
+				const formattedTitle = title
+				  .replace(/_/g, ' ')
+				  .split(' ')
+				  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+				  .join(' ');
+				  
+				return {
+				  title: formattedTitle,
+				  description: `Key implementation of ${formattedTitle.toLowerCase()} in the ${project.title} project.`,
+				  code: content as string,
+				  language
+				};
+			  })}
 			/>
-		</section>
+		  </section>
 		)}
 
       {/* GitHub Contributions */}
