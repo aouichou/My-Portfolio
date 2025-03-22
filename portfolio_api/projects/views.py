@@ -24,7 +24,7 @@ import os
 import tempfile
 import zipfile
 import boto3
-
+from rest_framework import viewsets
 
 logger = logging.getLogger(__name__)
 class ProjectList(generics.ListAPIView):
@@ -237,3 +237,17 @@ def download_project_files(project_slug):
 @api_view(['GET'])
 def health_check(request):
     return Response({'status': 'healthy'}, status=200)
+
+class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectSerializer
+    lookup_field = 'slug'
+    
+    def get_queryset(self):
+        queryset = Project.objects.all().order_by('-score')
+        
+        # By default, only return featured projects unless include_all=true is specified
+        include_all = self.request.query_params.get('include_all', 'false').lower() == 'true'
+        if not include_all:
+            queryset = queryset.filter(is_featured=True)
+            
+        return queryset

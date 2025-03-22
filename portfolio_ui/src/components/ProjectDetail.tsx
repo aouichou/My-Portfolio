@@ -325,7 +325,13 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 			  <ol className="list-decimal list-inside space-y-4 ml-4">
 				{Object.entries(project.code_steps).map(([step, instruction]) => (
 				  <li key={step} className="text-lg">
-					<span className="font-medium">{step}:</span> {instruction as string}
+					<span className="font-medium">{step}:</span>{" "}
+					{typeof instruction === 'string' 
+					  ? instruction 
+					  : typeof instruction === 'object' && instruction !== null
+						? JSON.stringify(instruction)
+						: String(instruction)
+					}
 				  </li>
 				))}
 			  </ol>

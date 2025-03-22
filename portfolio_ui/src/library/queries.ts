@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getProjects, getProjectBySlug as apiGetProjectBySlug } from './api-client';
 import { normalizeProject } from './utils';
 import { Project } from './types';
+import { getAllProjectsUnfiltered } from './api-client';
 
 type ProjectFromAPI = {
   id: string | number;
@@ -84,7 +85,7 @@ export function useAllProjects() {
 	return useQuery({
 	  queryKey: ['allProjects'],
 	  queryFn: async () => {
-		const projects: ProjectFromAPI[] = await getProjects();
+		const projects: ProjectFromAPI[] = await getAllProjectsUnfiltered();
 		return projects.map(normalizeProject);
 	  },
 	  staleTime: 1000 * 60 * 5,
@@ -92,24 +93,24 @@ export function useAllProjects() {
 	});
   }
 
-export async function getAllProjects() {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const res = await fetch(`${apiUrl}/api/projects/`, {
-      next: { revalidate: 60 },
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (!res.ok) {
-      console.warn('API returned error status', res.status);
-      return []; // Return empty array instead of throwing
-    }
-    
-    return res.json();
-  } catch (error) {
-    console.error('Failed to fetch projects:', error);
-    return []; // Return empty array on error
+  export async function getAllProjects() {
+	try {
+	  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+	  const res = await fetch(`${apiUrl}/api/projects/?include_all=true`, {
+		next: { revalidate: 60 },
+		headers: {
+		  'Accept': 'application/json'
+		}
+	  });
+	  
+	  if (!res.ok) {
+		console.warn('API returned error status', res.status);
+		return []; // Return empty array instead of throwing
+	  }
+	  
+	  return res.json();
+	} catch (error) {
+	  console.error('Failed to fetch projects:', error);
+	  return []; // Return empty array on error
+	}
   }
-}

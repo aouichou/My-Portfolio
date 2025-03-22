@@ -22,6 +22,21 @@ class GallerySerializer(serializers.ModelSerializer):
 		model = Gallery
 		fields = ['id', 'name', 'description', 'order', 'images']
 
+def validate_code_steps(data):
+	"""Validate code steps have the expected structure"""
+	if not isinstance(data, dict):
+		return {}
+	
+	result = {}
+	for key, value in data.items():
+		# Ensure each step value is a string
+		if isinstance(value, (dict, list)):
+			result[key] = str(value)  # Convert objects to string
+		else:
+			result[key] = str(value)  # Ensure it's a string
+			
+	return result
+
 def validate_code_snippets(data):
 	"""Validate code snippets have the expected structure"""
 	if not isinstance(data, dict):
@@ -77,6 +92,9 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 	def validate_code_snippets(data):
 		return validate_code_snippets(data)
+
+	def validate_code_steps(self, data):
+		return validate_code_steps(data)
 
 class ContactSubmissionSerializer(serializers.ModelSerializer):
 	class Meta:

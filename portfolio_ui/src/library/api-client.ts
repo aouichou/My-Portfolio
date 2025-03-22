@@ -88,3 +88,14 @@ export const fetchWithTimeout = async (url: string, options = {}, timeout = 1000
 	  throw error;
 	}
   };
+
+export async function getAllProjectsUnfiltered() {
+  try {
+    // Explicitly request all projects, including non-featured
+    const response = await api.get('/projects/?include_all=true');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all projects:', error);
+    return [];
+  }
+}
