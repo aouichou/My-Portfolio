@@ -334,3 +334,15 @@
   img[alt*="diagram"]:hover {
 	filter: brightness(1.1) contrast(1.05);
   }
+
+  object[type="image/svg+xml"] {
+	pointer-events: none; /* Prevent text selection */
+  }
+  
+  object[type="image/svg+xml"]:hover {
+	cursor: zoom-in;
+  }
+  
+  .dark object[type="image/svg+xml"] {
+	background-color: #1a1a1a; /* Match dark mode background */
+  }
