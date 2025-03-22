@@ -23,7 +23,19 @@ interface CodeWalkthroughProps {
 export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthroughProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const { theme } = useTheme();
-  const step = steps[currentStep];
+
+  // Safety check - ensure steps is an array of valid objects
+  const validSteps = Array.isArray(steps) 
+  ? steps.filter((s): s is CodeSnippet => 
+      s && typeof s === 'object' && typeof s.code === 'string'
+    ) 
+  : [];
+  
+  if (validSteps.length === 0) {
+    return <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">No code examples available</div>;
+  }
+  
+  const step = validSteps[currentStep];
   
   // Choose syntax highlighting theme based on app theme
   const codeStyle = theme === 'dark' ? vscDarkPlus : vs;

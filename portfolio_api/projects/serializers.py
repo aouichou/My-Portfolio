@@ -47,6 +47,34 @@ class ProjectSerializer(serializers.ModelSerializer):
 		request = self.context.get('request')
 		return request.build_absolute_uri(obj.thumbnail.url) if obj.thumbnail else None
 
+	def validate_code_snippets(data):
+		"""Validate code snippets have the expected structure"""
+		if not isinstance(data, dict):
+			return {}
+			
+		result = {}
+		for key, value in data.items():
+			if isinstance(value, str):
+				# Old format - convert to new format
+				result[key] = {
+					"code": value,
+					"title": key.replace('_', ' ').title(),
+					"description": f"Implementation of {key.replace('_', ' ')}",
+					"explanation": "",
+					"language": "c"
+				}
+			elif isinstance(value, dict) and "code" in value:
+				# New format - ensure all fields exist
+				result[key] = {
+					"code": value.get("code", ""),
+					"title": value.get("title", key.replace('_', ' ').title()),
+					"description": value.get("description", ""),
+					"explanation": value.get("explanation", ""),
+					"language": value.get("language", "c")
+				}
+		
+		return result
+
 class ContactSubmissionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ContactSubmission

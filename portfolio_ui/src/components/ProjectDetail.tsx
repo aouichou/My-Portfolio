@@ -347,11 +347,28 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 					title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
 					description: `Implementation of ${key.replace(/_/g, ' ')} in the ${project.title} project.`,
 					explanation: "",
-					language: "c" // Default for most of your projects
+					language: "c" 
 				  };
+				} else if (value && typeof value === 'object') {
+				  // Make sure each required property exists and is a string
+				  const safeValue = {
+					code: typeof value.code === 'string' ? value.code : JSON.stringify(value.code),
+					title: typeof value.title === 'string' ? value.title : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+					description: typeof value.description === 'string' ? value.description : `Implementation of ${key.replace(/_/g, ' ')}`,
+					explanation: typeof value.explanation === 'string' ? value.explanation : "",
+					language: typeof value.language === 'string' ? value.language : "c" 
+				  };
+				  return safeValue;
 				} else {
-				  // New format is already an object with the right structure
-				  return value as any;
+				  // Fallback for any unexpected format
+				  console.warn(`Unexpected code snippet format for key: ${key}`, value);
+				  return {
+					code: JSON.stringify(value, null, 2),
+					title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+					description: `Code snippet for ${key.replace(/_/g, ' ')}`,
+					explanation: "",
+					language: "json"
+				  };
 				}
 			  })}
 			/>

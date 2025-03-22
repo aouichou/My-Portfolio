@@ -18,6 +18,13 @@ export type GalleryImage = {
 	date?: string;
   };
 
+  export interface CodeSnippet {
+	code: string;
+	title: string;
+	description: string;
+	explanation: string;
+	language: string;
+  }
   export interface Project {
   id: number;
   title: string;
@@ -45,7 +52,7 @@ export type GalleryImage = {
   demo_files_path?: string;
   demo_commands?: Record<string, string>;
   code_steps?: Record<string, string>;
-  code_snippets?: Record<string, string>;
+  code_snippets?: Record<string, string | CodeSnippet>;
 }
 
 declare global {
