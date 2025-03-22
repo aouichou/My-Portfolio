@@ -316,8 +316,6 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
           />
         </section>
       ))}
-
-		// Replace the existing code walkthrough section with this
 		
 		{/* Installation Steps */}
 		{project.code_steps && Object.keys(project.code_steps).length > 0 && (
