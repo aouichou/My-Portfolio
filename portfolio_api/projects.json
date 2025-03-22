@@ -1,187 +1,417 @@
 [
- {
-	"title": "Philosophers",
-	"slug": "philosophers",
-	"description": "A simulation of the dining philosophers problem, demonstrating synchronization in concurrent systems. Developed as part of the 42Paris curriculum, this project explores thread/process management and resource allocation using mutexes (mandatory) and semaphores (bonus).",
-	"readme": "<h1 align=\"center\">Philosophers</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n</p>\n\n... (full README content as provided) ...",
-	"tech_stack": ["C", "pthread", "sys/time", "Mutexes", "Semaphores"],
-	"live_url": "",
-	"code_url": "https://github.com/aouichou/philosophers",
-	"is_featured": true,
-	"score": null,
-	"features": [
-	"Thread-based philosophers with individual mutexes for forks",
-	"Process-based philosophers with central fork semaphores",
-	"Real-time status logging",
-	"Configurable parameters",
-	"Graceful cleanup on exit"
-	],
-	"challenges": "Implementing a robust synchronization system that prevents deadlocks while ensuring fairness. Handling the precision requirements for death detection (10ms accuracy) required careful timing implementations.",
-	"lessons": "Deepened understanding of concurrent programming, resource allocation strategies, and different synchronization primitives. Gained experience in implementing both thread-based and process-based solutions.",
-	"galleries": [
-	{
-		"name": "Simulation Examples",
-		"description": "Demonstration of different philosopher states",
-		"order": 1,
-		"images": [
-		{
-			"image": "projects/philosophers/sim1.png",
-			"caption": "Philosophers in eating state",
-			"order": 1
-		},
-		{
-			"image": "projects/philosophers/sim2.png",
-			"caption": "Deadlock prevention mechanism",
-			"order": 2
-		}
-		]
-	}
-	],
-	"thumbnail": "projects/philosophers/thumbnail.png"
+{
+  "title": "Philosophers",
+  "slug": "philosophers",
+  "description": "A simulation of the dining philosophers problem, demonstrating synchronization in concurrent systems. Developed as part of the 42Paris curriculum, this project explores thread/process management and resource allocation using mutexes (mandatory) and semaphores (bonus).",
+  "readme": "<h1 align=\"center\">Philosophers</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n</p>\n\n<p align=\"center\">A solution to the classic dining philosophers problem that explores concurrent programming concepts.</p>",
+  "tech_stack": ["C", "pthread", "sys/time", "Mutexes", "Semaphores"],
+  "live_url": "",
+  "code_url": "https://github.com/aouichou/philosophers",
+  "is_featured": true,
+  "score": 95,
+  "features": [
+    "Thread-based philosophers with individual mutexes for forks",
+    "Process-based philosophers with central fork semaphores",
+    "Real-time status logging with color-coded outputs",
+    "Configurable parameters for number of philosophers, time to die, eat, and sleep",
+    "Graceful cleanup on exit with proper resource deallocation"
+  ],
+  "challenges": "Implementing a robust synchronization system that prevents deadlocks while ensuring fairness. Handling the precision requirements for death detection (10ms accuracy) required careful timing implementations. The most challenging aspect was coordinating the monitoring thread that checks for philosopher deaths without introducing additional race conditions.",
+  "lessons": "Deepened understanding of concurrent programming, race conditions, and different synchronization primitives. Gained practical experience in implementing both thread-based and process-based solutions to the same problem, highlighting the tradeoffs between these approaches. Learned to debug complex timing-related issues in multi-threaded applications.",
+  "has_interactive_demo": true,
+  "demo_commands": {
+    "run": "./philo 5 800 200 200",
+    "run2": "./philo 4 410 200 200",
+    "help": "./philo",
+    "compile": "make"
+  },
+  "demo_files_path": "projects/philosophers/Philosophers.zip",
+  "code_steps": {
+    "1": "Clone the repository",
+    "2": "Run `make` to compile the mandatory version (threads)",
+    "3": "Run `make bonus` to compile the bonus version (processes)",
+    "4": "Execute with parameters: ./philo [number_of_philosophers] [time_to_die] [time_to_eat] [time_to_sleep] [optional: number_of_times_each_philosopher_must_eat]"
+  },
+  "code_snippets": {
+    "main_monitoring": "/* Death monitoring function */\nvoid *monitor_philosophers(void *data)\n{\n    t_table *table = (t_table *)data;\n    int i;\n\n    while (!table->simulation_stop)\n    {\n        i = -1;\n        while (++i < table->nb_philos)\n        {\n            pthread_mutex_lock(&table->philos[i].meal_mutex);\n            if (get_time() - table->philos[i].last_meal_time > table->time_to_die)\n            {\n                print_status(table, i, \"died\", RED);\n                table->simulation_stop = 1;\n                pthread_mutex_unlock(&table->philos[i].meal_mutex);\n                return NULL;\n            }\n            pthread_mutex_unlock(&table->philos[i].meal_mutex);\n        }\n        usleep(1000); // Small sleep to avoid high CPU usage\n    }\n    return NULL;\n}",
+    "philosopher_routine": "/* Philosopher routine */\nvoid *philosopher_routine(void *arg)\n{\n    t_philo *philo = (t_philo *)arg;\n    t_table *table = philo->table;\n    \n    if (philo->id % 2 == 0)\n        usleep(1000); // Even philosophers wait to break symmetry\n        \n    while (!table->simulation_stop)\n    {\n        if (take_forks(philo))\n        {\n            eat(philo);\n            if (philo->meals_eaten == table->nb_must_eat)\n                table->philos_full++;\n            release_forks(philo);\n            print_status(table, philo->id, \"is sleeping\", BLUE);\n            precise_sleep(table->time_to_sleep);\n            print_status(table, philo->id, \"is thinking\", GREEN);\n        }\n    }\n    return NULL;\n}"
+  },
+  "galleries": [
+    {
+      "name": "Program Execution",
+      "description": "Demonstration of philosopher states during simulation",
+      "order": 1,
+      "images": [
+        {
+          "image": "projects/philosophers/normal_output.png",
+          "caption": "Normal execution with 5 philosophers",
+          "order": 1
+        },
+        {
+          "image": "projects/philosophers/normal_output2.png",
+          "caption": "Continued execution showing multiple state changes",
+          "order": 2
+        },
+        {
+          "image": "projects/philosophers/dead_philo_exemple.png",
+          "caption": "Philosopher death when timing parameters are too tight",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": "Program Usage",
+      "description": "Command-line interface and parameters",
+      "order": 2,
+      "images": [
+        {
+          "image": "projects/philosophers/help_output.png",
+          "caption": "Help output showing parameter requirements",
+          "order": 1
+        }
+      ]
+    }
+  ],
+  "thumbnail": "projects/philosophers/normal_output.png",
+  "architecture_diagram": "graph TD\n    A[Main Thread] --> B[Initialize Table]\n    B --> C[Create Philosopher Threads]\n    B --> D[Create Monitor Thread]\n    C --> E[Philosopher 1]\n    C --> F[Philosopher 2]\n    C --> G[Philosopher N]\n    E --> H{Take Forks}\n    F --> H\n    G --> H\n    H --> I[Eat]\n    I --> J[Release Forks]\n    J --> K[Sleep]\n    K --> L[Think]\n    L --> H\n    D --> M{Check Death}\n    M -->|No Death| M\n    M -->|Death Detected| N[Stop Simulation]\n    N --> O[Join Threads]\n    O --> P[Clean Resources]",
+  "diagram_type": "MERMAID"
 },
 {
-	"title": "FDF",
-	"slug": "fdf",
-	"description": "A wireframe modeling program that renders 3D landscapes from topographic maps using the MiniLibX library. Introduces computer graphics concepts and interactive 3D projections.",
-	"readme": "<h1 align=\"center\">FDF</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
-	"tech_stack": ["C", "MiniLibX", "3D Mathematics", "Bresenham's Algorithm"],
-	"live_url": "",
-	"code_url": "https://github.com/aouichou/fdf",
-	"is_featured": true,
-	"score": null,
-	"features": [
-	"Isometric and perspective projections",
-	"Interactive 3D controls",
-	"Altitude-based color gradients",
-	"Multi-map support",
-	"Smooth 60+ FPS rendering"
-	],
-	"challenges": "Implementing efficient 3D-to-2D projections while maintaining performance. Developing a robust parser for .fdf map files with various elevation formats.",
-	"lessons": "Gained foundational knowledge in computer graphics, matrix transformations, and graphics library integration. Improved skills in algorithm optimization for real-time rendering.",
-	"galleries": [
-	{
-		"name": "Rendering Examples",
-		"description": "Sample wireframe outputs",
-		"order": 1,
-		"images": [
-		{
-			"image": "projects/fdf/rend1.png",
-			"caption": "Isometric view of topographic map",
-			"order": 1
-		},
-		{
-			"image": "projects/fdf/rend2.png",
-			"caption": "Perspective projection with coloring",
-			"order": 2
-		}
-		]
-	}
-	],
-	"thumbnail": "projects/fdf/thumbnail.png"
+  "title": "FDF: 3D Wireframe Renderer",
+  "slug": "fdf-wireframe-renderer",
+  "description": "A 3D wireframe visualization program that transforms 2D maps with elevation data into interactive 3D models. The program renders topographical landscapes with multiple projection modes, rotation capabilities, and dynamic color mapping.",
+  "readme": "<h1 align=\"center\">FDF (Fil de Fer)</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Graphics-MiniLibX-orange.svg\" alt=\"Graphics\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n</p>\n\n<p align=\"center\">A wireframe modeling program that renders topographic maps with interactive controls for rotation, zoom, and coloring.</p>\n\n## Overview\n\nFDF (French for \"wireframe\") transforms flat maps with elevation data into 3D models. This project introduces fundamental 3D graphics concepts including coordinate transformations, projection systems, and line-drawing algorithms.\n\n## Core Features\n\n- **Multiple Projection Modes**: Isometric, perspective, and top-down views\n- **Interactive Controls**: Rotate on all axes, zoom, pan, and adjust altitude scaling\n- **Dynamic Color Mapping**: Height-based color gradients and topographic modes\n- **Multi-Map Support**: Load and switch between different maps at runtime\n- **Smooth Performance**: Optimized drawing algorithms for 60+ FPS\n\n## Technical Implementation\n\n- **Bresenham's Line Algorithm**: Efficient rasterization for drawing lines\n- **Matrix Transformations**: 3D rotation and projection matrices\n- **Color Interpolation**: Gradient mapping based on elevation\n- **Memory Management**: Custom data structures with careful memory handling\n- **Event Handling**: Keyboard and mouse input processing via MiniLibX hooks\n\n## Key Learnings\n\n- Low-level graphics programming without relying on OpenGL\n- 3D mathematics including transformation matrices and vector operations\n- Optimization techniques for graphical applications\n- Implementation of different projection systems from mathematical principles\n\nThis project showcases my ability to implement core computer graphics concepts from scratch and create an interactive visualization tool with intuitive controls.",
+  "tech_stack": ["C", "MiniLibX", "X11", "Makefile", "Bresenham's Algorithm", "Matrix Mathematics", "Color Theory"],
+  "live_url": "",
+  "code_url": "https://github.com/aouichou/fdf",
+  "is_featured": true,
+  "score": 100,
+  "features": [
+    "Three projection modes (isometric, perspective, and top-down view)",
+    "Interactive 3D rotations on X/Y/Z axes with mathematical matrix operations",
+    "Multiple color schemes including altitude-based gradients and topographic mapping",
+    "Dynamic zoom and pan controls with mouse/keyboard support",
+    "Multi-map navigation for comparing different terrain models",
+    "Height scaling for exaggerating or flattening elevation differences",
+    "Keyboard shortcuts for all operations with on-screen menu",
+    "Efficient memory management with minimal leaks"
+  ],
+  "challenges": "The greatest challenge was implementing the Bresenham line algorithm with proper color interpolation across varying elevations. Developing a precise perspective projection mode required solving mathematical issues with vanishing points and depth perception. The hardest obstacle was optimizing performance while managing a large number of points and lines for complex maps, requiring careful analysis of memory usage and rendering patterns.",
+  "lessons": "This project deepened my understanding of computer graphics fundamentals by requiring implementation from first principles rather than using high-level libraries. I learned how 3D transformations work mathematically, gained proficiency with the MiniLibX graphics library, and developed strategies for rendering optimization. The experience taught me the importance of proper memory management in graphical applications and improved my debugging skills for visual output.",
+  "has_interactive_demo": true,
+  "demo_commands": {
+    "run": "./fdf test_maps/42.fdf",
+    "run2": "./fdf test_maps/france.fdf",
+    "run3": "./fdf test_maps/100-6.fdf",
+    "compile": "make"
+  },
+  "demo_files_path": "projects/FDF/FDF.zip",
+  "code_steps": {
+    "1": "Clone the repository",
+    "2": "Run `make` to compile the program",
+    "3": "Execute with a map file: `./fdf test_maps/42.fdf`",
+    "4": "Use arrow keys to move the model",
+    "5": "Use mouse wheel to zoom in/out",
+    "6": "Press 7/9 to rotate on X-axis, 1/3 for Y-axis, 4/6 for Z-axis",
+    "7": "Press I/P/O to switch between projection modes",
+    "8": "Press Z/X to adjust altitude scaling",
+    "9": "Press SPACE to toggle color modes, Q to change color palette",
+    "10": "Press + or - to cycle through loaded maps"
+  },
+  "code_snippets": {
+    "bresenham_algorithm": "void bresenham(t_main_fdf *ptr, t_p start, t_p end)\n{\n    float x_step;\n    float y_step;\n    int max_steps;\n    int i;\n    t_color *color;\n\n    x_step = end.x - start.x;\n    y_step = end.y - start.y;\n    max_steps = (int)ft_max(ft_abs(x_step), ft_abs(y_step));\n    x_step /= max_steps;\n    y_step /= max_steps;\n    color = color_init(start, end);\n    if (!color)\n        ft_error(\"init color\");\n    i = 0;\n    while (i < max_steps)\n    {\n        start.color = get_color(color, i++, max_steps);\n        if (start.x > 0 && start.y > 0 && start.x < ptr->res_x && start.y < ptr->res_y)\n            pixel_to_image(ptr->image, start.x, start.y, start.color);\n        start.x += x_step;\n        start.y += y_step;\n    }\n    free(color);\n}",
+    "isometric_projection": "static void isometric(t_segmnt *segmnt)\n{\n    t_p new_start;\n    t_p new_end;\n\n    new_start.x = (segmnt->start.x - segmnt->start.y) * cos(ANG_30);\n    new_start.y = (segmnt->start.x + segmnt->start.y) * sin(ANG_30) - segmnt->start.z;\n    segmnt->start.x = new_start.x;\n    segmnt->start.y = new_start.y;\n    new_end.x = (segmnt->end.x - segmnt->end.y) * cos(ANG_30);\n    new_end.y = (segmnt->end.x + segmnt->end.y) * sin(ANG_30) - segmnt->end.z;\n    segmnt->end.x = new_end.x;\n    segmnt->end.y = new_end.y;\n}",
+    "rotation_matrix": "void rotate_z(t_segmnt *segmnt, double angle)\n{\n    t_p new_start;\n    t_p new_end;\n\n    new_start.x = segmnt->start.x * cos(angle) - segmnt->start.y * sin(angle);\n    new_start.y = segmnt->start.x * sin(angle) + segmnt->start.y * cos(angle);\n    segmnt->start.x = new_start.x;\n    segmnt->start.y = new_start.y;\n    new_end.x = segmnt->end.x * cos(angle) - segmnt->end.y * sin(angle);\n    new_end.y = segmnt->end.x * sin(angle) + segmnt->end.y * cos(angle);\n    segmnt->end.x = new_end.x;\n    segmnt->end.y = new_end.y;\n}",
+    "map_parsing": "void ft_fill_point(char *point, t_map *map, int x, int y)\n{\n    char **tab;\n\n    map->map_coords[x][y].x = (float)x;\n    map->map_coords[x][y].y = (float)y;\n    if (ft_strchr(point, ','))\n    {\n        tab = ft_split(point, ',');\n        map->map_coords[x][y].z = (float)ft_atoi(tab[0]);\n        map->map_coords[x][y].color = ft_atoi_base(tab[1], HEXADECIMAL_BASE);\n        ft_free_tab(tab);\n    }\n    else\n    {\n        map->map_coords[x][y].z = (float)ft_atoi(point);\n        map->map_coords[x][y].color = -1;\n    }\n    if (map->map_coords[x][y].z > map->mx_h)\n        map->mx_h = map->map_coords[x][y].z;\n    if (map->map_coords[x][y].z < map->mn_h)\n        map->mn_h = map->map_coords[x][y].z;\n}"
+  },
+  "galleries": [
+    {
+      "name": "Map Visualizations",
+      "description": "Different maps rendered with various projections and color schemes",
+      "order": 1,
+      "images": [
+        {
+          "image": "projects/FDF/42.png",
+          "caption": "42 Logo Map - Isometric projection with altitude coloring",
+          "order": 1
+        },
+        {
+          "image": "projects/FDF/France.png",
+          "caption": "France Map - Topographic coloring showing elevation",
+          "order": 2
+        },
+        {
+          "image": "projects/FDF/BritishIsles.png",
+          "caption": "British Isles - Perspective projection with blue/green color scheme",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": "Mathematical Visualizations",
+      "description": "Complex mathematical shapes rendered as wireframes",
+      "order": 2,
+      "images": [
+        {
+          "image": "projects/FDF/MandelbrotDown.png",
+          "caption": "Mandelbrot Set - Top view with gradient coloring",
+          "order": 1
+        },
+        {
+          "image": "projects/FDF/MandelbrotUp.png",
+          "caption": "Mandelbrot Set - Rotated view showing the 3D elevation interpretation",
+          "order": 2
+        },
+        {
+          "image": "projects/FDF/100-6.png",
+          "caption": "Random terrain generation with high complexity (100x100 points)",
+          "order": 3
+        }
+      ]
+    }
+  ],
+  "thumbnail": "projects/FDF/France.png",
+  "architecture_diagram": "graph LR\n    Parser[\"Map Parser\"] -->|3D Points| Points[\"Point Storage\"]\n    Points --> Renderer[\"Renderer\"]\n    Renderer -->|Draw Commands| MiniLibX[\"MiniLibX (Graphics)\"]\n    MiniLibX --> Display[\"Display\"]\n    UserInput[\"User Input\"] -->|Key/Mouse Events| InputHandler[\"Input Handler\"]\n    InputHandler -->|Transformation Parameters| TransformEngine[\"Transform Engine\"]\n    TransformEngine -->|Modified Points| Renderer\n    ColorEngine[\"Color Engine\"] -->|Color Values| Renderer",
+  "diagram_type": "MERMAID"
 },
 {
-	"title": "push_swap",
-	"slug": "push-swap",
-	"description": "An algorithmic challenge that sorts integers using two stacks with limited operations. Demonstrates efficient algorithm design and optimization techniques.",
-	"readme": "<h1 align=\"center\">push_swap</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
-	"tech_stack": ["C", "Algorithm Design", "Linked Lists", "Complexity Analysis"],
-	"live_url": "",
-	"code_url": "https://github.com/aouichou/push_swap",
-	"is_featured": true,
-	"score": null,
-	"features": [
-	"Sorts 100 numbers in <700 moves",
-	"Bonus checker program",
-	"Doubly linked list implementation",
-	"Move optimization",
-	"Complex error handling"
-	],
-	"challenges": "Developing an algorithm that meets strict move count requirements while handling various edge cases. Optimizing the sorting process for large datasets without exceeding computational limits.",
-	"lessons": "Enhanced understanding of algorithm complexity and optimization strategies. Learned to balance between different sorting approaches for varying input sizes.",
-	"galleries": [
-	{
-		"name": "Algorithm Visualization",
-		"description": "Sorting process demonstrations",
-		"order": 1,
-		"images": [
-		{
-			"image": "projects/push_swap/vis1.gif",
-			"caption": "Sorting animation for 100 numbers",
-			"order": 1
-		}
-		]
-	}
-	],
-	"thumbnail": "projects/push_swap/thumbnail.png"
+  "title": "Push Swap: Stack Sorting Algorithm",
+  "slug": "push-swap",
+  "description": "An algorithmic challenge that sorts integers using two stacks (A and B) with a limited set of operations. This project demonstrates efficient algorithm design, stack manipulation, and optimization techniques to achieve minimal move counts.",
+  "readme": "<h1 align=\"center\">push_swap</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n</p>\n\n<p align=\"center\">A stack sorting algorithm with optimized move counts</p>\n\n## Overview\n\n`push_swap` is an algorithmic challenge that sorts integers using two stacks (A and B) with a limited set of operations. Developed as part of the 42Paris curriculum, this project demonstrates efficient algorithm design, stack manipulation, and optimization techniques to achieve minimal move counts. The bonus `checker` program validates sorting instructions.\n\n## Key Features\n\n- **Stack Operations**: Supports 11 operations including `sa`, `pb`, `ra`, `rrr`, etc.\n- **Optimized Sorting**:\n  - 3 numbers sorted in ≤ 2 moves\n  - 5 numbers sorted in ≤ 12 moves\n  - 100 random numbers sorted in < 700 moves\n  - 500 random numbers sorted in < 5500 moves\n- **Intelligent Algorithms**: Uses different strategies based on input size\n- **Cost Optimization**: Calculates and selects moves with minimum total cost\n- **Bonus Checker**: Validates if a sequence of operations correctly sorts the stack\n\n## Technical Implementation\n\n- **Data Structure**: Doubly linked lists for efficient stack manipulation\n- **Algorithm Selection**: Switches between algorithms based on input size\n- **Indexing System**: Normalizes values for easier comparison and sorting\n- **Move Optimization**: Combines operations (like `rr`/`rrr`) to minimize total count\n- **Cost Calculation**: Determines optimal path for each element to reach its target position\n\n## Sorting Strategies\n\n- **Small Sets (2-3)**: Direct approach with minimal swaps and rotations\n- **Medium Sets (4-8)**: Extracts smallest elements first, then sorts incrementally\n- **Large Sets (>8)**: Employs a more complex algorithm with position targeting and cost calculations\n\nThis project demonstrates proficiency in algorithm design, data structure manipulation, and optimization techniques - crucial skills for efficient software development.",
+  "tech_stack": ["C", "Algorithm Design", "Doubly Linked Lists", "Complexity Analysis", "Memory Management"],
+  "live_url": "",
+  "code_url": "https://github.com/aouichou/push_swap",
+  "is_featured": true,
+  "score": 125,
+  "features": [
+    "11 Stack operations (sa, sb, ss, pa, pb, ra, rb, rr, rra, rrb, rrr)",
+    "Small stack sorting in optimal moves (3 numbers in ≤2 moves)",
+    "Medium stack sorting (5 numbers in ≤12 moves)",
+    "Large stack sorting (100 numbers in <700 moves, 500 in <5500)",
+    "Cost calculation for move optimization",
+    "Different algorithms based on input size",
+    "Indexing system for simplified comparisons",
+    "Combined rotation operations to reduce move counts",
+    "Bonus checker program to validate sorting instructions",
+    "Robust error handling for invalid inputs and duplicates"
+  ],
+  "challenges": "The greatest challenge was designing an algorithm that could efficiently sort large datasets while meeting strict move count requirements. The algorithm needed to balance between computational complexity and move optimization. For 100+ numbers, I needed to determine the most efficient strategy to move elements between stacks, calculating costs for each possible move and selecting the optimal path. Another significant challenge was implementing combined operations (like rr and rrr) to minimize the overall move count without disturbing the sorting logic.",
+  "lessons": "This project deepened my understanding of algorithmic complexity and optimization techniques. I learned how to analyze different sorting approaches and select the most appropriate one based on input characteristics. The implementation taught me advanced linked list manipulation and the importance of move calculation in achieving efficiency. I also gained experience in designing algorithms with strict performance constraints, forcing me to consider both theoretical complexity and practical optimization techniques.",
+  "has_interactive_demo": true,
+  "demo_commands": {
+    "run": "./push_swap 4 67 3 87 23",
+    "check": "./push_swap 4 67 3 87 23 | ./checker 4 67 3 87 23",
+    "test100": "ARG=$(shuf -i 1-500 -n 100); ./push_swap $ARG | wc -l",
+    "compile": "make && make bonus"
+  },
+  "demo_files_path": "projects/push_swap/push_swap.zip",
+  "code_steps": {
+    "1": "Clone the repository",
+    "2": "Run `make` to compile push_swap and `make bonus` for checker",
+    "3": "Run with arguments: `./push_swap 5 1 4 2 3`",
+    "4": "To check sorting correctness: `./push_swap 5 1 4 2 3 | ./checker 5 1 4 2 3`",
+    "5": "Test with random numbers: `ARG=$(shuf -i 1-100 -n 100); ./push_swap $ARG | wc -l`"
+  },
+  "code_snippets": {
+    "cost_calculation": "void calculate_cost(t_main *ptr)\n{\n    t_args_list *tmp;\n\n    tmp = ptr->head_b;\n    while (tmp)\n    {\n        tmp->b_cost = tmp->pos;\n        if (tmp->pos > ptr->nb_b / 2)\n            tmp->b_cost = (ptr->nb_b - tmp->pos) * -1;\n        tmp->a_cost = tmp->target_pos;\n        if (tmp->target_pos > ptr->nb_a / 2)\n            tmp->a_cost = (ptr->nb_a - tmp->target_pos) * -1;\n        tmp = tmp->next;\n    }\n}",
+    "move_optimization": "static void rotate_both(int *a_cost, int *b_cost)\n{\n    while (*a_cost > 0 && *b_cost > 0)\n    {\n        (*a_cost)--;\n        (*b_cost)--;\n        ft_rotate(\"rr\");\n    }\n}\n\nstatic void r_rotate_both(int *a_cost, int *b_cost)\n{\n    while (*a_cost < 0 && *b_cost < 0)\n    {\n        (*a_cost)++;\n        (*b_cost)++;\n        ft_r_rotate(\"rrr\");\n    }\n}",
+    "target_position": "int target(t_args_list *lst, int b_index, int t_index, int t_pos)\n{\n    t_args_list *tmp;\n\n    tmp = lst;\n    while (tmp)\n    {\n        if (tmp->index > b_index && tmp->index < t_index)\n        {\n            t_index = tmp->index;\n            t_pos = tmp->pos;\n        }\n        tmp = tmp->next;\n    }\n    if (t_index != INT_MAX)\n        return (t_pos);\n    tmp = lst;\n    while (tmp)\n    {\n        if (tmp->index < t_index)\n        {\n            t_index = tmp->index;\n            t_pos = tmp->pos;\n        }\n        tmp = tmp->next;\n    }\n    return (t_pos);\n}",
+    "move_selection": "void move(t_main *ptr)\n{\n    t_args_list *tmp;\n    int         a_cost;\n    int         b_cost;\n    int         cheapest;\n\n    tmp = ptr->head_b;\n    cheapest = INT_MAX;\n    while (tmp)\n    {\n        if (ft_abs(tmp->a_cost) + ft_abs(tmp->b_cost) < ft_abs(cheapest))\n        {\n            cheapest = ft_abs(tmp->a_cost) + ft_abs(tmp->b_cost);\n            a_cost = tmp->a_cost;\n            b_cost = tmp->b_cost;\n        }\n        tmp = tmp->next;\n    }\n    rotate_and_push(a_cost, b_cost);\n}"
+  },
+  "galleries": [
+    {
+      "name": "Algorithm Performance",
+      "description": "Visual demonstration of the algorithm's performance on different input sizes",
+      "order": 1,
+      "images": [
+        {
+          "image": "projects/push_swap/6args.png",
+          "caption": "Sorting 6 random integers with minimal moves",
+          "order": 1
+        },
+        {
+          "image": "projects/push_swap/10args.png",
+          "caption": "Sorting 10 random integers showing operation sequence",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "thumbnail": "projects/push_swap/10args.png",
+  "architecture_diagram": "graph TD\n    Parser[\"Arguments Parser\"] --> Indexer[\"Value Indexer\"]\n    Indexer --> SortSelector{\"Sort Algorithm Selector\"}\n    SortSelector -->|2-3 elements| SmallSort[\"Small Sort Algorithm\"]\n    SortSelector -->|4-8 elements| MediumSort[\"Medium Sort Algorithm\"]\n    SortSelector -->|>8 elements| BigSort[\"Big Sort Algorithm\"]\n    BigSort --> Push[\"Push to Stack B\"]\n    Push --> TargetPosition[\"Calculate Target Positions\"]\n    TargetPosition --> Cost[\"Calculate Move Costs\"]\n    Cost --> MoveSelection[\"Select Cheapest Move\"]\n    MoveSelection --> ExecuteMove[\"Execute Optimized Moves\"]\n    ExecuteMove -->|Until Stack B empty| TargetPosition\n    ExecuteMove -->|Stack B empty| FinalAlign[\"Final Stack Alignment\"]\n    SmallSort --> Output[\"Output Moves\"]\n    MediumSort --> Output\n    FinalAlign --> Output",
+  "diagram_type": "MERMAID"
 },
 {
-	"title": "ft_irc",
-	"slug": "ft-irc",
-	"description": "A custom IRC server implementation in C++98 demonstrating network programming and TCP/IP communication. Handles multiple clients with non-blocking I/O.",
-	"readme": "<h1 align=\"center\">ft_irc</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
-	"tech_stack": ["C++98", "Network Programming", "TCP/IP", "epoll"],
-	"live_url": "",
-	"code_url": "https://github.com/aouichou/ft_irc",
-	"is_featured": true,
-	"score": null,
-	"features": [
-	"Multi-client management",
-	"IRC protocol implementation",
-	"Channel operations",
-	"Operator commands",
-	"Comprehensive error handling"
-	],
-	"challenges": "Implementing the IRC protocol specification accurately while handling concurrent client connections. Developing robust network communication that handles partial data and connection drops.",
-	"lessons": "Gained deep understanding of network programming, protocol implementation, and server-side resource management. Improved skills in low-level socket programming.",
-	"galleries": [
-	{
-		"name": "Server Operations",
-		"description": "IRC command demonstrations",
-		"order": 1,
-		"images": [
-		{
-			"image": "projects/ft_irc/demo1.png",
-			"caption": "Channel joining and messaging",
-			"order": 1
-		}
-		]
-	}
-	],
-	"thumbnail": "projects/ft_irc/thumbnail.png"
+  "title": "ft_irc: IRC Server Implementation",
+  "slug": "ft-irc-server",
+  "description": "A complete Internet Relay Chat (IRC) server implemented in C++98 with non-blocking I/O, supporting multiple simultaneous clients and core IRC protocol features including channel operations, private messaging, and operator commands.",
+  "readme": "<h1 align=\"center\">ft_irc</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C++98-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n</p>\n\n<p align=\"center\">A complete IRC server with robust socket programming and command handling</p>\n\n## Overview\n\n`ft_irc` is a custom IRC server implementation in C++98, developed as part of the 42Paris curriculum. This project demonstrates advanced socket programming, non-blocking I/O multiplexing with `epoll`, and a comprehensive command handling system that supports the core features of the IRC protocol (RFC 1459). The server efficiently manages multiple clients simultaneously and implements proper state management and error handling.\n\n## Technical Highlights\n\n- **I/O Multiplexing**: Efficient management of multiple client connections using `epoll` with non-blocking sockets\n- **Command Parsing**: Robust parsing of IRC protocol commands with proper parameter handling\n- **Channel Management**: Full implementation of channel operations with modes and operator privileges\n- **Authentication Flow**: Complete user registration process (password, nickname, username)\n- **Extensible Design**: Well-structured class hierarchy with proper separation of concerns\n- **Error Handling**: Comprehensive error responses conforming to IRC protocol standards\n\nThis project showcases advanced network programming skills, demonstrating the ability to implement a complex protocol server with efficient resource management and robust error handling.",
+  "tech_stack": ["C++98", "Socket Programming", "epoll", "Non-blocking I/O", "TCP/IP", "Multiplexing", "RFC 1459"],
+  "live_url": "",
+  "code_url": "https://github.com/aouichou/ft_irc",
+  "is_featured": true,
+  "score": 118,
+  "features": [
+    "RFC 1459 compliant IRC server implementation",
+    "Non-blocking I/O with epoll for efficient client handling",
+    "Complete authentication flow with PASS, NICK, USER commands",
+    "Channel operations: JOIN, PART, TOPIC, KICK, MODE, INVITE",
+    "Private messaging between users (PRIVMSG)",
+    "Channel modes: invite-only (+i), topic restriction (+t), password-protected (+k), user limits (+l)",
+    "Operator privileges for channel moderation",
+    "PING/PONG server availability checking",
+    "WHO/WHOIS user information commands",
+    "40+ IRC response codes (errors and replies)",
+    "Clean shutdown and resource management"
+  ],
+  "challenges": "The most significant challenge was implementing a robust command parser that could handle the different syntax variations of IRC commands while maintaining strict protocol compliance. Another major challenge was designing an efficient event loop using epoll to manage multiple client connections simultaneously with non-blocking I/O. Getting the channel modes right - especially with the complex interaction between invite-only, key-protected modes, and operator privileges - required careful planning of the permission system.",
+  "lessons": "This project provided deep insights into socket programming and network protocol implementation. I learned how to properly manage multiple concurrent connections without threading, using non-blocking I/O and event-driven programming instead. The importance of careful state management became clear, especially when handling partial messages that arrive in fragments. I gained expertise in designing a command-pattern architecture that allows for clean separation of command parsing and execution, making the codebase maintainable despite the complex protocol requirements.",
+  "has_interactive_demo": true,
+  "demo_commands": {
+    "compile": "make",
+    "run": "./ircserv 6667 password",
+    "connect": "nc localhost 6667",
+    "connect_irssi": "irssi -c localhost -p 6667 -w password"
+  },
+  "demo_files_path": "projects/ft_irc/ft_irc.zip",
+  "code_steps": {
+    "1": "Clone the repository",
+    "2": "Run `make` to compile the IRC server",
+    "3": "Launch the server with `./ircserv <port> <password>`",
+    "4": "Connect using a client like netcat: `nc localhost <port>`",
+    "5": "Authenticate with: `PASS <password>`, `NICK <nickname>`, `USER <username> 0 * :<realname>`",
+    "6": "Create or join a channel with: `JOIN #<channelname>`",
+    "7": "Send messages to channel with: `PRIVMSG #<channelname> :<message>`",
+    "8": "Private message users with: `PRIVMSG <nickname> :<message>`",
+    "9": "Set channel modes with: `MODE #<channelname> +<modes> [parameters]`",
+    "10": "Disconnect with: `QUIT :Goodbye!`"
+  },
+  "code_snippets": {
+    "epoll_event_loop": "bool\tQueue::event_loop(ICrud& crud)\n{\n\tint\tnum_events;\n\n\tnum_events = epoll_wait(_epoll_instance, _events_list, _max_events, 0);\n\tif (num_events < 0)\n\t\tthrow std::runtime_error(\"The event loop abort\");\n\tfor (int i = 0; i < num_events; i++)\n\t{\n\t\tIQueue::IEventListener* listener = (IQueue::IEventListener*)_events_list[i].data.ptr;\n\t\tif (listener->is_alive() == false)\n\t\t{\n\t\t\tlistener->write();\n\t\t\tcrud.removeEventListener(listener);\n\t\t\tcontinue ;\n\t\t}\n\t\tif (_events_list[i].events & EPOLLIN)\n\t\t\tlistener->read();\n\t\tif (_events_list[i].events & EPOLLOUT)\n\t\t{\n\t\t\tcrud.treatEventListener(listener);\n\t\t\tlistener->write();\n\t\t}\n\t}\n\treturn (true);\n}",
+    "command_handling": "void\tMonitorer::treatEventListener(IQueue::IEventListener* listener)\n{\n\tuser = dynamic_cast<User*>(listener);\n\tif (user == NULL)\n\t\tthrow std::runtime_error(\"Bad EventListener\");\n\twhile (user->read_message(&request))\n\t{\n\t\tt_cmd_map::iterator\tit = _cmd.find(request->command.name);\n\t\tif (it != _cmd.end())\n\t\t\t(this->*(it->second))();\n\t\telse\n\t\t\tcmd_unknown();\n\t\tdelete request;\n\t}\n}",
+    "join_channel": "void\tMonitorer::cmd_join(void)\n{\n\tDEBUG_CALL_MONITORER_COMMAND\n\n\tif (!user->isConnected())\n\t\treturn (user->send_message(ERR_NOTREGISTERED()));\n\t//1. verifier qu'il y a au moins 1 param\n\tif (request->params.empty())\n\t\treturn (user->send_message(ERR_NEEDMOREPARAMS(\"\", \"JOIN\")));\n    std::string channelsToJoin = *request->params.begin();\n    request->params.pop_front();\n\t\n\t//1.2 recuperer le mot de pass si saisi\n\tstd::string\tuserPassword = \"\";\n\tif (!request->params.empty())\n    {\n\t\tuserPassword = *request->params.begin();\n\t\trequest->params.pop_front();\n\t}\n\n    // Create or join channel, send appropriate responses\n    // [implementation continues...]\n}",
+    "message_parsing": "Message::Message(std::string raw_message)\n{\n\tExtractor\t_cache(raw_message);\n\tprefixe\t= parse_prefixe(_cache);\n\tcommand\t= parse_command(_cache);\n\tparams\t= parse_params(_cache);\n}\n\nt_prefixe\tMessage::parse_prefixe(Extractor &str)\n{\n\tt_prefixe\t\t\toutput;\n\tt_available_string\t_substr;\n\n\tif (str.size() < 2 || str[0] != ':')\n\t\treturn (output);\n\tif (str[1] == ' ')\n\t\tthrow std::runtime_error(\"Bad prefix format\");\n\tstr.erase(0, 1);\n\n\t_substr = str.extract_to(\" \");\n\tif (!_substr)\n\t\treturn (output);\n\tExtractor substr(_substr());\n\toutput().host = substr.extract_from(\"@\");\n\toutput().user = substr.extract_from(\"!\");\n\tif (output().host || output().user)\n\t\toutput().pseudo(substr.str());\n\tif (output().pseudo)\n\t\toutput().server_name(substr.str());\n\n\tif (!output().host)\n\t\toutput().host(\"localhost\");\n\treturn (output);\n}"
+  },
+  "galleries": [
+    {
+      "name": "Server Operation",
+      "description": "Examples of the IRC server in action with various commands",
+      "order": 1,
+      "images": [
+        {
+          "image": "projects/ft_irc/server_start.png",
+          "caption": "Server startup and initialization showing socket binding and event loop setup",
+          "order": 1
+        },
+        {
+          "image": "projects/ft_irc/connection_message.png",
+          "caption": "Client connection and authentication flow with NICK and USER commands",
+          "order": 2
+        },
+        {
+          "image": "projects/ft_irc/irssi_connecting_command.png",
+          "caption": "IRC client (irssi) connecting to the server and joining channels",
+          "order": 3
+        }
+      ]
+    }
+  ],
+  "thumbnail": "projects/ft_irc/connection_message.png",
+  "architecture_diagram": "graph TD\n    Client[Client Connection] -->|TCP Socket| Server[Server Socket]\n    Server --> Queue[Event Queue]\n    Queue --> EventLoop[Event Loop]\n    EventLoop -->|Read Events| MessageParser[Message Parser]\n    MessageParser -->|Parsed Commands| CommandHandler[Command Handler]\n    CommandHandler -->|User Commands| UserManager[User Manager]\n    CommandHandler -->|Channel Commands| ChannelManager[Channel Manager]\n    CommandHandler -->|Direct Messages| MessageRouter[Message Router]\n    UserManager -->|Response| ResponseFormatter[Response Formatter]\n    ChannelManager -->|Response| ResponseFormatter\n    MessageRouter -->|Response| ResponseFormatter\n    ResponseFormatter -->|Write Events| EventLoop\n    EventLoop -->|Socket Write| Client",
+  "diagram_type": "MERMAID"
 },
 {
-	"title": "minitalk",
-	"slug": "minitalk",
-	"description": "A lightweight client-server communication program using UNIX signals for data transmission. Demonstrates low-level signal handling and IPC in C.",
-	"readme": "<h1 align=\"center\">minitalk</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n... (full README content as provided) ...",
-	"tech_stack": ["C", "Signal Handling", "IPC", "Bit Manipulation"],
-	"live_url": "",
-	"code_url": "https://github.com/aouichou/minitalk",
-	"is_featured": true,
-	"score": null,
-	"features": [
-	"Signal-based communication",
-	"Client-server architecture",
-	"Unicode support",
-	"Memory leak protection",
-	"Efficient transmission"
-	],
-	"challenges": "Implementing reliable data transmission using only two signals. Handling bit-level manipulation and timing issues between processes.",
-	"lessons": "Mastered low-level signal handling and inter-process communication. Learned advanced techniques for data encoding/decoding at the bit level.",
-	"galleries": [
-	{
-		"name": "Communication Demo",
-		"description": "Message transmission examples",
-		"order": 1,
-		"images": [
-		{
-			"image": "projects/minitalk/demo.gif",
-			"caption": "Client-server message exchange",
-			"order": 1
-		}
-		]
-	}
-	],
-	"thumbnail": "projects/minitalk/thumbnail.png"
+  "title": "Minitalk: Signal-based IPC",
+  "slug": "minitalk",
+  "description": "A lightweight client-server communication program using UNIX signals (SIGUSR1 and SIGUSR2) for data transmission. This project demonstrates low-level signal handling, bit manipulation, and inter-process communication in C.",
+  "readme": "<h1 align=\"center\">minitalk</h1>\n<h3 align=\"center\">42Paris School Project</h3>\n\n<p align=\"center\">\n  <img src=\"https://img.shields.io/badge/Language-C-blue.svg\" alt=\"Language\">\n  <img src=\"https://img.shields.io/badge/Status-Completed-brightgreen.svg\" alt=\"Status\">\n</p>\n\n<p align=\"center\">A lightweight client-server communication program using UNIX signals</p>\n\n## About the Project\n\n`minitalk` is a lightweight client-server communication program that uses UNIX signals (`SIGUSR1` and `SIGUSR2`) for data transmission. Developed as part of the 42Paris curriculum, this project demonstrates low-level signal handling, bit manipulation, and inter-process communication (IPC) in C. The server can receive messages from multiple clients sequentially without restarting.\n\n## Features\n\n- **Signal-Based Communication**: Uses only `SIGUSR1` and `SIGUSR2` for data transmission.\n- **Client-Server Architecture**:\n  - Server displays its PID on startup.\n  - Client sends messages or files to the server using the server's PID.\n- **Efficient Transmission**: Handles large messages quickly (e.g., 10,000+ characters).\n- **Error Handling**: Robust error checking for invalid PIDs, signal failures, and memory leaks.\n- **Bonus Features**:\n  - Server acknowledges received messages with return signals.\n  - Support for Unicode characters.\n\n## Technical Details\n\n- **Language**: C\n- **System Calls**: `sigaction`, `kill`, `getpid`, `malloc`, `pause`\n- **Libraries**: Custom `libft` for utilities (e.g., `ft_printf`, `ft_atoi`)\n\nThis project demonstrates proficiency in low-level system programming and signal handling, essential skills for developing efficient communication systems with minimal overhead.",
+  "tech_stack": ["C", "Signal Handling", "IPC", "Bit Manipulation", "UNIX Signals", "Process Communication"],
+  "live_url": "",
+  "code_url": "https://github.com/aouichou/minitalk",
+  "is_featured": true,
+  "score": 115,
+  "features": [
+    "Client-server architecture using only UNIX signals for communication",
+    "Binary data transmission using SIGUSR1 (bit 1) and SIGUSR2 (bit 0)",
+    "Full support for Unicode characters",
+    "File content transmission capability",
+    "Handling of large messages without data loss",
+    "STDIN reading for interactive message input",
+    "Server acknowledgment signals for reliable transmission",
+    "Clean signal handling with sigaction interface",
+    "Robust error and edge case handling",
+    "Memory leak protection with careful allocation management"
+  ],
+  "challenges": "The key challenge was implementing reliable data transmission using only two signals (SIGUSR1 and SIGUSR2). Encoding characters bit-by-bit required careful timing and robust error handling to prevent data corruption. Another significant hurdle was ensuring the reliability of communication across processes with unpredictable scheduling, requiring synchronization mechanisms. Supporting Unicode characters added complexity as it required handling multi-byte character encoding correctly.",
+  "lessons": "This project provided deep insights into low-level inter-process communication and signal handling in UNIX systems. I learned about the event-driven programming model where program flow depends on external signals rather than sequential execution. Mastering bitwise operations and understanding process scheduling were essential takeaways. The project also emphasized the importance of proper error handling in distributed systems where communication failures are common.",
+  "has_interactive_demo": true,
+  "demo_commands": {
+    "compile": "make",
+    "run_server": "./server",
+    "send_message": "./client $(pgrep server) \"Hello World\"",
+    "stdin_input": "./client $(pgrep server)",
+    "send_file": "./client $(pgrep server) filename.txt"
+  },
+  "demo_files_path": "projects/minitalk/minitalk.zip",
+  "code_steps": {
+    "1": "Clone the repository",
+    "2": "Run `make` to compile both the client and server",
+    "3": "Start the server with `./server` and note the displayed PID",
+    "4": "In another terminal, send a message with `./client [server_PID] \"Your message\"`",
+    "5": "To send a file's contents: `./client [server_PID] filename.txt`",
+    "6": "For interactive input: `./client [server_PID]` and type your message",
+    "7": "Observe the server terminal receiving and displaying the message"
+  },
+  "code_snippets": {
+    "bit_transmission": "void\tsend_bit(char *message, pid_t pid)\n{\n\tstatic int\t\t\t\ti = 8;\n\tstatic unsigned char\tc;\n\tstatic char\t\t\t*str;\n\tstatic pid_t\t\t\tserver_pid;\n\n\tif (message)\n\t{\n\t\tstr = message;\n\t\tserver_pid = pid;\n\t\tc = *str;\n\t}\n\tif (!i)\n\t{\n\t\ti = 8;\n\t\tc = *(++str);\n\t\tif (!c)\n\t\t\texchange_completed(server_pid);\n\t}\n\tif (c && c >> --i & 0x01)\n\t\tkill_check(server_pid, SIGUSR1);\n\telse if (c)\n\t\tkill_check(server_pid, SIGUSR2);\n}",
+    "bit_reconstruction": "void\thandler(int sig, siginfo_t *siginfo, void *vide)\n{\n\tstatic unsigned char\tc = 0x00;\n\tstatic int\t\t\tcount = 0;\n\tstatic pid_t\t\t\tclient_pid = 0;\n\n\t(void)vide;\n\tif (!client_pid)\n\t\tclient_pid = siginfo->si_pid;\n\tc |= (sig == SIGUSR1);\n\tif (++count == 8)\n\t{\n\t\tcount = 0;\n\t\tif (c == 0x00)\n\t\t{\n\t\t\tclient_pid = 0;\n\t\t\treturn ;\n\t\t}\n\t\tft_putchar_fd(c, 1);\n\t\tc = 0x00;\n\t\tkill_check(client_pid, SIGUSR1);\n\t}\n\telse\n\t{\n\t\tc <<= 1;\n\t\tkill_check(client_pid, SIGUSR2);\n\t}\n}",
+    "signal_setup": "int\tmain(void)\n{\n\tstruct sigaction\tserver;\n\n\tft_printf(\"%sPID == [%i]%s\\n\", YELLOW, getpid(), BLANK);\n\tft_memset(&server, 0, sizeof(server));\n\tsigemptyset(&server.sa_mask);\n\tsigaddset(&server.sa_mask, SIGUSR1);\n\tsigaddset(&server.sa_mask, SIGUSR2);\n\tserver.sa_flags = SA_RESTART | SA_SIGINFO;\n\tserver.sa_sigaction = handler;\n\tsigaction(SIGUSR1, &server, 0);\n\tsigaction(SIGUSR2, &server, 0);\n\twhile (1)\n\t\tpause();\n\treturn (0);\n}",
+    "file_handling": "void\tft_read(int ac, char **av, pid_t pid)\n{\n\tchar\t*file;\n\tchar\tstr[5000];\n\tint\t\ti;\n\n\tif (ac == 2)\n\t{\n\t\ti = 0;\n\t\tft_bzero(str, 5000);\n\t\ti = read(STDIN_FILENO, str + i, 4999 - i);\n\t\twhile (ft_strchri(str + i - 1, '\\n') == -1)\n\t\t\ti = read(STDIN_FILENO, str + i, 4999 - i);\n\t\tsend_bit(str, pid);\n\t}\n\telse if (ac == 3)\n\t{\n\t\tfile = readfile(av[2]);\n\t\tif (file == NULL)\n\t\t\tsend_bit(av[2], pid);\n\t\telse\n\t\t{\n\t\t\tsend_bit(file, pid);\n\t\t\tfree(file);\n\t\t}\n\t}\n}"
+  },
+  "galleries": [
+    {
+      "name": "Communication Process",
+      "description": "Visual demonstration of the client-server signal exchange",
+      "order": 1,
+      "images": [
+        {
+          "image": "projects/minitalk/server_launched.png",
+          "caption": "Server displaying its PID on startup",
+          "order": 1
+        },
+        {
+          "image": "projects/minitalk/client_sending_hello.png",
+          "caption": "Client sending 'Hello' to the server",
+          "order": 2
+        },
+        {
+          "image": "projects/minitalk/server_recieved_messages.png",
+          "caption": "Server showing received messages from multiple clients",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "name": "Signal Exchange Demo",
+      "description": "Demonstration of advanced features like Unicode support",
+      "order": 2,
+      "images": [
+        {
+          "image": "projects/minitalk/client_connected.png",
+          "caption": "Client connected to server and awaiting acknowledgment",
+          "order": 1
+        },
+        {
+          "image": "projects/minitalk/client_sending_bonjour.png",
+          "caption": "Client sending Unicode message 'Bonjour'",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "thumbnail": "projects/minitalk/server_recieved_messages.png",
+  "architecture_diagram": "graph TD\n    Client[Client Process] --> ClientSighandler[Signal Handler]\n    Server[Server Process] --> ServerSighandler[Signal Handler]\n    ClientSighandler -->|SIGUSR1/SIGUSR2| ServerSighandler\n    ClientSighandler --> BitTransmitter[Bit Transmitter]\n    BitTransmitter -->|Convert chars to bits| SignalSender[Signal Sender]\n    ServerSighandler --> BitReconstructor[Bit Reconstructor]\n    BitReconstructor -->|Assemble bits to chars| DisplayOutput[Display Output]\n    ServerSighandler -->|Acknowledgment| ClientSighandler\n    InputSource[\"Input (Message/File)\"] --> Client\n    DisplayOutput -->|Character Output| Terminal[Terminal]\n    Server -->|Display PID| Terminal",
+  "diagram_type": "MERMAID"
 }
 ]

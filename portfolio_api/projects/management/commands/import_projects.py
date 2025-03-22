@@ -2,233 +2,155 @@
 
 import json
 import os
+import requests
+from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
-from django.core.exceptions import ValidationError
 from projects.models import Project, Gallery, GalleryImage
 from django.conf import settings
-from PIL import Image
-import io
+from tqdm import tqdm  # For progress bars
+import boto3
+from botocore.exceptions import NoCredentialsError
 
 class Command(BaseCommand):
-	help = 'Import projects from JSON file'
-	
-	def add_arguments(self, parser):
-		parser.add_argument('json_file', type=str)
-		
-	def handle(self, *args, **options):
-		self.stdout.write(self.style.NOTICE(f'MEDIA_ROOT is set to: {settings.MEDIA_ROOT}'))
+    help = 'Import projects from JSON file'
 
-		# List all files in media directory to debug
-		self.stdout.write("Files in MEDIA_ROOT:")
-		for root, dirs, files in os.walk(settings.MEDIA_ROOT):
-			level = root.replace(settings.MEDIA_ROOT, '').count(os.sep)
-			indent = ' ' * 4 * level
-			self.stdout.write(f"{indent}{os.path.basename(root)}/")
-			sub_indent = ' ' * 4 * (level + 1)
-			for f in files:
-				self.stdout.write(f"{sub_indent}{f}")
-		
-		# List prepopulated media if it exists
-		prepop_path = "/app/prepopulated_media"
-		if os.path.exists(prepop_path):
-			self.stdout.write("Files in prepopulated_media:")
-			for root, dirs, files in os.walk(prepop_path):
-				level = root.replace(prepop_path, '').count(os.sep)
-				indent = ' ' * 4 * level
-				self.stdout.write(f"{indent}{os.path.basename(root)}/")
-				sub_indent = ' ' * 4 * (level + 1)
-				for f in files:
-					self.stdout.write(f"{sub_indent}{f}")
+    def add_arguments(self, parser):
+        parser.add_argument('json_file', help='Path to JSON file containing projects')
+        parser.add_argument('--media-dir', help='Path to media directory containing project assets')
+        parser.add_argument('--update', action='store_true', help='Update existing projects')
+        parser.add_argument('--skip-images', action='store_true', help='Skip image uploads')
+        parser.add_argument('--skip-existing', action='store_true', help='Skip existing projects')
 
-		json_file = options['json_file']
-		
-		media_root = settings.MEDIA_ROOT
-		if not os.path.exists(media_root):
-			os.makedirs(media_root, exist_ok=True)
+    def handle(self, *args, **options):
+        json_file = options['json_file']
+        media_dir = options.get('media_dir')
+        update = options.get('update', False)
+        skip_images = options.get('skip_images', False)
+        skip_existing = options.get('skip_existing', False)
 
-		if not os.path.exists(json_file):
-			self.stdout.write(self.style.ERROR(f'File {json_file} does not exist'))
-			return
-			
-		with open(json_file, 'r') as f:
-			try:
-				projects_data = json.load(f)
-			except json.JSONDecodeError as e:
-				self.stdout.write(self.style.ERROR(f'Invalid JSON: {str(e)}'))
-				return
-			
-		for project_data in projects_data:
-			try:
-				# Validate required fields
-				if 'slug' not in project_data or 'title' not in project_data:
-					raise ValidationError("Project missing slug or title")
-
-		        # Debug the thumbnail info
-				if 'thumbnail' in project_data:
-					self.stdout.write(self.style.SUCCESS(f"Found thumbnail in JSON: {project_data['thumbnail']}"))
-
-				# First, prepare the thumbnail
-				thumbnail_content = None
-				thumbnail_name = None
-				
-				if 'thumbnail' in project_data and project_data['thumbnail']:
-					thumbnail_path = os.path.join(settings.MEDIA_ROOT, project_data['thumbnail'])
-					if os.path.exists(thumbnail_path):
-						self.stdout.write(self.style.SUCCESS(f"Found thumbnail file: {thumbnail_path}"))
-						try:
-							with open(thumbnail_path, 'rb') as img_file:
-								thumbnail_content = ContentFile(img_file.read(), name=os.path.basename(thumbnail_path))
-								# the thumbnail path is structured like 'projects/project_slug_/thumbnail.jpg', the name of the thumbnail is 'thumbnail.jpg'
-								# so we need to extract the name of the thumbnail from the path without using os.path.basename
-								thumbnail_name = thumbnail_path.split('/')[-1]
-								# thumbnail_name = os.path.basename(thumbnail_path)
-						except Exception as e:
-							self.stdout.write(self.style.ERROR(f"Error reading thumbnail: {str(e)}"))
-					else:
-						self.stdout.write(self.style.WARNING(f"Thumbnail file not found: {thumbnail_path}"))
-
-						# If thumbnail is not found, use the placeholder.jpg located in MEDIA_ROOT
-						placeholder_path = os.path.join(settings.MEDIA_ROOT, 'placeholder.jpg')
-						if os.path.exists(placeholder_path):
-							self.stdout.write(self.style.WARNING(f"Using placeholder thumbnail: {placeholder_path}"))
-							try:
-								with open(placeholder_path, 'rb') as img_file:
-									thumbnail_content = ContentFile(img_file.read(), name='placeholder.jpg')
-									thumbnail_name = 'placeholder.jpg'
-							except Exception as e:
-								self.stdout.write(self.style.ERROR(f"Error reading placeholder thumbnail: {str(e)}"))
-						else:
-							self.stdout.write(self.style.ERROR(f"Placeholder thumbnail not found: {placeholder_path}"))
-				
-				if not thumbnail_content:
-					img = Image.new('RGB', (100, 100), color='blue')
-					img_io = io.BytesIO()
-					img.save(img_io, format='JPEG')
-					img_io.seek(0)
-					thumbnail_name = f"{project_data['slug']}_thumbnail.jpg"
-					thumbnail_content = ContentFile(img_io.getvalue(), name=thumbnail_name)
-				
-				project = Project(
-					slug=project_data['slug'],
-					title=project_data['title'],
-					description=project_data['description'],
-					tech_stack=project_data.get('tech_stack', []),
-					live_url=project_data.get('live_url', ''),
-					code_url=project_data.get('code_url', ''),
-					is_featured=project_data.get('is_featured', False),
-					features=project_data.get('features', []),
-					readme=project_data.get('readme', ''),
-					score=project_data.get('score', 0)
-				)
-
-				project.thumbnail.save(thumbnail_name, thumbnail_content, save=False)
-				
-				project.save(bypass_validation=True)
-				self.stdout.write(self.style.SUCCESS(f"Created/updated project {project.slug}"))
+        self.stdout.write(f"Importing projects from {json_file}")
         
+        try:
+            with open(json_file, 'r') as f:
+                projects_data = json.load(f)
+        except FileNotFoundError:
+            self.stderr.write(f"File {json_file} not found")
+            return
+        except json.JSONDecodeError:
+            self.stderr.write(f"Invalid JSON in {json_file}")
+            return
 
-				# Process galleries
-				for gallery_data in project_data.get('galleries', []):
-					try:
-						if 'name' not in gallery_data or not gallery_data['name'].strip():
-							self.stdout.write(self.style.WARNING(
-	   						 f"Skipping gallery with missing name in project {project.slug}"
-   							 ))
-							continue
-							
-						gallery, g_created = Gallery.objects.update_or_create(
-							project=project,
-							name=gallery_data['name'],
-							defaults={
-								'description': gallery_data.get('description', ''),
-								'order': gallery_data.get('order', 0)
-							}
-						)
-						
-						# Process images
-						for image_data in gallery_data.get('images', []):
-							try:
-								if 'image' not in image_data:
-									raise ValidationError("Image field missing")
-									
-								image_path = os.path.join(settings.MEDIA_ROOT, image_data['image'])
-								if not os.path.exists(image_path):
-									self.stdout.write(self.style.WARNING(
-										f'Skipping missing image: {image_data["image"]}'
-									))
-									continue
-									
-								with open(image_path, 'rb') as img_file:
-									GalleryImage.objects.update_or_create(
-										gallery=gallery,
-										order=image_data.get('order', 0),
-										defaults={
-											'caption': image_data.get('caption', ''),
-											'image': ContentFile(
-												img_file.read(),
-												name=os.path.basename(image_path)
-											)
-										}
-									)
-									
-							except Exception as e:
-								self.stdout.write(self.style.ERROR(
-									f'Image processing failed: {str(e)}'
-								))
-								continue
-								
-					except Exception as e:
-						self.stdout.write(self.style.ERROR(
-							f'Gallery processing failed: {str(e)}'
-						))
-						continue
-						
-			except Exception as e:
-				self.stdout.write(self.style.ERROR(
-					f'Project processing failed: {str(e)}'
-				))
-				continue
+        # Initialize S3 client
+        s3_client = None
+        if not skip_images and settings.DEFAULT_FILE_STORAGE.endswith('S3Storage'):
+            try:
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name=settings.AWS_S3_REGION_NAME
+                )
+            except Exception as e:
+                self.stderr.write(f"Error connecting to S3: {e}")
+        
+        # Process each project
+        for project_data in tqdm(projects_data, desc="Processing projects"):
+            slug = project_data.get('slug')
+            if not slug:
+                self.stderr.write(f"Project missing slug: {project_data.get('title')}")
+                continue
+                
+            # Check if project exists
+            existing = Project.objects.filter(slug=slug).first()
+            if existing:
+                if skip_existing:
+                    self.stdout.write(f"Skipping existing project: {slug}")
+                    continue
+                elif update:
+                    self.stdout.write(f"Updating existing project: {slug}")
+                    project = existing
+                else:
+                    self.stderr.write(f"Project with slug {slug} already exists. Use --update to update.")
+                    continue
+            else:
+                project = Project(slug=slug)
+                self.stdout.write(f"Creating new project: {slug}")
+            
+            # Update basic fields
+            for field in ['title', 'description', 'readme', 'is_featured', 'score',
+                         'tech_stack', 'features', 'challenges', 'lessons',
+                         'live_url', 'code_url', 'video_url', 'diagram_type',
+                         'architecture_diagram', 'has_interactive_demo', 
+                         'demo_commands', 'demo_files_path', 'code_steps', 'code_snippets']:
+                if field in project_data:
+                    setattr(project, field, project_data[field])
+            
+            # Handle thumbnail
+            if 'thumbnail' in project_data and not skip_images:
+                self._process_image(project, 'thumbnail', project_data['thumbnail'], media_dir, s3_client)
+            
+            # Save project with validation bypass for initial save
+            try:
+                project.save(bypass_validation=True)
+                self.stdout.write(f"Saved project: {slug}")
+            except Exception as e:
+                self.stderr.write(f"Error saving project {slug}: {e}")
+                continue
+            
+            # Process galleries
+            if 'galleries' in project_data and not skip_images:
+                self._process_galleries(project, project_data['galleries'], media_dir, s3_client)
+                
+            self.stdout.write(f"Completed import for: {slug}")
+        
+        self.stdout.write(self.style.SUCCESS(f"Successfully imported {len(projects_data)} projects"))
 
-	def _create_placeholder_thumbnail(self, project):
-		try:
-			
-			img = Image.new('RGB', (100, 100), color='blue')
-			img_io = io.BytesIO()
-			img.save(img_io, format='JPEG')
-			img_io.seek(0)
-			
-			project.thumbnail.save(
-				f"{project.slug}_thumbnail.jpg", 
-				ContentFile(img_io.getvalue()),
-				save=False
-			)
-			project.save(bypass_validation=True)
-			self.stdout.write(self.style.SUCCESS(
-				f'Created placeholder thumbnail for {project.slug}'
-			))
-		except Exception as e:
-			self.stdout.write(self.style.ERROR(
-				f'Placeholder thumbnail creation failed: {str(e)}'
-			))
+    def _process_image(self, obj, field_name, image_path, media_dir, s3_client):
+        """Process and save an image to the model field"""
+        try:
+            if media_dir and os.path.exists(os.path.join(media_dir, image_path)):
+                # Local file
+                with open(os.path.join(media_dir, image_path), 'rb') as img_file:
+                    getattr(obj, field_name).save(os.path.basename(image_path), ContentFile(img_file.read()), save=False)
+            elif image_path.startswith(('http://', 'https://')):
+                # Remote URL
+                response = requests.get(image_path)
+                if response.status_code == 200:
+                    getattr(obj, field_name).save(os.path.basename(image_path), ContentFile(response.content), save=False)
+            elif s3_client:
+                # Check if already in S3
+                try:
+                    s3_client.head_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=image_path)
+                    setattr(obj, field_name, image_path)  # Image already exists in S3
+                except:
+                    self.stderr.write(f"Image not found in S3: {image_path}")
+        except Exception as e:
+            self.stderr.write(f"Error processing image {image_path}: {e}")
 
-	def _resolve_media_path(self, relative_path):
-		"""Try multiple ways to resolve the media path"""
-		# Try the direct join
-		path1 = os.path.join(settings.MEDIA_ROOT, relative_path)
-		if os.path.exists(path1):
-			return path1
-		
-		# Try without 'projects/' prefix if it's already in the path
-		if relative_path.startswith('projects/'):
-			path2 = os.path.join(settings.MEDIA_ROOT, relative_path.replace('projects/', '', 1))
-			if os.path.exists(path2):
-				return path2
-		
-		# Try with absolute path if media is a subfolder of current directory
-		path3 = os.path.abspath(os.path.join('media', relative_path))
-		if os.path.exists(path3):
-			return path3
-			
-		# Return the original path if none of the above work
-		return path1
+    def _process_galleries(self, project, galleries_data, media_dir, s3_client):
+        """Process and save galleries and their images"""
+        # Delete existing galleries if we're updating
+        Gallery.objects.filter(project=project).delete()
+        
+        for gallery_data in galleries_data:
+            gallery = Gallery(
+                project=project,
+                name=gallery_data.get('name', 'Unnamed Gallery'),
+                description=gallery_data.get('description', ''),
+                order=gallery_data.get('order', 0)
+            )
+            gallery.save()
+            
+            # Process gallery images
+            if 'images' in gallery_data:
+                for image_data in gallery_data['images']:
+                    gallery_image = GalleryImage(
+                        gallery=gallery,
+                        caption=image_data.get('caption', ''),
+                        order=image_data.get('order', 0)
+                    )
+                    
+                    if 'image' in image_data:
+                        self._process_image(gallery_image, 'image', image_data['image'], media_dir, s3_client)
+                        gallery_image.save()
