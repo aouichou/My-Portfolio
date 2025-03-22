@@ -318,22 +318,48 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
       ))}
 		
 		{/* Installation Steps */}
-		{project.code_steps && Object.keys(project.code_steps).length > 0 && (
+		{project.code_steps && (
 		  <section className="my-16">
 			<h2 className="text-3xl font-bold mb-8">Installation Guide</h2>
 			<div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl">
 			  <ol className="list-decimal list-inside space-y-4 ml-4">
-				{Object.entries(project.code_steps).map(([step, instruction]) => (
-				  <li key={step} className="text-lg">
-					<span className="font-medium">{step}:</span>{" "}
-					{typeof instruction === 'string' 
-					  ? instruction 
-					  : typeof instruction === 'object' && instruction !== null
-						? JSON.stringify(instruction)
-						: String(instruction)
+				{(() => {
+				  // Handle different possible formats of code_steps
+				  try {
+					// If it's a single object with numerical keys (most likely case)
+					if (project.code_steps && typeof project.code_steps === 'object') {
+					  // Check if it has a '0' key that contains the actual steps
+					  if ('0' in project.code_steps) {
+						const realSteps = project.code_steps['0'];
+						if (typeof realSteps === 'object') {
+						  return Object.entries(realSteps).map(([step, instruction]) => (
+							<li key={step} className="text-lg">
+							  <span className="font-medium">{step}:</span>{" "}
+							  {typeof instruction === 'string' 
+								? instruction.replace(/`/g, '<code>').replace(/`/g, '</code>')
+								: String(instruction)}
+							</li>
+						  ));
+						}
+					  }
+					  
+					  // Regular object with step entries
+					  return Object.entries(project.code_steps).map(([step, instruction]) => (
+						<li key={step} className="text-lg">
+						  <span className="font-medium">{step}:</span>{" "}
+						  {typeof instruction === 'string' 
+							? instruction.replace(/`([^`]+)`/g, '<code>$1</code>')
+							: String(instruction)}
+						</li>
+					  ));
 					}
-				  </li>
-				))}
+					
+					return <li>Installation steps not available</li>;
+				  } catch (error) {
+					console.error("Error parsing installation steps:", error);
+					return <li>Error displaying installation steps</li>;
+				  }
+				})()}
 			  </ol>
 			</div>
 		  </section>

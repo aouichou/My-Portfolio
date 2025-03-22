@@ -27,13 +27,17 @@ def validate_code_steps(data):
 	if not isinstance(data, dict):
 		return {}
 	
+	# If data has a single key '0' containing another object, unwrap it
+	if '0' in data and len(data) == 1 and isinstance(data['0'], dict):
+		data = data['0']
+	
 	result = {}
 	for key, value in data.items():
 		# Ensure each step value is a string
 		if isinstance(value, (dict, list)):
-			result[key] = str(value)  # Convert objects to string
+			result[key] = str(value) 
 		else:
-			result[key] = str(value)  # Ensure it's a string
+			result[key] = str(value)
 			
 	return result
 
@@ -90,7 +94,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 		request = self.context.get('request')
 		return request.build_absolute_uri(obj.thumbnail.url) if obj.thumbnail else None
 
-	def validate_code_snippets(data):
+	def validate_code_snippets(self, data):
 		return validate_code_snippets(data)
 
 	def validate_code_steps(self, data):
