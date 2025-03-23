@@ -13,6 +13,9 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
+  // Add this line to check if we're on the homepage
+  const isHomepage = pathname === '/';
+  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -29,8 +32,9 @@ export default function Navbar() {
   
   return (
     <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-      scrolled ? 'bg-white/90 dark:bg-gray-900/90 shadow-md backdrop-blur-md' : 
-      'bg-transparent'
+      scrolled 
+        ? 'bg-white/90 dark:bg-gray-900/90 shadow-md backdrop-blur-md' 
+        : isHomepage ? 'bg-transparent' : 'bg-white/90 dark:bg-gray-900/90' // Add background when not on homepage
     }`}>
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
@@ -38,7 +42,11 @@ export default function Navbar() {
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center space-x-3">
               <HomeButton />
-              <span className={`font-bold text-xl ${scrolled ? 'text-gray-900 dark:text-white' : 'text-white'}`}>
+              <span className={`font-bold text-xl ${
+                scrolled || !isHomepage 
+                  ? 'text-gray-900 dark:text-white' 
+                  : 'text-white'
+              }`}>
                 Amine Ouichou
               </span>
             </Link>
@@ -51,7 +59,7 @@ export default function Navbar() {
               className={`px-3 py-2 rounded-md ${
                 isActive('/projects') 
                   ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' 
-                  : `${scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-white/90'} hover:text-blue-600 dark:hover:text-blue-400`
+                  : `${scrolled || !isHomepage ? 'text-gray-700 dark:text-gray-300' : 'text-white/90'} hover:text-blue-600 dark:hover:text-blue-400`
               } transition-colors`}
             >
               Projects
@@ -62,7 +70,7 @@ export default function Navbar() {
               className={`px-3 py-2 rounded-md ${
                 isActive('/showcase') 
                   ? 'bg-purple-600/10 text-purple-600 dark:text-purple-400' 
-                  : `${scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-white/90'} hover:text-purple-600 dark:hover:text-purple-400`
+                  : `${scrolled || !isHomepage ? 'text-gray-700 dark:text-gray-300' : 'text-white/90'} hover:text-purple-600 dark:hover:text-purple-400`
               } transition-colors`}
             >
               <span className="hidden lg:inline">Portfolio </span>Architecture
@@ -70,7 +78,11 @@ export default function Navbar() {
             
             <Link 
               href="/#contact" 
-              className={`px-3 py-2 rounded-md ${scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-white/90'} hover:text-blue-600 dark:hover:text-blue-400 transition-colors`}
+              className={`px-3 py-2 rounded-md ${
+                scrolled || !isHomepage 
+                  ? 'text-gray-700 dark:text-gray-300' 
+                  : 'text-white/90'
+              } hover:text-blue-600 dark:hover:text-blue-400 transition-colors`}
             >
               Contact
             </Link>
@@ -83,7 +95,11 @@ export default function Navbar() {
             <ThemeToggle />
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`ml-2 p-2 rounded-md ${scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-white'}`}
+              className={`ml-2 p-2 rounded-md ${
+                scrolled || !isHomepage 
+                  ? 'text-gray-700 dark:text-gray-300' 
+                  : 'text-white'
+              }`}
               aria-label="Toggle menu"
             >
               {!mobileMenuOpen ? (
