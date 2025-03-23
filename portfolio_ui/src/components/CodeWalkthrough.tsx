@@ -78,16 +78,21 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
           <h4 className="font-bold text-xl mb-4 text-blue-600 dark:text-blue-400">{step.title}</h4>
           <p className="text-gray-700 dark:text-gray-300 mb-6">{step.description}</p>
           
-          {step.explanation && (
-            <div className="mt-6">
-              <h5 className="font-semibold mb-3 text-gray-800 dark:text-gray-200">Explanation:</h5>
-              <div className="prose dark:prose-invert prose-sm max-w-none">
-                {step.explanation.split('\n').map((line, i) => (
-                  <p key={i} className="mb-2">{line}</p>
-                ))}
-              </div>
-            </div>
-          )}
+		{step.explanation && (
+		  <div className="mt-6">
+			<h5 className="font-semibold mb-3 text-gray-800 dark:text-gray-200">Explanation:</h5>
+			<div className="prose dark:prose-invert prose-sm max-w-none">
+			  {sanitizeCode(step.explanation).split('\n').map((line, i) => (
+				<p key={i} className="mb-2" dangerouslySetInnerHTML={{ 
+				  __html: line
+					.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+					.replace(/\*([^\*]+)\*/g, '<em>$1</em>') // Italics
+					.replace(/-\s+(.*)/g, '<li>$1</li>') // List items
+				}} />
+			  ))}
+			</div>
+		  </div>
+		)}
           
           <div className="mt-6 text-sm bg-gray-50 dark:bg-gray-800/50 p-3 rounded border border-gray-200 dark:border-gray-700">
             <span className="font-semibold">Language:</span> {step.language.toUpperCase()}

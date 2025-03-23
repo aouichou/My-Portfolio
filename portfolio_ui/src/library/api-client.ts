@@ -90,9 +90,24 @@ export const fetchWithTimeout = async (url: string, options = {}, timeout = 1000
   };
 
 export async function getAllProjectsUnfiltered() {
+
+	// More detailed debugging
+	console.log('API URL config:', {
+	baseURL: API_URL,
+	fullUrl: `${API_URL}/projects/?include_all=true`
+	});
+
+	const token = typeof window !== 'undefined' 
+	? localStorage.getItem('auth_token') 
+	: null;
+	console.log('Auth token available:', !!token);
+
   try {
+    // Log the URL we're fetching
+    console.log('Fetching all projects from:', `${API_URL}/projects/?include_all=true`);
     // Explicitly request all projects, including non-featured
     const response = await api.get('/projects/?include_all=true');
+    console.log('All projects response:', response.data.length, 'projects found');
     return response.data;
   } catch (error) {
     console.error('Error fetching all projects:', error);

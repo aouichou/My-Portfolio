@@ -346,3 +346,17 @@
   .dark object[type="image/svg+xml"] {
 	background-color: #1a1a1a; /* Match dark mode background */
   }
+
+code {
+  background-color: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  color: #ef4444;
+}
+
+.dark code {
+  background-color: #1e293b;
+  color: #f87171;
+}

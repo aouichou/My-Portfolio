@@ -18,6 +18,13 @@ export default function ProjectsGrid({ showAll = false }) {
 	const isLoading = showAll ? allLoading : featuredLoading;
 	const error = showAll ? allError : featuredError;
 
+
+	// At the top of your ProjectsGrid component
+	console.log(`ProjectsGrid received showAll=${showAll}, projects:`, projects?.length);
+	if (projects) {
+	console.log('Project titles:', projects.map(p => p.title).join(', '));
+	}
+
   // Only log in development, not production
   if (process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line react-hooks/rules-of-hooks

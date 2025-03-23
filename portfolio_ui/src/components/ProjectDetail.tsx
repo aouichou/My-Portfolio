@@ -336,24 +336,29 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 							<li key={step} className="text-lg">
 							  <span className="font-medium">{step}:</span>{" "}
 							  {typeof instruction === 'string' 
-								? instruction.replace(/`/g, '<code>').replace(/`/g, '</code>')
-								: String(instruction)}
+                                ? <span dangerouslySetInnerHTML={{ 
+                                    __html: instruction.replace(/`([^`]+)`/g, '<code>$1</code>') 
+                                }} />
+                                : String(instruction)}
 							</li>
 						  ));
 						}
 					  }
 					  
 					  // Regular object with step entries
-					  return Object.entries(project.code_steps).map(([step, instruction]) => (
-						<li key={step} className="text-lg">
-						  <span className="font-medium">{step}:</span>{" "}
-						  {typeof instruction === 'string' 
-							? instruction.replace(/`([^`]+)`/g, '<code>$1</code>')
-							: String(instruction)}
-						</li>
-					  ));
+                    // In the Installation Steps section
+                    return Object.entries(project.code_steps).map(([step, instruction]) => (
+                      <li key={step} className="text-lg">
+                        <span className="font-medium">{step}:</span>{" "}
+                        {typeof instruction === 'string' 
+                          ? <span dangerouslySetInnerHTML={{ 
+                              __html: instruction.replace(/`([^`]+)`/g, '<code>$1</code>') 
+                            }} />
+                          : String(instruction)}
+                      </li>
+                    ));
 					}
-					
+
 					return <li>Installation steps not available</li>;
 				  } catch (error) {
 					console.error("Error parsing installation steps:", error);
