@@ -80,13 +80,12 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
 export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
   const { data: project, isLoading, error } = useProjectBySlug(slug, initialProject);
   
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+//   const [activeTab, setActiveTab] = useState('overview');
+//   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
 	useEffect(() => {
 		// Force rendering of diagrams when project data is loaded
 		if (project?.architecture_diagram) {
-			console.log("Project detail: Forcing diagram render");
 			setTimeout(() => {
 			if (window.renderMermaidDiagrams) {
 				window.renderMermaidDiagrams();
@@ -346,17 +345,19 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 					  }
 					  
 					  // Regular object with step entries
-                    // In the Installation Steps section
-                    return Object.entries(project.code_steps).map(([step, instruction]) => (
-                      <li key={step} className="text-lg">
-                        <span className="font-medium">{step}:</span>{" "}
-                        {typeof instruction === 'string' 
-                          ? <span dangerouslySetInnerHTML={{ 
-                              __html: instruction.replace(/`([^`]+)`/g, '<code>$1</code>') 
-                            }} />
-                          : String(instruction)}
-                      </li>
-                    ));
+					// Regular object with step entries
+					return Object.entries(project.code_steps).map(([step, instruction]) => (
+					  <li key={step} className="text-lg">
+						{/* Don't show the number if it's numeric - let the <ol> handle numbering */}
+						{isNaN(Number(step)) ? <span className="font-medium">{step}:</span> : ""}{" "}
+						{typeof instruction === 'string' 
+						  ? <span dangerouslySetInnerHTML={{ 
+							  __html: instruction.replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-red-600 dark:text-red-400 font-mono text-sm">$1</code>') 
+							}} />
+						  : String(instruction)}
+					  </li>
+					));
+
 					}
 
 					return <li>Installation steps not available</li>;

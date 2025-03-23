@@ -8,7 +8,6 @@ export default function BlockCloudflare() {
     const scripts = document.querySelectorAll('script');
     scripts.forEach(script => {
       if (script.src && script.src.includes('cloudflareinsights.com')) {
-        console.log('Removing problematic Cloudflare script');
         script.remove();
       }
     });

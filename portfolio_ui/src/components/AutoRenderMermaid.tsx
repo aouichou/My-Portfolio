@@ -8,12 +8,10 @@ export default function AutoRenderMermaid() {
   useLayoutEffect(() => {
     // Use a more aggressive approach to render diagrams
     const renderAllDiagrams = () => {
-      console.log("AutoRenderMermaid: Trying to render all diagrams");
       
       if (window.renderMermaidDiagrams) {
         window.renderMermaidDiagrams();
       } else {
-        console.log("renderMermaidDiagrams not available yet, trying again in 500ms");
         setTimeout(renderAllDiagrams, 500);
       }
     };

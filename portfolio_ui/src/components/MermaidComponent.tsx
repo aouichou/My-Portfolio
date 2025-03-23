@@ -47,7 +47,6 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
         element.textContent = processedChart;
         containerRef.current.appendChild(element);
         
-        console.log(`Rendering diagram ${id}:`, processedChart.substring(0, 50) + '...');
         
         // Render using mermaid
         await mermaid.run({

@@ -63,13 +63,11 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     socketRef.current = socket;
     
     socket.onopen = () => {
-	  console.log(`Socket opened at ${wsUrl}`);
       setConnected(true);
       term.write('Connected to terminal server...\r\n');
     };
     
     socket.onclose = (event) => {
-	  console.log(`Socket closed with code: ${event.code}, reason: ${event.reason}`);
       setConnected(false);
       term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
     };
@@ -81,11 +79,9 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     };
     
     socket.onmessage = (event) => {
-	  console.log("Received message from server:", event.data);
       try {
         const data = JSON.parse(event.data);
         if (data.output) {
-		  console.log("Writing output to terminal:", data.output.substring(0, 30) + "...");
           term.write(data.output);
         }
       } catch (e) {
@@ -96,7 +92,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     
 	setTimeout(() => {
 		term.focus();
-		console.log("Terminal focused");
 	}, 1000);
 
 	terminalRef.current = term;
@@ -118,7 +113,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 			
 			// Send the resize command to the server
 			if (connected && socket.readyState === WebSocket.OPEN) {
-			console.log(`Terminal resized to ${term.cols}x${term.rows}`);
 			socket.send(JSON.stringify({
 				resize: { cols: term.cols, rows: term.rows }
 			}));
@@ -143,7 +137,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	  });
 
 	term.onData((data) => {
-		console.log("Terminal received key:", data.charCodeAt(0));
 		
 		if (socket.readyState === WebSocket.OPEN) {
 		  // Simply send raw data to the server - don't try to track commands locally
@@ -154,7 +147,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 			// term.write(data);
 		  }
 		} else {
-		  console.log("Socket not ready:", socket.readyState);
 		}
 	  });
 

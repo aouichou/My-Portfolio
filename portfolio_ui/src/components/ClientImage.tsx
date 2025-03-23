@@ -43,7 +43,6 @@ export default function ClientImage({
           const directUrl = src.startsWith('http') 
             ? src 
             : `https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src.replace(/^\//, '')}`;
-          console.log('Retry with direct URL:', directUrl);
           setImgSrc(directUrl);
         }
       }, 1000);
@@ -74,7 +73,6 @@ export default function ClientImage({
     
     img.onload = () => {
       setIsLoading(false);
-      console.log('Image loaded successfully:', processedSrc);
     };
     
     img.onerror = handleError;

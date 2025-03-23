@@ -11,11 +11,6 @@ import { useFeaturedProjects, useAllProjects } from '../library/queries';
 import { motion } from 'framer-motion';
 
 export default function ProjectsGrid({ showAll = false }) {
-    // const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = useFeaturedProjects();
-    // const { data: allProjects, isLoading: allLoading, error: allError } = useAllProjects();
-	const { isLoading, error } = useFeaturedProjects();
-	
-	console.log(`ProjectsGrid hydration - showAll=${showAll}`);
 
 	// Force correct query based on showAll prop
 	const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = 
@@ -31,15 +26,16 @@ export default function ProjectsGrid({ showAll = false }) {
 
   // Only log in development, not production
   if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
-      console.log("Projects data:", projects);
     }, [projects]);
   }
 
-  if (error) return <div className="py-20 text-center">Failed to load projects. Please try again later.</div>;
-  if (isLoading) {
-    return <LoadingSkeleton />; // Show loading skeleton
+  if (showAll ? allError : featuredError) {
+	return <div className="py-20 text-center">Failed to load projects. Please try again later.</div>;
+  }
+  
+  if (showAll ? allLoading : featuredLoading) {
+	return <LoadingSkeleton />;
   }
 
   // Instead of returning undefined, return a message if no projects

@@ -4,8 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getProjects, getProjectBySlug as apiGetProjectBySlug } from './api-client';
 import { normalizeProject } from './utils';
 import { Project } from './types';
-import axios from 'axios';
-
+import api from './api-client';
 
 type ProjectFromAPI = {
   id: string | number;
@@ -87,10 +86,8 @@ export function useAllProjects(options = {}) {
     queryKey: ['allProjects'],
     queryFn: async () => {
       // Use a direct API call to ensure the parameter is sent
-      console.log('Fetching all projects with include_all=true');
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/projects/?include_all=true`);
-        console.log(`useAllProjects received ${response.data.length} projects`);
+        const response = await api.get('/projects/?include_all=true');
         return response.data.map(normalizeProject);
       } catch (error) {
         console.error('Error in useAllProjects:', error);
@@ -106,7 +103,6 @@ export function useAllProjects(options = {}) {
 export async function getAllProjects() {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api'; // Use same base as api-client
-    console.log('SSR fetching from:', `${apiUrl}/projects/?include_all=true`);
     const res = await fetch(`${apiUrl}/projects/?include_all=true`, {
       next: { revalidate: 60 },
       headers: {
@@ -120,7 +116,6 @@ export async function getAllProjects() {
     }
     
     const data = await res.json();
-    console.log('SSR found', data.length, 'projects');
     return data;
   } catch (error) {
     console.error('Failed to fetch projects:', error);

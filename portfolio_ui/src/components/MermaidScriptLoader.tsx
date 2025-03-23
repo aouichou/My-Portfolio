@@ -14,8 +14,6 @@ export function MermaidScriptLoader() {
   useEffect(() => {
     if (didInitialize.current || globalMermaidInitialized) return;
     
-    console.log('MermaidScriptLoader: Initializing mermaid globally...');
-    
     try {
       // Initialize mermaid with default configuration
       mermaid.initialize({
@@ -33,15 +31,12 @@ export function MermaidScriptLoader() {
       globalMermaidInitialized = true;
       didInitialize.current = true;
       
-      console.log('MermaidScriptLoader: Initialization complete');
       
       // Global function to re-render all diagrams
       // Useful for theme changes or dynamic content updates
       window.renderMermaidDiagrams = async () => {
-        console.log('MermaidScriptLoader: Rendering all diagrams');
         try {
           await mermaid.run();
-          console.log('MermaidScriptLoader: All diagrams rendered');
         } catch (error) {
           console.error('MermaidScriptLoader: Error rendering diagrams', error);
         }
@@ -55,7 +50,6 @@ export function MermaidScriptLoader() {
             mutation.target === document.documentElement
           ) {
             const isDark = document.documentElement.classList.contains('dark');
-            console.log(`MermaidScriptLoader: Theme changed to ${isDark ? 'dark' : 'light'}`);
             
             mermaid.initialize({
               theme: isDark ? 'dark' : 'default',

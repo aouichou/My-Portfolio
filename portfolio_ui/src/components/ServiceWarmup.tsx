@@ -21,7 +21,6 @@ export default function ServiceWarmup() {
           mode: 'no-cors'
         });
         
-        console.log("Services warmed up");
       } catch (e) {
         console.error("Service warmup error:", e);
       }

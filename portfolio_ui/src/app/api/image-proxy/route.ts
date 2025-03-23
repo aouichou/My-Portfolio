@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL domain' }, { status: 403 });
     }
     
-    console.log('Proxying image from:', url);
     
     // Direct fetch with timeout
     const controller = new AbortController();

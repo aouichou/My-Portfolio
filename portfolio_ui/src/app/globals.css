@@ -322,10 +322,13 @@
 	@apply inline-block px-6 py-3 bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-full font-medium transition-colors text-base;
   }
   
-  /* Fix for theme toggle in dark mode */
-  .dark .navbar-transparent .theme-toggle {
-	@apply bg-gray-700/50 border border-gray-600;
-  }
+.navbar-link {
+  @apply text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white;
+}
+
+.navbar-link.active {
+  @apply text-blue-600 dark:text-blue-400 font-medium;
+}
 
   img[alt*="diagram"] {
 	transition: filter 0.3s ease;
@@ -359,4 +362,52 @@ code {
 .dark code {
   background-color: #1e293b;
   color: #f87171;
+}
+
+/* Preserve white space in code explanations */
+.explanation-text li {
+  margin-left: 1rem;
+  list-style-type: disc;
+  margin-bottom: 0.5rem;
+}
+
+/* Adjust spacing for nested lists */
+.explanation-text .pl-4 {
+  padding-left: 1rem;
+}
+.explanation-text .pl-8 {
+  padding-left: 2rem;
+}
+.explanation-text .pl-12 {
+  padding-left: 3rem;
+}
+.explanation-text .pl-16 {
+  padding-left: 4rem;
+}
+
+code {
+  background-color: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  color: #ef4444;
+}
+
+.dark code {
+  background-color: #1e293b;
+  color: #f87171;
+}
+
+/* For explanation text lists */
+.explanation-text li {
+  margin-left: 1rem;
+  list-style-type: disc;
+  margin-bottom: 0.5rem;
+}
+
+/* Allow pre tags to wrap text but preserve whitespace */
+pre.whitespace-pre-wrap {
+  white-space: pre-wrap;
+  font-family: inherit;
 }

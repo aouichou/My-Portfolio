@@ -12,7 +12,7 @@ export default function Hero() {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-gradient-to-r from-gray-900 to-blue-900 text-white py-20 md:py-28"
+      className="bg-gradient-to-r from-gray-900 to-blue-900 text-white py-28 md:py-40"
     >
       <div className="container mx-auto text-center px-4">
         <h1 className="text-4xl md:text-6xl font-bold mb-6">

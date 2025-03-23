@@ -81,15 +81,21 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
 		{step.explanation && (
 		  <div className="mt-6">
 			<h5 className="font-semibold mb-3 text-gray-800 dark:text-gray-200">Explanation:</h5>
-			<div className="prose dark:prose-invert prose-sm max-w-none">
-			  {sanitizeCode(step.explanation).split('\n').map((line, i) => (
-				<p key={i} className="mb-2" dangerouslySetInnerHTML={{ 
-				  __html: line
-					.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-					.replace(/\*([^\*]+)\*/g, '<em>$1</em>') // Italics
-					.replace(/-\s+(.*)/g, '<li>$1</li>') // List items
-				}} />
-			  ))}
+			<div className="prose dark:prose-invert prose-sm max-w-none explanation-text">
+			  {sanitizeCode(step.explanation).split('\n').map((line, i) => {
+				// Calculate leading spaces to preserve indentation
+				const leadingSpaces = line.match(/^\s*/)?.[0]?.length || 0;
+				const indentClass = leadingSpaces > 0 ? `pl-${Math.min(leadingSpaces * 4, 16)}` : '';
+				
+				return (
+				  <p key={i} className={`mb-2 ${indentClass}`} dangerouslySetInnerHTML={{ 
+					__html: line.trim()
+					  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+					  .replace(/\*([^\*]+)\*/g, '<em>$1</em>') // Italics
+					  .replace(/^-\s+(.*)/g, '<li>$1</li>') // List items
+				  }} />
+				);
+			  })}
 			</div>
 		  </div>
 		)}
