@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getProjects, getProjectBySlug as apiGetProjectBySlug } from './api-client';
 import { normalizeProject } from './utils';
 import { Project } from './types';
-import { getAllProjectsUnfiltered } from './api-client';
+import axios from 'axios';
+
 
 type ProjectFromAPI = {
   id: string | number;
@@ -81,17 +82,26 @@ export function useProjectBySlug(slug: string, initialData?: Project) {
   });
 }
 
-export function useAllProjects() {
-	return useQuery({
-	  queryKey: ['allProjects'],
-	  queryFn: async () => {
-		const projects: ProjectFromAPI[] = await getAllProjectsUnfiltered();
-		return projects.map(normalizeProject);
-	  },
-	  staleTime: 1000 * 60 * 5,
-	  refetchOnWindowFocus: false
-	});
-  }
+export function useAllProjects(options = {}) {
+  return useQuery({
+    queryKey: ['allProjects'],
+    queryFn: async () => {
+      // Use a direct API call to ensure the parameter is sent
+      console.log('Fetching all projects with include_all=true');
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/projects/?include_all=true`);
+        console.log(`useAllProjects received ${response.data.length} projects`);
+        return response.data.map(normalizeProject);
+      } catch (error) {
+        console.error('Error in useAllProjects:', error);
+        return [];
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    ...options
+  });
+}
 
 export async function getAllProjects() {
   try {

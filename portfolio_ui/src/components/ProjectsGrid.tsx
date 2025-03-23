@@ -11,19 +11,23 @@ import { useFeaturedProjects, useAllProjects } from '../library/queries';
 import { motion } from 'framer-motion';
 
 export default function ProjectsGrid({ showAll = false }) {
-    const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = useFeaturedProjects();
-    const { data: allProjects, isLoading: allLoading, error: allError } = useAllProjects();
+    // const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = useFeaturedProjects();
+    // const { data: allProjects, isLoading: allLoading, error: allError } = useAllProjects();
+	const { isLoading, error } = useFeaturedProjects();
 	
-	const projects = showAll ? allProjects : featuredProjects;
-	const isLoading = showAll ? allLoading : featuredLoading;
-	const error = showAll ? allError : featuredError;
+	console.log(`ProjectsGrid hydration - showAll=${showAll}`);
 
-
-	// At the top of your ProjectsGrid component
-	console.log(`ProjectsGrid received showAll=${showAll}, projects:`, projects?.length);
-	if (projects) {
-	console.log('Project titles:', projects.map(p => p.title).join(', '));
-	}
+	// Force correct query based on showAll prop
+	const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = 
+	  useFeaturedProjects();
+	
+	const { data: allProjects, isLoading: allLoading, error: allError } = 
+	  useAllProjects({ enabled: showAll });
+	  
+	// Force the correct data set based on showAll
+	const projects = showAll 
+	  ? allProjects 
+	  : featuredProjects;
 
   // Only log in development, not production
   if (process.env.NODE_ENV === 'development') {
