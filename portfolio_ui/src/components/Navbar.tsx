@@ -34,7 +34,7 @@ export default function Navbar() {
     <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
       scrolled 
         ? 'bg-white/90 dark:bg-gray-900/90 shadow-md backdrop-blur-md' 
-        : isHomepage ? 'bg-transparent' : 'bg-white/90 dark:bg-gray-900/90' // Add background when not on homepage
+        : 'bg-transparent'
     }`}>
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
