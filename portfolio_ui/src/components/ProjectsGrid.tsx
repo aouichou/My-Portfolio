@@ -4,13 +4,16 @@
 
 import Link from 'next/link';
 import ClientImage from './ClientImage';
-import { useEffect } from 'react';
 import LoadingSkeleton from './LoadingSkeleton';
 import { Project } from '../library/types';
 import { useFeaturedProjects, useAllProjects } from '../library/queries';
 import { motion } from 'framer-motion';
+import { getAllProjectsUnfiltered } from '@/library/api-client';
 
 export default function ProjectsGrid({ showAll = false }) {
+
+	// log showAll prop
+	console.log('showAll prop:', showAll);
 
 	// Force correct query based on showAll prop
 	const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = 
@@ -24,11 +27,12 @@ export default function ProjectsGrid({ showAll = false }) {
 	  ? allProjects 
 	  : featuredProjects;
 
-  // Only log in development, not production
-  if (process.env.NODE_ENV === 'development') {
-    useEffect(() => {
-    }, [projects]);
-  }
+	// print the projects data
+	console.log('Projects data:', projects);
+
+	// compare projects data with unfiltered data
+	const unfilteredProjects = getAllProjectsUnfiltered();
+	console.log('Unfiltered Projects data:', unfilteredProjects);
 
   if (showAll ? allError : featuredError) {
 	return <div className="py-20 text-center">Failed to load projects. Please try again later.</div>;

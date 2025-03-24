@@ -96,8 +96,6 @@ export async function getAllProjectsUnfiltered() {
 	: null;
 
   try {
-    // Log the URL we're fetching
-    // Explicitly request all projects, including non-featured
     const response = await api.get('/projects/?include_all=true');
     return response.data;
   } catch (error) {
