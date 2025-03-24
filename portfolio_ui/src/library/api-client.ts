@@ -20,12 +20,12 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.request.use(config => {
-  if (config.url && !config.url.endsWith('/')) {
-	config.url = `${config.url}/`;
-  }
-  return config;
-});
+// api.interceptors.request.use(config => {
+//   if (config.url && !config.url.endsWith('/')) {
+// 	config.url = `${config.url}/`;
+//   }
+//   return config;
+// });
 
 export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
 						'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
@@ -89,14 +89,27 @@ export const fetchWithTimeout = async (url: string, options = {}, timeout = 1000
 	}
   };
 
+api.interceptors.request.use(config => {
+  if (config.url) {
+    // Split URL into base and query parts to preserve query parameters
+    const [base, query] = config.url.split('?');
+    
+    // Add trailing slash to base if needed
+    const newBase = base.endsWith('/') ? base : `${base}/`;
+    
+    // Reconstruct URL with query parameters preserved
+    config.url = query ? `${newBase}?${query}` : newBase;
+  }
+  return config;
+});
+
 export async function getAllProjectsUnfiltered() {
-
-	const token = typeof window !== 'undefined' 
-	? localStorage.getItem('auth_token') 
-	: null;
-
   try {
-    const response = await api.get('/projects/?include_all=true');
+    console.log('Fetching all projects with proper params format');
+    const response = await api.get('/projects/', {
+      params: { include_all: true }
+    });
+    console.log(`Received ${response.data.length} projects from getAllProjectsUnfiltered`);
     return response.data;
   } catch (error) {
     console.error('Error fetching all projects:', error);
