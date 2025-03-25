@@ -1,4 +1,4 @@
-// portfolio_ui/src/app/api/healthz/route.ts
+// portfolio_ui/src/app/healthz/route.ts
 
 export async function GET() {
   return new Response(JSON.stringify({ status: 'ok' }), {

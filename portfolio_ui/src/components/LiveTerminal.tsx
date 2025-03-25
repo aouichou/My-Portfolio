@@ -140,9 +140,11 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       }
     };
     
-    setTimeout(() => {
-      term.focus();
-    }, 1000);
+	let connectTimeout = setTimeout(() => {
+		if (!connected) {
+		  handleConnectionError('Connection timeout - Failed to establish WebSocket connection');
+		}
+	  }, 5000); // 5 seconds timeout
 
     terminalRef.current = term;
     
@@ -200,6 +202,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 
     // Cleanup
     return () => {
+	  clearTimeout(connectTimeout);
       window.removeEventListener('resize', resizeTerminal);
       document.removeEventListener('visibilitychange', () => {});
       
@@ -216,6 +219,48 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       }
     };
   }, [slug]);
+
+useEffect(() => {
+	// Add global error handler
+	const handleError = () => {
+	  // This will run even if React fails
+	  const errorDiv = document.createElement('div');
+	  errorDiv.className = 'absolute inset-0 flex items-center justify-center bg-gray-900/80 z-50';
+	  errorDiv.innerHTML = `
+		<div class="bg-red-600 text-white p-6 rounded-md shadow-lg max-w-md text-center">
+		  <h3 class="text-lg font-bold mb-2">Terminal Connection Failed</h3>
+		  <p class="mb-4">The terminal failed to initialize. The page will refresh in 5 seconds.</p>
+		  <button class="bg-white text-red-600 px-4 py-2 rounded-md hover:bg-gray-100">
+			Refresh Now
+		  </button>
+		</div>
+	  `;
+	  
+	  const terminal = document.getElementById('terminal');
+	  if (terminal && terminal.parentNode) {
+		terminal.parentNode.appendChild(errorDiv);
+	  }
+	  
+	  // Add click handler for the button
+	  errorDiv.querySelector('button')?.addEventListener('click', () => {
+		window.location.reload();
+	  });
+	  
+	  // Auto refresh after 5 seconds
+	  setTimeout(() => {
+		window.location.reload();
+	  }, 5000);
+	};
+	
+	// Register this handler
+	window.addEventListener('unhandledrejection', handleError);
+	window.addEventListener('error', handleError);
+	
+	return () => {
+	  window.removeEventListener('unhandledrejection', handleError);
+	  window.removeEventListener('error', handleError);
+	};
+  }, []);
   
   return (
     <div className="terminal-wrapper relative h-full">
