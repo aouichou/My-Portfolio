@@ -641,7 +641,7 @@ export default function PortfolioPage() {
                 </pre>
         
                 <div className="text-right">
-                  <Link href="/demo/minirt" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                  <Link href="/demo/minishell" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                     Try the terminal demo →
                   </Link>
                 </div>

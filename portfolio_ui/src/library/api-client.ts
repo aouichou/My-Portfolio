@@ -105,11 +105,9 @@ api.interceptors.request.use(config => {
 
 export async function getAllProjectsUnfiltered() {
   try {
-    console.log('Fetching all projects with proper params format');
     const response = await api.get('/projects/', {
       params: { include_all: true }
     });
-    console.log(`Received ${response.data.length} projects from getAllProjectsUnfiltered`);
     return response.data;
   } catch (error) {
     console.error('Error fetching all projects:', error);

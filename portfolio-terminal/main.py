@@ -149,11 +149,11 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 
 		# Initialize terminal
 		# child = spawn('bash --rcfile /app/bashrc -n', cwd=project_dir, env=env, echo=False, encoding='utf-8')
-		child = spawn('/bin/zsh', ['--login'], cwd=project_dir, env=env, encoding='utf-8')
+		child = spawn('/bin/zsh', ['--login'], cwd=project_dir, env=env, encoding='utf-8', timeout=60)
 		child.setwinsize(36, 120)  # Initial size
 		try:
 			await asyncio.sleep(0.5)  # Short delay for shell to initialize
-			child.expect_exact(['$', '#'], timeout=2)  # Wait for prompt
+			child.expect(['[$#]', '~.*[$#]', '.*[$#]'])  # Wait for prompt
 		except Exception as e:
 			print(f"Error waiting for prompt: {e}")
 		active_terminals[session_id] = child

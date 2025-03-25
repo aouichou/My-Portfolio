@@ -20,45 +20,92 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   const socketRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshCountdown, setRefreshCountdown] = useState<number | null>(null);
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to handle error with auto-refresh
+  const handleConnectionError = (message: string) => {
+    setError(message);
+    const term = terminalRef.current;
+    
+    if (term) {
+      term.write(`\r\n\x1b[31mERROR: ${message}\x1b[0m\r\n`);
+      term.write('\r\nPage will refresh automatically in 5 seconds...\r\n');
+      term.write('Press any key to cancel auto-refresh.\r\n');
+    }
+    
+    // Start countdown
+    setRefreshCountdown(5);
+    
+    // Set up countdown timer
+    if (refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+    }
+    
+    const timer = setInterval(() => {
+      setRefreshCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          window.location.reload();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    refreshTimerRef.current = timer;
+  };
+  
+  // Cancel auto-refresh
+  const cancelAutoRefresh = () => {
+    if (refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+    setRefreshCountdown(null);
+    
+    const term = terminalRef.current;
+    if (term) {
+      term.write('\r\nAuto-refresh cancelled. Please refresh the page manually if needed.\r\n');
+    }
+  };
 
   useEffect(() => {
     const terminalElement = document.getElementById('terminal');
     if (!terminalElement) return;
     
     // Initialize terminal
-	const term = new Terminal({
-	  cursorStyle: 'block',
-	  cursorBlink: true,
-	  macOptionIsMeta: true,
-	  fontSize: 14,
-	  fontFamily: "'MesloLGS NF', 'Fira Code', 'Cascadia Code', monospace",
-	  theme: {
-	    background: '#1e1e1e',
-	    foreground: '#d4d4d4',
-	    cursor: '#a0a0a0',
-		cursorAccent: '#000000',
-		selectionBackground: '#4d4d4d',
-	  },
-	  disableStdin: false,
-	  allowTransparency: true,
-	  convertEol: true,  // Important: Convert line feeds
-	  scrollback: 1000,
-	  tabStopWidth: 4,
-	  allowProposedApi: true,
-	  fontWeightBold: 'bold',
-	});
+    const term = new Terminal({
+      cursorStyle: 'block',
+      cursorBlink: true,
+      macOptionIsMeta: true,
+      fontSize: 14,
+      fontFamily: "'MesloLGS NF', 'Fira Code', 'Cascadia Code', monospace",
+      theme: {
+        background: '#1e1e1e',
+        foreground: '#d4d4d4',
+        cursor: '#a0a0a0',
+        cursorAccent: '#000000',
+        selectionBackground: '#4d4d4d',
+      },
+      disableStdin: false,
+      allowTransparency: true,
+      convertEol: true,
+      scrollback: 1000,
+      tabStopWidth: 4,
+      allowProposedApi: true,
+      fontWeightBold: 'bold',
+    });
     
     // Connect to WebSocket
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // const wsUrl = `${wsProtocol}//api.aouichou.me/ws/terminal/${slug}/`;
-
-	let host = window.location.host;
-	// If on the main domain, use the API subdomain
-	if (host === 'aouichou.me' || host === 'www.aouichou.me') {
-	host = 'api.aouichou.me';
-	}
-	
-	const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/`;
+    let host = window.location.host;
+    // If on the main domain, use the API subdomain
+    if (host === 'aouichou.me' || host === 'www.aouichou.me') {
+      host = 'api.aouichou.me';
+    }
+    
+    const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/`;
     const socket = new WebSocket(wsUrl);
     socketRef.current = socket;
     
@@ -69,13 +116,16 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     
     socket.onclose = (event) => {
       setConnected(false);
-      term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
+      if (event.code !== 1000) { // Not a clean close
+        handleConnectionError('Connection closed unexpectedly');
+      } else {
+        term.write('\r\nConnection closed.\r\n');
+      }
     };
     
     socket.onerror = (event) => {
-	  console.error('WebSocket error:', event);
-      setError('WebSocket error occurred');
-      term.write('\r\nError connecting to terminal server.\r\n');
+      console.error('WebSocket error:', event);
+      handleConnectionError('Error connecting to terminal server');
     };
     
     socket.onmessage = (event) => {
@@ -85,77 +135,82 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           term.write(data.output);
         }
       } catch (e) {
-		console.error("Error processing message:", e);
+        console.error("Error processing message:", e);
         term.write(event.data);
       }
     };
     
-	setTimeout(() => {
-		term.focus();
-	}, 1000);
+    setTimeout(() => {
+      term.focus();
+    }, 1000);
 
-	terminalRef.current = term;
+    terminalRef.current = term;
     
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     term.loadAddon(new WebLinksAddon());
     
-	const unicodeAddon = new Unicode11Addon();
-	term.loadAddon(unicodeAddon);
-	term.unicode.activeVersion = '11';
+    const unicodeAddon = new Unicode11Addon();
+    term.loadAddon(unicodeAddon);
+    term.unicode.activeVersion = '11';
 
-	// Define resize function
-	const resizeTerminal = () => {
-		// Short delay to ensure DOM layout is complete
-		setTimeout(() => {
-		try {
-			fitAddon.fit();
-			
-			// Send the resize command to the server
-			if (connected && socket.readyState === WebSocket.OPEN) {
-			socket.send(JSON.stringify({
-				resize: { cols: term.cols, rows: term.rows }
-			}));
-			}
-		} catch (e) {
-			console.error("Fit error:", e);
-		}
-		}, 100);
-	};
-	
-	// Open terminal in the container
-	term.open(terminalElement);
-	resizeTerminal();  // Initial fit
-	
-	// Handle window resize events
-	window.addEventListener('resize', resizeTerminal);
-	
-	document.addEventListener('visibilitychange', () => {
-		if (!document.hidden) {
-		  resizeTerminal();
-		}
-	  });
+    // Define resize function
+    const resizeTerminal = () => {
+      setTimeout(() => {
+        try {
+          fitAddon.fit();
+          
+          if (connected && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+              resize: { cols: term.cols, rows: term.rows }
+            }));
+          }
+        } catch (e) {
+          console.error("Fit error:", e);
+        }
+      }, 100);
+    };
+    
+    // Open terminal in the container
+    term.open(terminalElement);
+    resizeTerminal();
+    
+    // Handle window resize events
+    window.addEventListener('resize', resizeTerminal);
+    
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        resizeTerminal();
+      }
+    });
 
-	term.onData((data) => {
-		
-		if (socket.readyState === WebSocket.OPEN) {
-		  // Simply send raw data to the server - don't try to track commands locally
-		  socket.send(JSON.stringify({ 
-			input: data  // Send raw character data
-		  }));
-		  if (data.charCodeAt(0) >= 32 || data === '\r' || data === '\n') {
-			// term.write(data);
-		  }
-		} else {
-		}
-	  });
+    term.onData((data) => {
+      // Cancel auto-refresh if user presses any key
+      if (refreshCountdown !== null) {
+        cancelAutoRefresh();
+        return;
+      }
+      
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ 
+          input: data
+        }));
+      }
+    });
 
     // Cleanup
     return () => {
       window.removeEventListener('resize', resizeTerminal);
+      document.removeEventListener('visibilitychange', () => {});
+      
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+      }
+      
       if (socketRef.current) {
         socketRef.current.close();
       }
+      
       if (terminalRef.current) {
         terminalRef.current.dispose();
       }
@@ -163,8 +218,13 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   }, [slug]);
   
   return (
-	<div className="terminal-wrapper relative h-full">
-		<div id="terminal" className="absolute top-0 left-0 right-0 bottom-0" />
-	</div>
+    <div className="terminal-wrapper relative h-full">
+      <div id="terminal" className="absolute top-0 left-0 right-0 bottom-0" />
+      {refreshCountdown !== null && (
+        <div className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded shadow-lg text-sm animate-pulse">
+		  Refreshing in {refreshCountdown}s...
+		</div>
+      )}
+    </div>
   );
 }

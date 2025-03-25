@@ -12,9 +12,6 @@ import { getAllProjectsUnfiltered } from '@/library/api-client';
 
 export default function ProjectsGrid({ showAll = false }) {
 
-	// log showAll prop
-	console.log('showAll prop:', showAll);
-
 	// Force correct query based on showAll prop
 	const { data: featuredProjects, isLoading: featuredLoading, error: featuredError } = 
 	  useFeaturedProjects();
@@ -26,13 +23,6 @@ export default function ProjectsGrid({ showAll = false }) {
 	const projects = showAll 
 	  ? allProjects 
 	  : featuredProjects;
-
-	// print the projects data
-	console.log('Projects data:', projects);
-
-	// compare projects data with unfiltered data
-	const unfilteredProjects = getAllProjectsUnfiltered();
-	console.log('Unfiltered Projects data:', unfilteredProjects);
 
   if (showAll ? allError : featuredError) {
 	return <div className="py-20 text-center">Failed to load projects. Please try again later.</div>;
