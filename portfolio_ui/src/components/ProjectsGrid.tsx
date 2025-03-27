@@ -86,29 +86,27 @@ export default function ProjectsGrid({ showAll = false }) {
                   ))}
                 </div>
                 <div className="flex gap-4 mt-4">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // Prevent event bubbling
-                    try {
-                      if (project.has_interactive_demo) {
-                        window.location.href = `/demo/${project.slug}`;
-                      } else if (project.live_url) {
-                        window.open(project.live_url, '_blank', 'noopener,noreferrer');
-                      }
-                    } catch (error) {
-                      console.error("Navigation error:", error);
-                      // Show a toast notification instead
-                      if (window.toast) {
-                        window.toast.error("Couldn't open demo. Please try again.");
-                      }
-                    }
-                  }}
-                  className="btn-primary-sm"
-                  disabled={!project.live_url && !project.has_interactive_demo}
-                >
-                  {project.has_interactive_demo ? 'Try Demo' : 'Live Demo'}
-                </button>
+				{/* Demo/Live Website Button - only show if available */}
+				{(project.has_interactive_demo || (project.live_url && project.slug === 'ft-transcendence')) && (
+				  <button
+					onClick={(e) => {
+					  e.preventDefault();
+					  e.stopPropagation(); // Prevent event bubbling
+					  try {
+						if (project.has_interactive_demo) {
+						  window.location.href = `/demo/${project.slug}`;
+						} else if (project.live_url && project.slug === 'ft-transcendence') {
+						  window.open(project.live_url, '_blank', 'noopener,noreferrer');
+						}
+					  } catch (error) {
+						console.error("Navigation error:", error);
+					  }
+					}}
+					className="btn-primary-sm"
+				  >
+					{project.has_interactive_demo ? 'Try Demo' : 'Live Site'}
+				  </button>
+				)}
                   <button
                     onClick={(e) => {
                       e.preventDefault();

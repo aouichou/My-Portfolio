@@ -79,9 +79,8 @@ const ImageComponent = ({ src, alt }: { src?: string; alt?: string }) => {
 
 export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
   const { data: project, isLoading, error } = useProjectBySlug(slug, initialProject);
-  
-//   const [activeTab, setActiveTab] = useState('overview');
-//   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+
 
 	useEffect(() => {
 		// Force rendering of diagrams when project data is loaded
@@ -93,6 +92,20 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 			}, 1000);
 		}
 		}, [project]);
+
+	useEffect(() => {
+		const handleScroll = () => {
+			const scrollPosition = window.scrollY;
+			const pageHeight = document.body.scrollHeight - window.innerHeight;
+			const scrollPercentage = (scrollPosition / pageHeight) * 100;
+			
+			// Show banner when scrolled past 80%
+			setShowBanner(scrollPercentage > 80);
+		};
+		
+		window.addEventListener('scroll', handleScroll);
+		return () => window.removeEventListener('scroll', handleScroll);
+		}, []);
 
   // Loading state
   if (isLoading) {
@@ -344,7 +357,6 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 						}
 					  }
 					  
-					  // Regular object with step entries
 					// Regular object with step entries
 					return Object.entries(project.code_steps).map(([step, instruction]) => (
 					  <li key={step} className="text-lg">
@@ -458,25 +470,26 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
       )}
 
         {/* Live Demo Banner - Only show if has_interactive_demo is true */}
-        {project.has_interactive_demo && (
-        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-            <div className="h-6 w-6">
-                <Icons.sparkles />
-            </div>
-            <span className="font-medium">Interactive Demo Available</span>
-            </div>
-            <Link
-            href={`/demo/${slug}`}
-            className="flex items-center gap-2 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-all"
-            >
-            <div className="h-5 w-5">
-                <Icons.rocket />
-            </div>
-            Launch Demo
-            </Link>
-        </div>
-        )}
+        {project.has_interactive_demo && showBanner && (
+			<MotionDiv 
+				initial={{ y: 100, opacity: 0 }}
+				animate={{ y: 0, opacity: 1 }}
+				transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+				className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center z-50"
+			>
+				<div className="flex items-center gap-2">
+				<span className="text-2xl">✨</span>
+				<span className="font-medium">Interactive Terminal Demo Available</span>
+				</div>
+				<Link
+				href={`/demo/${slug}`}
+				className="flex items-center gap-2 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-all"
+				>
+				<span className="text-xl">🚀</span>
+				Launch Demo
+				</Link>
+			</MotionDiv>
+			)}
         
         {/* demo page */}
         {project.has_interactive_demo && (
