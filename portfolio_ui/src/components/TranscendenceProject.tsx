@@ -7,13 +7,14 @@ import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
+import { API_URL } from '@/library/api-client';
 
-// Use correct image paths from backend logs
+// Updated paths to match your actual S3 structure
 const GIF_PATHS = [
-  'galleries/2025/03/26/demo-42Oauth.gif',
-  'galleries/2025/03/26/demo-lobby.gif',
-  'galleries/2025/03/26/demo_match.gif',
-  'galleries/2025/03/26/demo-match_vs_IA.gif'
+  'galleries/2025/03/27/demo-42Oauth.gif',
+  'galleries/2025/03/27/demo-lobby.gif',
+  'galleries/2025/03/27/demo_match.gif',
+  'galleries/2025/03/27/demo-match_vs_IA.gif'
 ];
 
 const IMAGE_PATHS = [
@@ -27,21 +28,63 @@ const IMAGE_PATHS = [
   'galleries/2025/03/26/workstation_pc_in_lobby.png'
 ];
 
-const MotionTitle = motion.h1;
 const MotionSection = motion.section;
+
+// Image Lightbox Component
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+      onClick={onClose}
+    >
+      <div className="relative max-w-4xl max-h-[90vh] p-2">
+        <button 
+          className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-all"
+          onClick={onClose}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <img 
+          src={`/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src}`)}`}
+          alt={alt} 
+          className="max-h-[85vh] max-w-full object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project }) {
   const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
   const [currentGif, setCurrentGif] = useState(0);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxAlt, setLightboxAlt] = useState("");
 
   // Auto-rotate GIFs
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentGif((prev) => (prev + 1) % GIF_PATHS.length);
-    }, 10000); // Change every 10 seconds
-    
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  // Handle opening the lightbox
+  const openLightbox = (src: string, alt: string) => {
+    setLightboxImage(src);
+    setLightboxAlt(alt);
+    // Prevent scrolling when lightbox is open
+    document.body.style.overflow = 'hidden';
+  };
+
+  // Handle closing the lightbox
+  const closeLightbox = () => {
+    setLightboxImage(null);
+    // Restore scrolling when lightbox is closed
+    document.body.style.overflow = 'auto';
+  };
   
   if (!project) {
     return <div className="flex items-center justify-center min-h-screen">Loading project...</div>;
@@ -49,6 +92,15 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black">
+      {/* Lightbox */}
+      {lightboxImage && (
+        <ImageLightbox 
+          src={lightboxImage} 
+          alt={lightboxAlt} 
+          onClose={closeLightbox} 
+        />
+      )}
+
       {/* Hero Banner */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-24 px-4">
         <div className="container mx-auto">
@@ -118,15 +170,18 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
           >
             <h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Live Demo Showcase</h2>
             
-            {/* Feature GIF with pagination dots */}
+            {/* Feature GIF with pagination dots - Use image proxy URL directly */}
             <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
               <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
-                {/* Use ClientImage component which knows how to handle S3 images */}
-                <ClientImage
-                  src={GIF_PATHS[currentGif]}
+                <img
+                  src={`/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${GIF_PATHS[currentGif]}`)}`}
                   alt={`Transcendence Demo ${currentGif + 1}`}
                   className="w-full h-full object-contain"
-                  fallbackSrc="/fallback-image.jpg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/fallback-image.jpg';
+                    console.log(`Failed to load: ${GIF_PATHS[currentGif]}`);
+                  }}
                 />
               </div>
               
@@ -144,25 +199,36 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
               </div>
             </div>
             
-            {/* Gallery Grid */}
+            {/* Gallery Grid - With clickable images */}
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Screenshots Gallery</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {IMAGE_PATHS.map((path, index) => (
                 <motion.div
                   key={index}
-                  className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
+                  className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 * index, duration: 0.4 }}
                   whileHover={{ scale: 1.05, zIndex: 10 }}
+                  onClick={() => openLightbox(path, `Transcendence Screenshot ${index + 1}`)}
                 >
                   <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
-                    <ClientImage
-                      src={path}
+                    <img
+                      src={`/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${path}`)}`}
                       alt={`Transcendence Screenshot ${index + 1}`}
                       className="w-full h-full object-cover"
-                      fallbackSrc="/fallback-image.jpg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/fallback-image.jpg';
+                      }}
                     />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 flex items-center justify-center transition-all">
+                      <div className="bg-white bg-opacity-0 hover:bg-opacity-80 p-2 rounded-full transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-transparent hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               ))}
