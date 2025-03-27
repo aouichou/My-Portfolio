@@ -5,27 +5,27 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
+import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
 
-// We need to use direct references to the images to avoid S3 permissions issues
-const GIF_NAMES = [
-  'demo-42Oauth.gif',
-  'demo-lobby.gif',
-  'demo_match.gif',
-  'demo-match_vs_IA.gif'
+// Use correct image paths from backend logs
+const GIF_PATHS = [
+  'galleries/2025/03/26/demo-42Oauth.gif',
+  'galleries/2025/03/26/demo-lobby.gif',
+  'galleries/2025/03/26/demo_match.gif',
+  'galleries/2025/03/26/demo-match_vs_IA.gif'
 ];
 
-const IMAGE_NAMES = [
-  'first_page.png',
-  'lobby1.png',
-  'lobby2.png',
-  'login.png',
-  'playscreen.png',
-  'redirect.png',
-  'signup.png',
-  'workstation_pc_in_lobby.png'
+const IMAGE_PATHS = [
+  'galleries/2025/03/26/first_page.png',
+  'galleries/2025/03/26/lobby1.png',
+  'galleries/2025/03/26/lobby2.png',
+  'galleries/2025/03/26/login.png',
+  'galleries/2025/03/26/playscreen.png',
+  'galleries/2025/03/26/redirect.png',
+  'galleries/2025/03/26/signup.png',
+  'galleries/2025/03/26/workstation_pc_in_lobby.png'
 ];
-
 
 const MotionTitle = motion.h1;
 const MotionSection = motion.section;
@@ -37,7 +37,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
   // Auto-rotate GIFs
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentGif((prev) => (prev + 1) % GIF_NAMES.length);
+      setCurrentGif((prev) => (prev + 1) % GIF_PATHS.length);
     }, 10000); // Change every 10 seconds
     
     return () => clearInterval(interval);
@@ -99,7 +99,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                 whileHover={{ scale: 1.05 }}
               >
                 <span className="text-xl">💻</span>
-                GitHub Repository
+                Source Code
               </motion.a>
             )}
           </div>
@@ -119,18 +119,20 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             <h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Live Demo Showcase</h2>
             
             {/* Feature GIF with pagination dots */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-6 bg-gray-100 dark:bg-gray-800 p-4">
-              <div className="aspect-video flex items-center justify-center">
-                <img 
-                  src={`/fallback-image.jpg`} 
+            <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
+              <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
+                {/* Use ClientImage component which knows how to handle S3 images */}
+                <ClientImage
+                  src={GIF_PATHS[currentGif]}
                   alt={`Transcendence Demo ${currentGif + 1}`}
-                  className="max-w-full max-h-full object-contain rounded"
+                  className="w-full h-full object-contain"
+                  fallbackSrc="/fallback-image.jpg"
                 />
               </div>
               
               {/* Pagination dots */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {GIF_NAMES.map((_, i) => (
+                {GIF_PATHS.map((_, i) => (
                   <button
                     key={i}
                     className={`h-3 w-3 rounded-full ${
@@ -145,20 +147,23 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             {/* Gallery Grid */}
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Screenshots Gallery</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {IMAGE_NAMES.map((_, index) => (
+              {IMAGE_PATHS.map((path, index) => (
                 <motion.div
                   key={index}
-                  className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all bg-gray-100 dark:bg-gray-800 aspect-video flex items-center justify-center"
+                  className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 * index, duration: 0.4 }}
                   whileHover={{ scale: 1.05, zIndex: 10 }}
                 >
-                  <img 
-                    src={`/fallback-image.jpg`}
-                    alt={`Transcendence Screenshot ${index + 1}`}
-                    className="max-w-full max-h-full object-contain"
-                  />
+                  <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
+                    <ClientImage
+                      src={path}
+                      alt={`Transcendence Screenshot ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      fallbackSrc="/fallback-image.jpg"
+                    />
+                  </div>
                 </motion.div>
               ))}
             </div>

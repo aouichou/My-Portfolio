@@ -64,34 +64,35 @@ export default function ProjectsGrid({ showAll = false }) {
               className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
             >
 			<Link
-				href={`/projects/${project.slug}`}
-				className="block h-full"
+			  href={`/projects/${project.slug}`}
+			  className="block h-full flex flex-col"
 			>
-				<div className="relative h-48 w-full">
+			  <div className="relative h-48 w-full">
 				<ClientImage
-					src={project.thumbnail_url || project.thumbnail}
-					alt={project.title}
-					className="w-full h-full object-cover"
+				  src={project.thumbnail_url || project.thumbnail}
+				  alt={project.title}
+				  className="w-full h-full object-cover"
 				/>
+			  </div>
+			  <div className="p-6 flex flex-col flex-grow">
+				<h3 className="text-2xl font-bold mb-3 dark:text-white">
+				  {project.title}
+				</h3>
+				<div className="flex flex-wrap gap-2 mb-4">
+				  {project.tech_stack?.map((tech: string) => (
+					<span key={tech} className="badge-tech">
+					  {tech}
+					</span>
+				  ))}
 				</div>
-				<div className="p-6">
-                <h3 className="text-2xl font-bold mb-3 dark:text-white">
-                  {project.title}
-                </h3>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tech_stack?.map((tech: string) => (
-                    <span key={tech} className="badge-tech">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-4 mt-4">
-				{/* Demo/Live Website Button - only show if available */}
+				<div className="flex-grow"></div>
+				<div className="flex gap-4 mt-4">
+				{/* Demo/Live Website Button with modern styling */}
 				{(project.has_interactive_demo || (project.live_url && project.slug === 'ft_transcendence')) && (
 				  <button
 					onClick={(e) => {
 					  e.preventDefault();
-					  e.stopPropagation(); // Prevent event bubbling
+					  e.stopPropagation();
 					  try {
 						if (project.has_interactive_demo) {
 						  window.location.href = `/demo/${project.slug}`;
@@ -102,8 +103,11 @@ export default function ProjectsGrid({ showAll = false }) {
 						console.error("Navigation error:", error);
 					  }
 					}}
-					className="btn-primary-sm"
+					className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-sm"
 				  >
+					<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+					</svg>
 					{project.has_interactive_demo ? 'Try Demo' : 'Live Site'}
 				  </button>
 				)}
@@ -114,7 +118,7 @@ export default function ProjectsGrid({ showAll = false }) {
 					  e.stopPropagation();
 					  if (project.code_url) window.open(project.code_url, '_blank', 'noopener,noreferrer');
 					}}
-					className="btn-outline-sm flex items-center gap-1"
+					className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700"
 				  >
 					<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
