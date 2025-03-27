@@ -107,16 +107,21 @@ export default function ProjectsGrid({ showAll = false }) {
 					{project.has_interactive_demo ? 'Try Demo' : 'Live Site'}
 				  </button>
 				)}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (project.code_url) window.open(project.code_url, '_blank');
-                    }}
-                    className="btn-outline-sm"
-                    disabled={!project.code_url}
-                  >
-                    Source Code
-                  </button>
+				{project.code_url && (
+				  <button
+					onClick={(e) => {
+					  e.preventDefault();
+					  e.stopPropagation();
+					  if (project.code_url) window.open(project.code_url, '_blank', 'noopener,noreferrer');
+					}}
+					className="btn-outline-sm flex items-center gap-1"
+				  >
+					<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+					</svg>
+					Source
+				  </button>
+				)}
                 </div>
               </div>
             </Link>

@@ -20,13 +20,6 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// api.interceptors.request.use(config => {
-//   if (config.url && !config.url.endsWith('/')) {
-// 	config.url = `${config.url}/`;
-//   }
-//   return config;
-// });
-
 export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
 						'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
 

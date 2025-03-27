@@ -5,18 +5,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
-import Link from 'next/link';
-import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
 
-// Use absolute URLs for image proxy
-const getImagePath = (filename: string) => {
-  // We need to use client-side logic to get the current origin
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  return `${origin}/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/galleries/2025/03/ft_transcendence/${filename}`)}`;
-};
-
-// Define image paths
+// We need to use direct references to the images to avoid S3 permissions issues
 const GIF_NAMES = [
   'demo-42Oauth.gif',
   'demo-lobby.gif',
@@ -35,20 +26,13 @@ const IMAGE_NAMES = [
   'workstation_pc_in_lobby.png'
 ];
 
+
 const MotionTitle = motion.h1;
 const MotionSection = motion.section;
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project }) {
   const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
   const [currentGif, setCurrentGif] = useState(0);
-  const [gifPaths, setGifPaths] = useState<string[]>([]);
-  const [imagePaths, setImagePaths] = useState<string[]>([]);
-
-  // Initialize paths after mount to ensure window is available
-  useEffect(() => {
-    setGifPaths(GIF_NAMES.map(name => getImagePath(name)));
-    setImagePaths(IMAGE_NAMES.map(name => getImagePath(name)));
-  }, []);
 
   // Auto-rotate GIFs
   useEffect(() => {
@@ -68,14 +52,14 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
       {/* Hero Banner */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-24 px-4">
         <div className="container mx-auto">
-          <MotionTitle
+          <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-5xl md:text-6xl font-bold text-white text-center mb-6"
           >
-            ft_transcendence
-          </MotionTitle>
+            {project.title}
+          </motion.h1>
           
           <motion.p
             initial={{ opacity: 0 }}
@@ -92,12 +76,13 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                 href={project.live_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-white-lg"
+                className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white hover:bg-white/20 rounded-full transition-all border border-white/20"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.4 }}
                 whileHover={{ scale: 1.05 }}
               >
+                <span className="text-xl">🚀</span>
                 Visit Live Site
               </motion.a>
             )}
@@ -107,12 +92,13 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                 href={project.code_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-outline-white-lg"
+                className="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 hover:bg-gray-100 rounded-full transition-all"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.4 }}
                 whileHover={{ scale: 1.05 }}
               >
+                <span className="text-xl">💻</span>
                 GitHub Repository
               </motion.a>
             )}
@@ -133,25 +119,22 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             <h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Live Demo Showcase</h2>
             
             {/* Feature GIF with pagination dots */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
-              {gifPaths.length > 0 && (
-                <ClientImage
-                  src={gifPaths[currentGif]}
-                  alt="Transcendence Demo"
-                  width={800}
-                  height={450}
-                  className="w-full object-cover"
-                  fallbackSrc="/placeholder.png"
+            <div className="relative rounded-xl overflow-hidden shadow-xl mb-6 bg-gray-100 dark:bg-gray-800 p-4">
+              <div className="aspect-video flex items-center justify-center">
+                <img 
+                  src={`/fallback-image.jpg`} 
+                  alt={`Transcendence Demo ${currentGif + 1}`}
+                  className="max-w-full max-h-full object-contain rounded"
                 />
-              )}
+              </div>
               
               {/* Pagination dots */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {gifPaths.map((_, i) => (
+                {GIF_NAMES.map((_, i) => (
                   <button
                     key={i}
                     className={`h-3 w-3 rounded-full ${
-                      i === currentGif ? 'bg-white' : 'bg-white/50'
+                      i === currentGif ? 'bg-blue-600' : 'bg-gray-400'
                     }`}
                     onClick={() => setCurrentGif(i)}
                   />
@@ -162,28 +145,25 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             {/* Gallery Grid */}
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Screenshots Gallery</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {imagePaths.map((path, index) => (
+              {IMAGE_NAMES.map((_, index) => (
                 <motion.div
                   key={index}
-                  className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
+                  className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all bg-gray-100 dark:bg-gray-800 aspect-video flex items-center justify-center"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 * index, duration: 0.4 }}
                   whileHover={{ scale: 1.05, zIndex: 10 }}
                 >
-                  <ClientImage
-                    src={path}
+                  <img 
+                    src={`/fallback-image.jpg`}
                     alt={`Transcendence Screenshot ${index + 1}`}
-                    width={400}
-                    height={225}
-                    className="w-full h-auto"
-                    fallbackSrc="/placeholder.png"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </motion.div>
               ))}
             </div>
           </motion.div>
-          
+
           {/* Right Column - Technical Info */}
           <motion.div
             className="md:col-span-1"
