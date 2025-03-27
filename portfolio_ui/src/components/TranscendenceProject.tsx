@@ -35,7 +35,7 @@ const MotionTitle = motion.h1;
 const MotionSection = motion.section;
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project }) {
-  const { data: project } = useProjectBySlug('ft-transcendence', initialProject);
+  const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
   const [currentGif, setCurrentGif] = useState(0);
 
   // Auto-rotate GIFs

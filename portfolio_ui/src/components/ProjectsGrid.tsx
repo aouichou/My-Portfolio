@@ -87,7 +87,7 @@ export default function ProjectsGrid({ showAll = false }) {
                 </div>
                 <div className="flex gap-4 mt-4">
 				{/* Demo/Live Website Button - only show if available */}
-				{(project.has_interactive_demo || (project.live_url && project.slug === 'ft-transcendence')) && (
+				{(project.has_interactive_demo || (project.live_url && project.slug === 'ft_transcendence')) && (
 				  <button
 					onClick={(e) => {
 					  e.preventDefault();
@@ -95,7 +95,7 @@ export default function ProjectsGrid({ showAll = false }) {
 					  try {
 						if (project.has_interactive_demo) {
 						  window.location.href = `/demo/${project.slug}`;
-						} else if (project.live_url && project.slug === 'ft-transcendence') {
+						} else if (project.live_url && project.slug === 'ft_transcendence') {
 						  window.open(project.live_url, '_blank', 'noopener,noreferrer');
 						}
 					  } catch (error) {
