@@ -11,7 +11,7 @@ import { getMediaUrl } from '@/library/s3-config';
 
 // Use getMediaUrl for all images
 const getImagePath = (filename: string) => 
-	`/s3-proxy/projects/ft_transcendence/${filename}`;
+  `/api/image-proxy?url=${encodeURIComponent(getMediaUrl(`galleries/2025/03/ft_transcendence/${filename}`))}`;
 
 // Define image paths using the helper function
 const GIF_PATHS = [

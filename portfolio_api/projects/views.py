@@ -42,6 +42,37 @@ class ProjectDetail(generics.RetrieveAPIView):
 	lookup_field = 'slug'
 	serializer_class = ProjectSerializer
 
+	def retrieve(self, request, *args, **kwargs):
+		instance = self.get_object()
+		
+		# Detailed logging for the ft_transcendence project specifically
+		if instance.slug == 'ft_transcendence':
+			logger.info(f"============ FT_TRANSCENDENCE PROJECT DATA ============")
+			logger.info(f"Title: {instance.title}")
+			logger.info(f"Slug: {instance.slug}")
+			logger.info(f"Thumbnail: {instance.thumbnail}")
+			
+			# Log galleries and their images
+			galleries = instance.galleries.all().prefetch_related('images')
+			logger.info(f"Number of galleries: {galleries.count()}")
+			
+			for i, gallery in enumerate(galleries):
+				logger.info(f"Gallery {i+1}: {gallery.name}")
+				logger.info(f"Gallery images count: {gallery.images.count()}")
+				
+				for j, image in enumerate(gallery.images.all()):
+					logger.info(f"  Image {j+1}: {image.image}")
+					logger.info(f"  Image URL: {image.image.url}")
+					logger.info(f"  Image path: {image.image.name}")
+			
+			# Log live URL which should contain a valid link        
+			logger.info(f"Live URL: {instance.live_url}")
+			logger.info(f"Has interactive demo: {instance.has_interactive_demo}")
+			logger.info(f"============ END PROJECT DATA ============")
+		
+		serializer = self.get_serializer(instance)
+		return Response(serializer.data)
+
 @api_view(['GET', 'POST'])
 @ratelimit(key='ip', rate='60/m')
 def project_by_slug(request):
