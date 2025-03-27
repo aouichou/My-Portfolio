@@ -249,20 +249,12 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 		include_all_param = self.request.query_params.get('include_all', 'false')
 		include_all = include_all_param.lower() == 'true'
 		
-		# More detailed logging
-		print(f"Request URL: {self.request.path}")
-		print(f"Query params: {dict(self.request.query_params)}")
-		print(f"include_all param raw value: '{include_all_param}'")
-		print(f"include_all evaluated to: {include_all}")
-		
 		if not include_all:
 			queryset = queryset.filter(is_featured=True)
 		
 		count = queryset.count()
-		print(f"Returning {count} projects")
 		
 		# Log actual project names being returned
 		project_names = list(queryset.values_list('title', flat=True))
-		print(f"Project names: {project_names}")
 		
 		return queryset
