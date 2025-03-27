@@ -5,31 +5,34 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
+import Link from 'next/link';
 import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
-import { getMediaUrl } from '@/library/s3-config';
 
-// Use getMediaUrl for all images
-const getImagePath = (filename: string) => 
-  `/api/image-proxy?url=${encodeURIComponent(getMediaUrl(`galleries/2025/03/ft_transcendence/${filename}`))}`;
+// Use absolute URLs for image proxy
+const getImagePath = (filename: string) => {
+  // We need to use client-side logic to get the current origin
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  return `${origin}/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/galleries/2025/03/ft_transcendence/${filename}`)}`;
+};
 
-// Define image paths using the helper function
-const GIF_PATHS = [
-  getImagePath('demo-42Oauth.gif'),
-  getImagePath('demo-lobby.gif'),
-  getImagePath('demo_match.gif'),
-  getImagePath('demo-match_vs_IA.gif')
+// Define image paths
+const GIF_NAMES = [
+  'demo-42Oauth.gif',
+  'demo-lobby.gif',
+  'demo_match.gif',
+  'demo-match_vs_IA.gif'
 ];
 
-const IMAGE_PATHS = [
-  getImagePath('first_page.png'),
-  getImagePath('lobby1.png'),
-  getImagePath('lobby2.png'),
-  getImagePath('login.png'),
-  getImagePath('playscreen.png'),
-  getImagePath('redirect.png'),
-  getImagePath('signup.png'),
-  getImagePath('workstation_pc_in_lobby.png')
+const IMAGE_NAMES = [
+  'first_page.png',
+  'lobby1.png',
+  'lobby2.png',
+  'login.png',
+  'playscreen.png',
+  'redirect.png',
+  'signup.png',
+  'workstation_pc_in_lobby.png'
 ];
 
 const MotionTitle = motion.h1;
@@ -38,11 +41,19 @@ const MotionSection = motion.section;
 export function TranscendenceProject({ initialProject }: { initialProject?: Project }) {
   const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
   const [currentGif, setCurrentGif] = useState(0);
+  const [gifPaths, setGifPaths] = useState<string[]>([]);
+  const [imagePaths, setImagePaths] = useState<string[]>([]);
+
+  // Initialize paths after mount to ensure window is available
+  useEffect(() => {
+    setGifPaths(GIF_NAMES.map(name => getImagePath(name)));
+    setImagePaths(IMAGE_NAMES.map(name => getImagePath(name)));
+  }, []);
 
   // Auto-rotate GIFs
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentGif((prev) => (prev + 1) % GIF_PATHS.length);
+      setCurrentGif((prev) => (prev + 1) % GIF_NAMES.length);
     }, 10000); // Change every 10 seconds
     
     return () => clearInterval(interval);
@@ -123,18 +134,20 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             
             {/* Feature GIF with pagination dots */}
             <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
-              <ClientImage
-                src={GIF_PATHS[currentGif]}
-                alt="Transcendence Demo"
-                width={800}
-                height={450}
-                className="w-full object-cover"
-                fallbackSrc="/placeholder.png"
-              />
+              {gifPaths.length > 0 && (
+                <ClientImage
+                  src={gifPaths[currentGif]}
+                  alt="Transcendence Demo"
+                  width={800}
+                  height={450}
+                  className="w-full object-cover"
+                  fallbackSrc="/placeholder.png"
+                />
+              )}
               
               {/* Pagination dots */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {GIF_PATHS.map((_, i) => (
+                {gifPaths.map((_, i) => (
                   <button
                     key={i}
                     className={`h-3 w-3 rounded-full ${
@@ -149,7 +162,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             {/* Gallery Grid */}
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Screenshots Gallery</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {IMAGE_PATHS.map((path, index) => (
+              {imagePaths.map((path, index) => (
                 <motion.div
                   key={index}
                   className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
