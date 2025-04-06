@@ -21,7 +21,7 @@ python manage.py migrate
 echo "Importing projects from projects.json..."
 if [ -f "/app/projects.json" ]; then
   # Run the import_projects management command
-  python manage.py import_projects /app/projects.json --media-dir /app/media --update
+  python manage.py import_projects /app/projects1.json --media-dir /app/media --update
   echo "Projects imported successfully."
 else
   echo "Warning: projects.json file not found. Skipping project import."
