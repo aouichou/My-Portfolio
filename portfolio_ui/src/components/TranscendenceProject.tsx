@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
-import { Project } from '@/library/types';
+import { Project, Gallery, GalleryImage } from '@/library/types';
 
 const MotionSection = motion.section;
 
@@ -26,52 +26,77 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <img 
-          src={`/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src}`)}`}
+        <ClientImage 
+          src={src} 
           alt={alt} 
           className="max-h-[85vh] max-w-full object-contain"
-          onClick={(e) => e.stopPropagation()}
+		  onClick={(e: React.MouseEvent<HTMLImageElement>) => e.stopPropagation()}
         />
       </div>
     </div>
   );
 }
 
-export function TranscendenceProject({ initialProject }: { initialProject?: Project }) {
+export function TranscendenceProject({ initialProject }: { initialProject?: Project | null }) {
   const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
-  const [currentGif, setCurrentGif] = useState(0);
+  const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [lightboxAlt, setLightboxAlt] = useState("");
 
-  // Get GIFs and images from project galleries
-  const gifGallery = project?.galleries?.find(g => g.name.includes('Demo') || g.name.includes('GIF'));
-  const imageGallery = project?.galleries?.find(g => g.name.includes('Screenshot') || g.name.includes('Image'));
+  // Ensure graceful handling if project data fails to load
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-8">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-4xl font-bold mb-6">ft_transcendence Project</h1>
+          <p className="mb-8">We're having trouble loading this project's details. Please try again later.</p>
+          <a href="/projects" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            View All Projects
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Get all images from project galleries - without filtering by gallery name
+  const allGalleries = project?.galleries || [];
   
-  const gifPaths = gifGallery?.images.map(img => img.image) || [];
-  const imagePaths = imageGallery?.images.map(img => img.image) || [];
-   
-  // Auto-rotate GIFs
+  // Extract images from all galleries
+  const demoImages: string[] = [];
+  const screenshotImages: string[] = [];
+  
+  // Separate first 4 images for demos/GIFs (if available) and the rest for screenshots
+  allGalleries.forEach(gallery => {
+    gallery.images.forEach(img => {
+      // Use file extension to determine if it's likely a GIF
+      if (img.image.toLowerCase().endsWith('.gif') && demoImages.length < 4) {
+        demoImages.push(img.image);
+      } else {
+        screenshotImages.push(img.image);
+      }
+    });
+  });
+
+  // Auto-rotate demo images
   useEffect(() => {
-    if (gifPaths.length === 0) return;
+    if (demoImages.length === 0) return;
     
     const interval = setInterval(() => {
-      setCurrentGif((prev) => (prev + 1) % gifPaths.length);
+      setCurrentGalleryItem((prev) => (prev + 1) % demoImages.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, [gifPaths]);
+  }, [demoImages.length]);
 
   // Handle opening the lightbox
   const openLightbox = (src: string, alt: string) => {
     setLightboxImage(src);
     setLightboxAlt(alt);
-    // Prevent scrolling when lightbox is open
     document.body.style.overflow = 'hidden';
   };
 
   // Handle closing the lightbox
   const closeLightbox = () => {
     setLightboxImage(null);
-    // Restore scrolling when lightbox is closed
     document.body.style.overflow = 'auto';
   };
   
@@ -150,7 +175,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
       {/* Main Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-12">
-          {/* Left Column - Demo GIFs */}
+          {/* Left Column - Demo GIFs/Images */}
           <motion.div 
             className="md:col-span-2"
             initial={{ opacity: 0 }}
@@ -159,41 +184,41 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
           >
             <h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Live Demo Showcase</h2>
             
-            {/* Feature GIF with pagination dots */}
-            {gifPaths.length > 0 ? (
+            {/* Feature Image with pagination dots */}
+            {demoImages.length > 0 ? (
               <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
                 <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
                   <ClientImage
-                    src={gifPaths[currentGif] || ''}
-                    alt={`Transcendence Demo ${currentGif + 1}`}
+                    src={demoImages[currentGalleryItem] || ''}
+                    alt={`Transcendence Demo ${currentGalleryItem + 1}`}
                     className="w-full h-full object-contain"
                   />
                 </div>
-              
+                
                 {/* Pagination dots */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {gifPaths.map((_, i) => (
+                  {demoImages.map((_, i) => (
                     <button
                       key={i}
                       className={`h-3 w-3 rounded-full ${
-                        i === currentGif ? 'bg-blue-600' : 'bg-gray-400'
+                        i === currentGalleryItem ? 'bg-blue-600' : 'bg-gray-400'
                       }`}
-                      onClick={() => setCurrentGif(i)}
+                      onClick={() => setCurrentGalleryItem(i)}
                     />
                   ))}
                 </div>
               </div>
             ) : (
               <div className="bg-gray-100 dark:bg-gray-800 aspect-video rounded-xl flex items-center justify-center mb-6">
-                <p>No demo GIFs available</p>
+                <p>No demo images available</p>
               </div>
             )}
             
             {/* Gallery Grid - With clickable images */}
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Screenshots Gallery</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {imagePaths.length > 0 ? (
-                imagePaths.map((path, index) => (
+              {screenshotImages.length > 0 ? (
+                screenshotImages.map((path, index) => (
                   <motion.div
                     key={index}
                     className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer"

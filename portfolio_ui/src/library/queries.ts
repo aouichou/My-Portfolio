@@ -54,25 +54,25 @@ type ProjectFromAPI = {
 };
 
   export function useFeaturedProjects() {
-	return useQuery({
-	  queryKey: ['featuredProjects'],
-	  queryFn: async () => {
-		const projects: ProjectFromAPI[] = await getProjects();
-		// Explicit type for 'p' parameter
-		const featuredProjects = projects.filter((p: ProjectFromAPI) => p.is_featured);
-		return featuredProjects.map(normalizeProject);
-	  },
-	  staleTime: 1000 * 60 * 5, // 5 minutes cache
-	  refetchOnWindowFocus: false
-	});
+    return useQuery({
+      queryKey: ['featuredProjects'],
+      queryFn: async () => {
+        const projects: ProjectFromAPI[] = await getProjects();
+        // Explicit type for 'p' parameter
+        const featuredProjects = projects.filter((p: ProjectFromAPI) => p.is_featured);
+        return featuredProjects.map(normalizeProject);
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes cache
+      refetchOnWindowFocus: false
+    });
   }
 
-export function useProjectBySlug(slug: string, initialData?: Project) {
+export function useProjectBySlug(slug: string, initialData?: Project | null) {
   return useQuery({
     queryKey: ['projects', slug],
     queryFn: async () => {
       if (!slug) return null;
-      
+
       const project = await apiGetProjectBySlug(slug);
       return normalizeProject(project);
     },
@@ -80,6 +80,7 @@ export function useProjectBySlug(slug: string, initialData?: Project) {
     enabled: !!slug
   });
 }
+  
 
 export function useAllProjects(options = {}) {
   return useQuery({

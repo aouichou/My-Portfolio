@@ -4,7 +4,6 @@ import Hero from "../components/Hero";
 import ProjectsGrid from "../components/ProjectsGrid";
 import ContactForm from "../components/ContactForm";
 // import ProjectsDebug from '@/components/ProjectsDebug';
-import Footer from "@/components/Footer";
 import ArchitectureShowcase from "@/components/ArchitectureShowcase";
 
 
