@@ -47,7 +47,7 @@ python manage.py migrate
 #     user.set_password(password)
 #     user.save()
 #     print('Password changed successfully')
-"
+# "
 
 
 #Start gunicorn in background for HTTP
