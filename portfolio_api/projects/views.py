@@ -45,36 +45,6 @@ class ProjectDetail(generics.RetrieveAPIView):
 	def retrieve(self, request, *args, **kwargs):
 		instance = self.get_object()
 		
-		# Detailed logging for the ft_transcendence project specifically
-		if instance.slug == 'ft_transcendence':
-			logger.info(f"============ FT_TRANSCENDENCE PROJECT DATA ============")
-			logger.info(f"Title: {instance.title}")
-			logger.info(f"Slug: {instance.slug}")
-			logger.info(f"Thumbnail: {instance.thumbnail}")
-			
-			# Log galleries and their images
-			galleries = instance.galleries.all().prefetch_related('images')
-			logger.info(f"Number of galleries: {galleries.count()}")
-			
-			for i, gallery in enumerate(galleries):
-				logger.info(f"Gallery {i+1}: {gallery.name}")
-				logger.info(f"Gallery images count: {gallery.images.count()}")
-				
-				for j, image in enumerate(gallery.images.all()):
-					logger.info(f"  Image {j+1}: {image.image}")
-					if bool(image.image):
-						try:
-							logger.info(f"  Image URL: {image.image.url}")
-						except ValueError:
-							logger.warning(f"  Missing file for image {j+1}")
-					else:
-						logger.warning(f"  No file for image {j+1}")
-			
-			# Log live URL
-			logger.info(f"Live URL: {instance.live_url}")
-			logger.info(f"Has interactive demo: {instance.has_interactive_demo}")
-			logger.info(f"============ END PROJECT DATA ============")
-		
 		serializer = self.get_serializer(instance)
 		return Response(serializer.data)
 

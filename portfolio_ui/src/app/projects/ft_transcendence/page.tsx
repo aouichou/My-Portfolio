@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 
 // Force dynamic rendering to avoid build-time API failures
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -24,12 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  try {
-    // If API fails, we'll gracefully handle it in the component
-    const initialProject = await getProjectBySlug('ft_transcendence');
-    return <TranscendenceProject initialProject={initialProject} />;
-  } catch (error) {
-    // Pass null as initialProject, component will handle this case
-    return <TranscendenceProject initialProject={null} />;
-  }
+	try {
+	  return <TranscendenceProject initialProject={null} />;
+	} catch (error) {
+	  return <TranscendenceProject initialProject={null} />;
+	}
 }
