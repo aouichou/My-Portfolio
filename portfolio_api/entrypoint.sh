@@ -19,7 +19,7 @@ python manage.py migrate
 
 # import projects from JSON file
 echo "Importing projects from projects.json..."
-if [ -f "/app/projects.json" ]; then
+if [ -f "/app/projects1.json" ]; then
   # Run the import_projects management command
   python manage.py import_projects /app/projects1.json --media-dir /app/media --update
   echo "Projects imported successfully."

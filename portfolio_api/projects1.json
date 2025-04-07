@@ -496,7 +496,7 @@
 		"image": "projects/ft_transcendence/redirect.png",
 		"caption": "The page that asks the player to move to the plascreen",
 		"order": 4
-		}
+		},
 		{
 		"image": "projects/ft_transcendence/signup.png",
 		"caption": "Signup page",
