@@ -62,10 +62,15 @@ class ProjectDetail(generics.RetrieveAPIView):
 				
 				for j, image in enumerate(gallery.images.all()):
 					logger.info(f"  Image {j+1}: {image.image}")
-					logger.info(f"  Image URL: {image.image.url}")
-					logger.info(f"  Image path: {image.image.name}")
+					if bool(image.image):
+						try:
+							logger.info(f"  Image URL: {image.image.url}")
+						except ValueError:
+							logger.warning(f"  Missing file for image {j+1}")
+					else:
+						logger.warning(f"  No file for image {j+1}")
 			
-			# Log live URL which should contain a valid link        
+			# Log live URL
 			logger.info(f"Live URL: {instance.live_url}")
 			logger.info(f"Has interactive demo: {instance.has_interactive_demo}")
 			logger.info(f"============ END PROJECT DATA ============")

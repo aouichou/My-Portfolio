@@ -13,7 +13,13 @@ class GalleryImageSerializer(serializers.ModelSerializer):
 	
 	def get_image_url(self, obj):
 		request = self.context.get('request')
-		return request.build_absolute_uri(obj.image.url) if obj.image else None
+		try:
+			if obj.image and hasattr(obj.image, 'url'):
+				return request.build_absolute_uri(obj.image.url)
+		except ValueError:
+			# Image exists in DB but file is missing
+			return None
+		return None
 
 class GallerySerializer(serializers.ModelSerializer):
 	images = GalleryImageSerializer(many=True, read_only=True)
