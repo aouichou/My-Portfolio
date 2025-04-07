@@ -30,7 +30,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
           src={src} 
           alt={alt} 
           className="max-h-[85vh] max-w-full object-contain"
-          onClick={(e: React.MouseEvent<HTMLImageElement>) => e.stopPropagation()}
+		  onClick={(e: React.MouseEvent<HTMLImageElement>) => e.stopPropagation()}
         />
       </div>
     </div>
@@ -38,78 +38,44 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
 }
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project | null }) {
-    const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
-    const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
-    const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-    const [lightboxAlt, setLightboxAlt] = useState("");
-    
-    // Add progressive loading for images
-    const [loadedImages, setLoadedImages] = useState<string[]>([]);
-    
-    // Ensure graceful handling if project data fails to load
-    if (!project) {
-      return <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin mx-auto mb-4"></div>
-          <h3 className="text-xl font-semibold">Loading project data...</h3>
+  const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
+  const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxAlt, setLightboxAlt] = useState("");
+
+  // Ensure graceful handling if project data fails to load
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-8">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-4xl font-bold mb-6">ft_transcendence Project</h1>
+          <p className="mb-8">We're having trouble loading this project's details. Please try again later.</p>
+          <a href="/projects" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            View All Projects
+          </a>
         </div>
-      </div>;
-    }
-    
-    // Get all images from project galleries but limit initial processing
-    const allGalleries = project?.galleries || [];
-    
-    // Extract first 4 images for demos/GIFs and first 8 screenshots only
-    const demoImages: string[] = [];
-    const screenshotImages: string[] = [];
-    
-    // Optimize image processing
-    useEffect(() => {
-      if (!project?.galleries) return;
-      
-      // Process first batch immediately
-      const processInitialBatch = () => {
+      </div>
+    );
+  }
 
-        if (!project.galleries) return;
-
-        project.galleries.forEach(gallery => {
-          (gallery.images || []).slice(0, 3).forEach(img => {
-            if (img.image) {
-              if (img.image.toLowerCase().endsWith('.gif') && demoImages.length < 2) {
-                demoImages.push(img.image);
-              } else if (screenshotImages.length < 6) {
-                screenshotImages.push(img.image);
-              }
-            }
-          });
-        });
-        setLoadedImages([...demoImages, ...screenshotImages]);
-      };
-      
-      // Process remaining images after initial render
-        const processRemainingImages = () => {
-        if (!project?.galleries) return;
-        
-        const remainingImages: string[] = [];
-        project.galleries.forEach(gallery => {
-            if (!gallery.images) return;
-            
-            gallery.images.forEach(img => {
-            if (img.image && !loadedImages.includes(img.image)) {
-                remainingImages.push(img.image);
-            }
-            });
-        });
-        
-        if (remainingImages.length > 0) {
-            setLoadedImages(prev => [...prev, ...remainingImages]);
-        }
-        };
-      
-      processInitialBatch();
-      const timer = setTimeout(processRemainingImages, 1000);
-      return () => clearTimeout(timer);
-    }, [project ? project.galleries : undefined]);
+  // Get all images from project galleries - without filtering by gallery name
+  const allGalleries = project?.galleries || [];
+  
+  // Extract images from all galleries
+  const demoImages: string[] = [];
+  const screenshotImages: string[] = [];
+  
+  // Separate first 4 images for demos/GIFs (if available) and the rest for screenshots
+  allGalleries.forEach(gallery => {
+    gallery.images.forEach(img => {
+      // Use file extension to determine if it's likely a GIF
+      if (img.image.toLowerCase().endsWith('.gif') && demoImages.length < 4) {
+        demoImages.push(img.image);
+      } else {
+        screenshotImages.push(img.image);
+      }
+    });
+  });
 
   // Auto-rotate demo images
   useEffect(() => {
@@ -258,7 +224,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                     className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 * Math.min(index, 5), duration: 0.4 }}
+                    transition={{ delay: 0.1 * index, duration: 0.4 }}
                     whileHover={{ scale: 1.05, zIndex: 10 }}
                     onClick={() => openLightbox(path, `Transcendence Screenshot ${index + 1}`)}
                   >
@@ -268,6 +234,13 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                         alt={`Transcendence Screenshot ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 flex items-center justify-center transition-all">
+                        <div className="bg-white bg-opacity-0 hover:bg-opacity-80 p-2 rounded-full transition-all">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-transparent hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 ))
