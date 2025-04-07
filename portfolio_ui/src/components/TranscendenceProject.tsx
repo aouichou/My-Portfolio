@@ -7,26 +7,6 @@ import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
-import { API_URL } from '@/library/api-client';
-
-// Updated paths to match your actual S3 structure
-const GIF_PATHS = [
-  'galleries/2025/03/27/demo-42Oauth.gif',
-  'galleries/2025/03/27/demo-lobby.gif',
-  'galleries/2025/03/27/demo_match.gif',
-  'galleries/2025/03/27/demo-match_vs_IA.gif'
-];
-
-const IMAGE_PATHS = [
-  'galleries/2025/03/26/first_page.png',
-  'galleries/2025/03/26/lobby1.png',
-  'galleries/2025/03/26/lobby2.png',
-  'galleries/2025/03/26/login.png',
-  'galleries/2025/03/26/playscreen.png',
-  'galleries/2025/03/26/redirect.png',
-  'galleries/2025/03/26/signup.png',
-  'galleries/2025/03/26/workstation_pc_in_lobby.png'
-];
 
 const MotionSection = motion.section;
 
@@ -63,13 +43,22 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [lightboxAlt, setLightboxAlt] = useState("");
 
+  // Get GIFs and images from project galleries
+  const gifGallery = project?.galleries?.find(g => g.name.includes('Demo') || g.name.includes('GIF'));
+  const imageGallery = project?.galleries?.find(g => g.name.includes('Screenshot') || g.name.includes('Image'));
+  
+  const gifPaths = gifGallery?.images.map(img => img.image) || [];
+  const imagePaths = imageGallery?.images.map(img => img.image) || [];
+   
   // Auto-rotate GIFs
   useEffect(() => {
+    if (gifPaths.length === 0) return;
+    
     const interval = setInterval(() => {
-      setCurrentGif((prev) => (prev + 1) % GIF_PATHS.length);
+      setCurrentGif((prev) => (prev + 1) % gifPaths.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [gifPaths]);
 
   // Handle opening the lightbox
   const openLightbox = (src: string, alt: string) => {
@@ -170,68 +159,71 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
           >
             <h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Live Demo Showcase</h2>
             
-            {/* Feature GIF with pagination dots - Use image proxy URL directly */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
-              <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
-                <img
-                  src={`/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${GIF_PATHS[currentGif]}`)}`}
-                  alt={`Transcendence Demo ${currentGif + 1}`}
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/fallback-image.jpg';
-                    console.log(`Failed to load: ${GIF_PATHS[currentGif]}`);
-                  }}
-                />
-              </div>
-              
-              {/* Pagination dots */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {GIF_PATHS.map((_, i) => (
-                  <button
-                    key={i}
-                    className={`h-3 w-3 rounded-full ${
-                      i === currentGif ? 'bg-blue-600' : 'bg-gray-400'
-                    }`}
-                    onClick={() => setCurrentGif(i)}
+            {/* Feature GIF with pagination dots */}
+            {gifPaths.length > 0 ? (
+              <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
+                <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
+                  <ClientImage
+                    src={gifPaths[currentGif] || ''}
+                    alt={`Transcendence Demo ${currentGif + 1}`}
+                    className="w-full h-full object-contain"
                   />
-                ))}
+                </div>
+              
+                {/* Pagination dots */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {gifPaths.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`h-3 w-3 rounded-full ${
+                        i === currentGif ? 'bg-blue-600' : 'bg-gray-400'
+                      }`}
+                      onClick={() => setCurrentGif(i)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-gray-100 dark:bg-gray-800 aspect-video rounded-xl flex items-center justify-center mb-6">
+                <p>No demo GIFs available</p>
+              </div>
+            )}
             
             {/* Gallery Grid - With clickable images */}
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Screenshots Gallery</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {IMAGE_PATHS.map((path, index) => (
-                <motion.div
-                  key={index}
-                  className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 * index, duration: 0.4 }}
-                  whileHover={{ scale: 1.05, zIndex: 10 }}
-                  onClick={() => openLightbox(path, `Transcendence Screenshot ${index + 1}`)}
-                >
-                  <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
-                    <img
-                      src={`/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${path}`)}`}
-                      alt={`Transcendence Screenshot ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/fallback-image.jpg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 flex items-center justify-center transition-all">
-                      <div className="bg-white bg-opacity-0 hover:bg-opacity-80 p-2 rounded-full transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-transparent hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+              {imagePaths.length > 0 ? (
+                imagePaths.map((path, index) => (
+                  <motion.div
+                    key={index}
+                    className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 * index, duration: 0.4 }}
+                    whileHover={{ scale: 1.05, zIndex: 10 }}
+                    onClick={() => openLightbox(path, `Transcendence Screenshot ${index + 1}`)}
+                  >
+                    <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
+                      <ClientImage
+                        src={path}
+                        alt={`Transcendence Screenshot ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 flex items-center justify-center transition-all">
+                        <div className="bg-white bg-opacity-0 hover:bg-opacity-80 p-2 rounded-full transition-all">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-transparent hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-3 bg-gray-100 dark:bg-gray-800 aspect-video rounded-lg flex items-center justify-center">
+                  <p>No screenshots available</p>
+                </div>
+              )}
             </div>
           </motion.div>
 
