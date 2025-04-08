@@ -2,13 +2,18 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
-import { Project, Gallery, GalleryImage } from '@/library/types';
+import { Project } from '@/library/types';
 
 const MotionSection = motion.section;
+const MotionDiv = motion.div;
+const MotionH1 = motion.h1;
+const MotionP = motion.p;
+const MotionA = motion.a;
+
 
 // Image Lightbox Component
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
@@ -30,7 +35,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
           src={src} 
           alt={alt} 
           className="max-h-[85vh] max-w-full object-contain"
-		  onClick={(e: React.MouseEvent<HTMLImageElement>) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent<HTMLImageElement>) => e.stopPropagation()}
         />
       </div>
     </div>
