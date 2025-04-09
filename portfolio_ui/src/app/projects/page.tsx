@@ -2,7 +2,6 @@
 
 import ProjectsGrid from '@/components/ProjectsGrid';
 import { Metadata } from 'next';
-import { getAllProjects } from '@/library/queries';
 
 export const metadata: Metadata = {
   title: 'All Projects | My Portfolio',

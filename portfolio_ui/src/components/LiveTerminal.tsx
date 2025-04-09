@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
@@ -25,7 +25,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   const maxRetries = 3;
 
   useEffect(() => {
-    const terminalElement = document.getElementById('terminal');
+    const terminalElement = document.getElementById('terminal-container');
     if (!terminalElement) return;
     
     // Initialize terminal
@@ -223,7 +223,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   
   return (
     <div className="terminal-wrapper relative h-full">
-      <div id="terminal" className="absolute top-0 left-0 right-0 bottom-0" />
+      <div className="absolute top-0 left-0 right-0 bottom-0" />
       
       {/* Error overlay */}
       {error && (

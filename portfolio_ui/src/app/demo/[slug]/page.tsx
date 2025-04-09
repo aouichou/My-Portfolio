@@ -11,14 +11,14 @@ import React from 'react';
 // Dynamic import with SSR disabled
 const LiveTerminal = dynamic(() => import('@/components/LiveTerminal'), {
   ssr: false,
-//   loading: () => (
-//     <div className="flex items-center justify-center h-full">
-//       <div className="text-center">
-//         <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-700 border-l-blue-600 border-r-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-//         <p>Loading terminal...</p>
-//       </div>
-//     </div>
-//   ),
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-700 border-l-blue-600 border-r-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p>Loading terminal...</p>
+      </div>
+    </div>
+  ),
 });
 
 export default function ProjectDemoPage() {
@@ -103,8 +103,8 @@ export default function ProjectDemoPage() {
       </header>
       
       <div className="flex flex-1 overflow-hidden">
-        {/* Terminal - Now using LiveTerminal */}
-        <div className="flex-1 overflow-hidden bg-black">
+        {/* Terminal - Using LiveTerminal */}
+        <div id="terminal-container" className="flex-1 overflow-hidden bg-black">
           <LiveTerminal project={project} slug={slug} />
         </div>
         
