@@ -17,15 +17,15 @@ done
 python manage.py makemigrations
 python manage.py migrate
 
-# import projects from JSON file
-# echo "Importing projects from projects.json..."
-# if [ -f "/app/projects.json" ]; then
-#   # Run the import_projects management command
-#   python manage.py import_projects /app/projects.json --media-dir /app/media --update
-#   echo "Projects imported successfully."
-# else
-#   echo "Warning: projects.json file not found. Skipping project import."
-# fi
+import projects from JSON file
+echo "Importing projects from projects.json..."
+if [ -f "/app/projects.json" ]; then
+  # Run the import_projects management command
+  python manage.py import_projects /app/projects.json --media-dir /app/media --update
+  echo "Projects imported successfully."
+else
+  echo "Warning: projects.json file not found. Skipping project import."
+fi
 
 # Create a superuser if it doesn't exist
 # python -c "
