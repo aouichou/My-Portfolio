@@ -123,15 +123,12 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     // Show loading message
     term.write(`Connecting to terminal service (attempt ${connectionAttempts + 1}/${maxRetries})...\r\n`);
     
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    
-    let host = window.location.host;
-    // If on the main domain, use the API subdomain
-    if (host === 'aouichou.me' || host === 'www.aouichou.me') {
-      host = 'api.aouichou.me';
-    }
-    
-    const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/`;
+	const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+	const wsHost = window.location.hostname === 'localhost' ? 
+	  'localhost:8000' : // Local development
+	  'api.aouichou.me'; // Production
+	
+	const wsUrl = `${wsProtocol}//${wsHost}/ws/terminal/${slug}/`;
     
     // Close existing connection if any
     if (socketRef.current) {

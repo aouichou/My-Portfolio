@@ -67,16 +67,21 @@ type ProjectFromAPI = {
     });
   }
 
-export function useProjectBySlug(slug: string, initialData?: Project | null) {
+export function useProjectBySlug(slug: string, initialData?: Project) {
   return useQuery({
     queryKey: ['projects', slug],
     queryFn: async () => {
       if (!slug) return null;
 
       const project = await apiGetProjectBySlug(slug);
-      return normalizeProject(project);
+      return normalizeProject({
+      ...project,
+      galleries: project?.galleries || [],
+      tech_stack: project?.tech_stack || []
+    }
+  );
     },
-    initialData, // Use server-fetched data for initial render
+    initialData, // Simply pass the initialData directly
     enabled: !!slug
   });
 }

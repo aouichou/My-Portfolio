@@ -49,7 +49,7 @@ function SimpleFallback() {
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project | null }) {
     // All hooks must be called unconditionally first
-    const { data: project, isLoading } = useProjectBySlug('ft_transcendence', initialProject);
+    const { data: project } = useProjectBySlug('ft_transcendence', initialProject ?? undefined);
     const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const [lightboxAlt, setLightboxAlt] = useState("");

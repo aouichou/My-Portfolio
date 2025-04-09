@@ -39,21 +39,17 @@ const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
   }, []);
 
   return (
-<ErrorBoundary 
-  fallback={<TranscendenceFallback onRetry={() => window.location.reload()} />}
-  onError={(error, info) => {
-    console.error('Caught error:', error, info.componentStack);
-    setErrorInfo({
-      message: error.message,
-      stack: info.componentStack || '',
-    });
-  }}
->
-  <Suspense fallback={<TranscendenceFallback />}>
-    <TranscendenceProject />
-  </Suspense>
-</ErrorBoundary>
+	<ErrorBoundary 
+	  fallback={<TranscendenceFallback onRetry={() => window.location.reload()} />}
+	  onError={(error, info) => {
+		console.error('Caught error:', error, info.componentStack);
+		setErrorInfo({
+		  message: error.message,
+		  stack: info.componentStack || '',
+		});
+	  }}
+	>
+	  <TranscendenceProject />
+	</ErrorBoundary>
   );
-  
-  
 }

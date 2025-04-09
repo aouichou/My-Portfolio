@@ -1,7 +1,7 @@
 // src/lib/api-client.ts
 
 import axios from "axios"
-import { Project } from "./types"
+import { EMPTY_PROJECT, Project } from "./types"
 import { getMediaUrl, S3_BUCKET_URL } from './s3-config';
 
 // Re-export from s3-config
@@ -30,8 +30,13 @@ const RETRY_DELAY = 1000; // ms
 
 export async function getProjectBySlug(slug: string, attempt = 0): Promise<Project> {
   try {
-	const response = await api.get<Project>(`/projects/${slug}`);
-	return response.data;
+	const response = await api.get<Project>(`/projects/${slug}/`);
+	return {
+		...EMPTY_PROJECT,
+		...response.data,
+		galleries: response.data.galleries || [],
+		tech_stack: response.data.tech_stack || []
+	};
   } catch (error) {
 	if (axios.isAxiosError(error) && error.code === 'ECONNABORTED' && attempt < MAX_RETRIES) {
 	  console.warn(`Request timed out, retrying (${attempt+1}/${MAX_RETRIES})...`);

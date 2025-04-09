@@ -30,7 +30,6 @@ export type GalleryImage = {
   title: string;
   slug: string;
   description: string;
-  tech_stack: string[];
   features: string[];
   challenges: string;
   lessons: string;
@@ -39,7 +38,8 @@ export type GalleryImage = {
   readme: string;
   score: number;
   is_featured: boolean;
-  galleries?: Gallery[];
+  galleries: Gallery[];
+  tech_stack: string[];
   thumbnail_url?: string;
   thumbnail?: string;
   video_url?: string;
@@ -67,3 +67,21 @@ declare global {
 	  };
 	}
   }
+
+  export const EMPTY_PROJECT: Project = {
+	id: 0,
+	title: '',
+	slug: '',
+	description: '',
+	tech_stack: [],
+	features: [],
+	challenges: '',
+	lessons: '',
+	code_url: '',
+	live_url: '',
+	readme: '',
+	score: 0,
+	is_featured: false,
+	galleries: [],
+	has_interactive_demo: false
+  };
