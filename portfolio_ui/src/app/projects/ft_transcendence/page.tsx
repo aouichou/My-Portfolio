@@ -1,10 +1,8 @@
 // portfolio_ui/src/app/projects/ft_transcendence/page.tsx
 
 import { getProjectBySlug } from '@/library/api-client';
-import { TranscendenceProject } from '@/components/TranscendenceProject';
 import { Metadata } from 'next';
-import { ErrorBoundary } from '@/components/error/boundary';
-import TranscendenceFallback from '@/components/TranscendenceFallback';
+import ClientTranscendenceWrapper from '@/components/ClientTranscendenceWrapper';
 
 // Force dynamic rendering to avoid build-time API failures
 export const dynamic = 'force-dynamic';
@@ -26,17 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-// Custom Client Wrapper Component
-'use client';
-function ClientWrapper() {
-  return (
-    <ErrorBoundary fallback={<TranscendenceFallback />}>
-      <TranscendenceProject />
-    </ErrorBoundary>
-  );
-}
-
 // Server Component
 export default function Page() {
-  return <ClientWrapper />;
+  return <ClientTranscendenceWrapper />;
 }
