@@ -1,5 +1,7 @@
 // portfolio_ui/src/app/projects/ft_transcendence/page.tsx
 
+'use client';
+
 import { getProjectBySlug } from '@/library/api-client';
 import { Metadata } from 'next';
 import ClientTranscendenceWrapper from '@/components/ClientTranscendenceWrapper';
@@ -16,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: project?.description || 'Real-time Pong game with tournaments and social features',
     };
   } catch (error) {
+	console.error('Error fetching project metadata:', error);
     // Fallback metadata if API fails
     return {
       title: 'ft_transcendence - Team Project',

@@ -191,7 +191,12 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     
     socket.onerror = (event) => {
       clearTimeout(connectionTimeout);
-      console.error('WebSocket error:', event);
+      console.error('WebSocket error:', {
+        event,
+        readyState: socket.readyState,
+        url: wsUrl,
+        attempts: connectionAttempts
+      });
       setError('WebSocket error occurred');
       term.write('\r\nError connecting to terminal server. Retrying...\r\n');
     };

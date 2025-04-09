@@ -31,6 +31,7 @@
     "framer-motion": "^12.5.0",
     "gray-matter": "^4.0.3",
     "jszip": "^3.10.1",
+    "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.479.0",
     "mermaid": "^11.5.0",
     "next": "15.2.4",
@@ -54,6 +55,7 @@
     "@next/eslint-plugin-next": "^15.1.7",
     "@tailwindcss/typography": "^0.5.16",
     "@types/jszip": "^3.4.0",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -70,4 +72,3 @@
     "prismjs": "^1.30.0"
   }
 }
-

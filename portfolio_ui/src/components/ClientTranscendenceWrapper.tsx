@@ -6,9 +6,15 @@ import React, { useEffect, useState } from 'react';
 import { TranscendenceProject } from '@/components/TranscendenceProject';
 import { ErrorBoundary } from '@/components/error/boundary';
 import TranscendenceFallback from '@/components/TranscendenceFallback';
+import { Suspense } from 'react';
 
 export default function ClientTranscendenceWrapper() {
-  const [errorInfo, setErrorInfo] = useState<any>(null);
+  interface ErrorInfo {
+  message: string;
+  stack?: string;
+  componentStack?: string;
+}
+const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
   
   useEffect(() => {
     console.log('ClientTranscendenceWrapper mounted');
@@ -31,30 +37,21 @@ export default function ClientTranscendenceWrapper() {
   }, []);
 
   return (
-    <ErrorBoundary 
-      fallback={
-        <div>
-          {errorInfo && (
-            <div className="p-4 mb-4 bg-red-100 text-red-800 rounded-lg">
-              <h3>Debug Info:</h3>
-              <pre className="text-xs mt-2 p-2 bg-gray-800 text-white overflow-auto">
-                {JSON.stringify(errorInfo, null, 2)}
-              </pre>
-            </div>
-          )}
-          <TranscendenceFallback />
-        </div>
-      }
-      onError={(error, errorInfo) => {
-        console.error('TranscendenceProject error:', error);
-        console.error('Component stack:', errorInfo?.componentStack);
-        setErrorInfo({
-          message: error.message,
-          componentStack: errorInfo?.componentStack
-        });
-      }}
-    >
-      <TranscendenceProject />
-    </ErrorBoundary>
+<ErrorBoundary 
+  fallback={<TranscendenceFallback onRetry={() => window.location.reload()} />}
+  onError={(error, info) => {
+    console.error('Caught error:', error, info.componentStack);
+    setErrorInfo({
+      message: error.message,
+      stack: info.componentStack || '',
+    });
+  }}
+>
+  <Suspense fallback={<TranscendenceFallback />}>
+    <TranscendenceProject />
+  </Suspense>
+</ErrorBoundary>
   );
+  
+  
 }

@@ -4,9 +4,9 @@
 
 import Link from 'next/link';
 
-export default function TranscendenceFallback() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-8">
+export default function TranscendenceFallback({ onRetry }: { onRetry?: () => void }) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-8">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-500 bg-clip-text text-transparent">
@@ -17,12 +17,15 @@ export default function TranscendenceFallback() {
           </p>
           
           <div className="flex justify-center gap-4">
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 transition-all"
-            >
-              Try Again
-            </button>
+             <button 
+                    onClick={() => {
+                    window.location.reload(); // Fallback
+                    onRetry?.(); // Call the reset function if provided
+                    }}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 transition-all"
+                >
+                    Try Again
+             </button>
             <Link 
               href="/projects" 
               className="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full transition-all"

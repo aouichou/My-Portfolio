@@ -3,18 +3,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
 import { safeRender } from '@/library/utils';
+import dynamic from 'next/dynamic';
+import debounce from 'lodash.debounce';
 
-const MotionSection = motion.section;
-const MotionDiv = motion.div;
-const MotionH1 = motion.h1;
-const MotionP = motion.p;
-const MotionA = motion.a;
-
+const [motionComponents, setMotionComponents] = useState<{
+    MotionSection: React.ComponentType<any>;
+    MotionDiv: React.ComponentType<any>;
+    MotionH1: React.ComponentType<any>;
+    MotionP: React.ComponentType<any>;
+    MotionA: React.ComponentType<any>;
+  } | null>(null);
 
 // Image Lightbox Component
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
@@ -44,85 +46,97 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
 }
 
 function SimpleFallback() {
-	return (
-	  <div className="min-h-screen p-8">
-		<div className="max-w-3xl mx-auto text-center">
-		  <h1 className="text-4xl font-bold mb-6">Loading Project...</h1>
-		  <p>Please wait while we fetch the project details.</p>
-		</div>
-	  </div>
-	);
+    return (
+      <div className="min-h-screen p-8">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-4xl font-bold mb-6">Loading Project...</h1>
+          <p>Please wait while we fetch the project details.</p>
+        </div>
+      </div>
+    );
 }
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project | null }) {
-	const { data: project, isLoading } = useProjectBySlug('ft_transcendence', initialProject);
-	const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
-	const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-	const [lightboxAlt, setLightboxAlt] = useState("");
-	
-	// Add progressive loading for images
-	const [loadedImages, setLoadedImages] = useState<string[]>([]);
-	
-	// Use an empty state to initialize the arrays
-	const [demoImages, setDemoImages] = useState<string[]>([]);
-	const [screenshotImages, setScreenshotImages] = useState<string[]>([]);
-	
-	// Ensure graceful handling if project data fails to load
-	if (!project) {
-	  return <SimpleFallback />;
-	}
-	
-	// Use optional chaining here
-	const allGalleries = project.galleries ?? [];
-	
-	// Optimize image processing - Fix TypeScript error by using optional chaining
-	useEffect(() => {
-	  if (!project?.galleries) return;
-	  
-	  const tempDemoImages: string[] = [];
-	  const tempScreenshotImages: string[] = [];
-	  
-	  // Process first batch immediately
-	  project.galleries.forEach(gallery => {
-		if (!gallery.images) return;
-		
-		gallery.images.forEach(img => {
-		  if (!img.image) return;
-		  
-		  if (img.image.toLowerCase().endsWith('.gif') && tempDemoImages.length < 2) {
-			tempDemoImages.push(img.image);
-		  } else if (tempScreenshotImages.length < 6) {
-			tempScreenshotImages.push(img.image);
-		  }
-		});
-	  });
-	  
-	  // Update state with processed images
-	  setDemoImages(tempDemoImages);
-	  setScreenshotImages(tempScreenshotImages);
-	  setLoadedImages([...tempDemoImages, ...tempScreenshotImages]);
-	  
-	  // Process remaining images after initial render
-	  const processRemainingImages = () => {
-		const remainingImages: string[] = [];
-		project.galleries?.forEach(gallery => {
-		  if (!gallery.images) return;
-		  
-		  gallery.images.forEach(img => {
-			if (img.image && !loadedImages.includes(img.image)) {
-			  remainingImages.push(img.image);
-			}
-		  });
-		});
-		
-		if (remainingImages.length > 0) {
-		  setLoadedImages(prev => [...prev, ...remainingImages]);
-		}
-	  };
-	  
-	  const timer = setTimeout(processRemainingImages, 1000);
-	  return () => clearTimeout(timer);
-	}, [project?.galleries]);
+    const { data: project, isLoading } = useProjectBySlug('ft_transcendence', initialProject);
+    const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
+    const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+    const [lightboxAlt, setLightboxAlt] = useState("");
+    
+    // Add progressive loading for images
+    const [loadedImages, setLoadedImages] = useState<string[]>([]);
+    
+    // Use an empty state to initialize the arrays
+    const [demoImages, setDemoImages] = useState<string[]>([]);
+    const [screenshotImages, setScreenshotImages] = useState<string[]>([]);
+
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+    
+    // Ensure graceful handling if project data fails to load
+    if (!project) {
+      return <SimpleFallback />;
+    }
+    
+    // Dynamically import motion components
+    useEffect(() => {
+        const loadMotion = async () => {
+          const { motion } = await import('framer-motion');
+          setMotionComponents({
+            MotionSection: motion.section,
+            MotionDiv: motion.div,
+            MotionH1: motion.h1,
+            MotionP: motion.p,
+            MotionA: motion.a
+          });
+        };
+        loadMotion();
+      }, []);
+      
+      if (!motionComponents) return <SimpleFallback />;
+      
+      const { MotionSection, MotionDiv, MotionH1, MotionP, MotionA } = motionComponents;
+
+    // Use optional chaining here
+    const allGalleries = project.galleries ?? [];
+    
+    // Optimize image processing - Fix TypeScript error by using optional chaining
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (!project?.galleries) return;
+      
+        const processImages = debounce(() => {
+          const tempDemoImages: string[] = [];
+          const tempScreenshotImages: string[] = [];
+          
+          project.galleries?.forEach(gallery => {
+            gallery.images?.forEach(img => {
+              if (!img.image) return;
+              
+              if (img.image.toLowerCase().endsWith('.gif') && tempDemoImages.length < 2) {
+                tempDemoImages.push(img.image);
+              } else if (tempScreenshotImages.length < 6) {
+                tempScreenshotImages.push(img.image);
+              }
+            });
+          });
+          
+          setDemoImages(tempDemoImages);
+          setScreenshotImages(tempScreenshotImages);
+          setLoadedImages([...tempDemoImages, ...tempScreenshotImages]);
+        }, 300);
+      
+        // Process initial images
+        processImages();
+        
+        // Cleanup
+        return () => {
+          processImages.cancel();
+        };
+      }, [project?.galleries]);
+
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true);
+}, []);
 
   // Auto-rotate demo images
   useEffect(() => {
@@ -228,14 +242,16 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             <h2 className="text-3xl font-bold mb-8 text-blue-900 dark:text-blue-100">Live Demo Showcase</h2>
             
             {/* Feature Image with pagination dots */}
-            {demoImages.length > 0 ? (
+            {isClient && demoImages.length > 0 ? (
               <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
                 <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
-                  <ClientImage
-                    src={demoImages[currentGalleryItem] || ''}
-                    alt={`Transcendence Demo ${currentGalleryItem + 1}`}
-                    className="w-full h-full object-contain"
-                  />
+                    <ClientImage
+                       src={demoImages[currentGalleryItem] || ''}
+                       alt={`Transcendence Demo ${currentGalleryItem + 1}`}
+                       className="w-full h-full object-contain"
+                       onLoadingComplete={() => setIsImageLoaded(true)}
+                       style={{ opacity: isImageLoaded ? 1 : 0 }}
+                    />
                 </div>
                 
                 {/* Pagination dots */}
@@ -252,9 +268,9 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-100 dark:bg-gray-800 aspect-video rounded-xl flex items-center justify-center mb-6">
-                <p>No demo images available</p>
-              </div>
+                <div className="bg-gray-100 dark:bg-gray-800 aspect-video rounded-xl flex items-center justify-center mb-6">
+                <p>Loading demo...</p>
+                </div>
             )}
             
             {/* Gallery Grid - With clickable images */}

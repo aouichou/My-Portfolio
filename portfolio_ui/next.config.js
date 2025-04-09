@@ -22,8 +22,9 @@ const nextConfig = {
   async headers() {
     // Define Content-Security-Policy
 	const ContentSecurityPolicy = `
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+	  script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
 	  default-src 'self';
-	  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com;
 	  style-src 'self' 'unsafe-inline';
 	  img-src 'self' data: blob: https: http:;
 	  font-src 'self' data: https:;
@@ -76,6 +77,10 @@ const nextConfig = {
     PORT: process.env.PORT || '3000',
     NEXT_PUBLIC_API_URL: 'https://portfolio-backend-dytv.onrender.com/api',
     NEXT_PUBLIC_MEDIA_URL: 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
+  },
+  experimental: {
+    optimizePackageImports: ['framer-motion'],
+    missingSuspenseWithCSRBailout: false,
   }
 };
 

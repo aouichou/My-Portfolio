@@ -8,9 +8,9 @@ import * as Sentry from '@sentry/react';
 
 interface ErrorBoundaryProps {
 	children: ReactNode;
-	fallback?: ReactNode;
+	fallback?: ReactNode | ((props: { resetErrorBoundary: () => void }) => ReactNode);
 	onError?: (error: Error, errorInfo: ErrorInfo) => void;
-}
+  }
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -57,11 +57,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   };
 
   render() {
-    if (this.state.hasError) {
-      // Use custom fallback if provided
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
+	if (this.state.hasError) {
+	  // Use custom fallback if provided
+	  if (this.props.fallback) {
+		return typeof this.props.fallback === 'function'
+		  ? this.props.fallback({ resetErrorBoundary: this.resetErrorBoundary })
+		  : this.props.fallback;
+	  }
       
       // Default fallback UI
       return (
