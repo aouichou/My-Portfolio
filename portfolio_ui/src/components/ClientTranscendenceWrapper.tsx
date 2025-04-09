@@ -8,12 +8,14 @@ import { ErrorBoundary } from '@/components/error/boundary';
 import TranscendenceFallback from '@/components/TranscendenceFallback';
 import { Suspense } from 'react';
 
+interface ErrorInfo {
+	message: string;
+	stack?: string;
+	componentStack?: string;
+  }
+
 export default function ClientTranscendenceWrapper() {
-  interface ErrorInfo {
-  message: string;
-  stack?: string;
-  componentStack?: string;
-}
+
 const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
   
   useEffect(() => {

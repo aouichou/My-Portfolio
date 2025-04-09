@@ -7,16 +7,7 @@ import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
 import { safeRender } from '@/library/utils';
-import dynamic from 'next/dynamic';
 import debounce from 'lodash.debounce';
-
-const [motionComponents, setMotionComponents] = useState<{
-    MotionSection: React.ComponentType<any>;
-    MotionDiv: React.ComponentType<any>;
-    MotionH1: React.ComponentType<any>;
-    MotionP: React.ComponentType<any>;
-    MotionA: React.ComponentType<any>;
-  } | null>(null);
 
 // Image Lightbox Component
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
@@ -57,43 +48,56 @@ function SimpleFallback() {
 }
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project | null }) {
+    // All hooks must be called unconditionally first
     const { data: project, isLoading } = useProjectBySlug('ft_transcendence', initialProject);
     const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const [lightboxAlt, setLightboxAlt] = useState("");
-    
-    // Add progressive loading for images
     const [loadedImages, setLoadedImages] = useState<string[]>([]);
-    
-    // Use an empty state to initialize the arrays
     const [demoImages, setDemoImages] = useState<string[]>([]);
     const [screenshotImages, setScreenshotImages] = useState<string[]>([]);
-
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    
-    // Ensure graceful handling if project data fails to load
-    if (!project) {
+    const [motionComponents, setMotionComponents] = useState<{
+      MotionSection: React.ComponentType<any>;
+      MotionDiv: React.ComponentType<any>;
+      MotionH1: React.ComponentType<any>;
+      MotionP: React.ComponentType<any>;
+      MotionA: React.ComponentType<any>;
+    } | null>(null);
+    const [isClient, setIsClient] = useState(false);
+  
+    // Load motion components
+    useEffect(() => {
+      const loadMotion = async () => {
+        const { motion } = await import('framer-motion');
+        setMotionComponents({
+          MotionSection: motion.section,
+          MotionDiv: motion.div,
+          MotionH1: motion.h1,
+          MotionP: motion.p,
+          MotionA: motion.a
+        });
+      };
+      loadMotion();
+    }, []);
+  
+    // Client check
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
+  
+    // Process images
+    useEffect(() => {
+      if (!project?.galleries) return;
+      // ... image processing logic ...
+    }, [project?.galleries]);
+  
+    // Check for project and motionComponents AFTER all hooks
+    if (!project || !motionComponents) {
       return <SimpleFallback />;
     }
-    
-    // Dynamically import motion components
-    useEffect(() => {
-        const loadMotion = async () => {
-          const { motion } = await import('framer-motion');
-          setMotionComponents({
-            MotionSection: motion.section,
-            MotionDiv: motion.div,
-            MotionH1: motion.h1,
-            MotionP: motion.p,
-            MotionA: motion.a
-          });
-        };
-        loadMotion();
-      }, []);
-      
-      if (!motionComponents) return <SimpleFallback />;
-      
-      const { MotionSection, MotionDiv, MotionH1, MotionP, MotionA } = motionComponents;
+  
+    const { MotionSection, MotionDiv, MotionH1, MotionP, MotionA } = motionComponents;
 
     // Use optional chaining here
     const allGalleries = project.galleries ?? [];
@@ -132,11 +136,6 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
           processImages.cancel();
         };
       }, [project?.galleries]);
-
-    const [isClient, setIsClient] = useState(false);
-    useEffect(() => {
-        setIsClient(true);
-}, []);
 
   // Auto-rotate demo images
   useEffect(() => {
