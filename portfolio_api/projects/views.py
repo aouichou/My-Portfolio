@@ -25,6 +25,7 @@ import tempfile
 import zipfile
 import boto3
 from rest_framework import viewsets
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 class ProjectList(generics.ListAPIView):
@@ -264,3 +265,18 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 		project_names = list(queryset.values_list('title', flat=True))
 		
 		return queryset
+
+def get_project_data(slug):
+	cache_key = f"project_{slug}"
+	cached_data = cache.get(cache_key)
+	
+	if cached_data:
+		return cached_data
+		
+	# Get from DB and S3
+	project = Project.objects.get(slug=slug)
+	serialized = ProjectSerializer(project).data
+	
+	# Cache for 1 hour
+	cache.set(cache_key, serialized, 3600)
+	return serialized
