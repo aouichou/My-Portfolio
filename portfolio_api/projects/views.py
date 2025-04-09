@@ -46,6 +46,18 @@ class ProjectDetail(generics.RetrieveAPIView):
 	def retrieve(self, request, *args, **kwargs):
 		instance = self.get_object()
 		
+		# Detailed logging for the ft_transcendence project specifically
+		if instance.slug == 'ft_transcendence':
+			# Use safe gallery image handling
+			for gallery in instance.galleries.all():
+				for image in gallery.images.all():
+					try:
+						# Safely check image URL
+						if image.image:
+							url = image.image.url
+					except ValueError:
+						logger.warning(f"Missing image file in gallery {gallery.name}")
+		
 		serializer = self.get_serializer(instance)
 		return Response(serializer.data)
 

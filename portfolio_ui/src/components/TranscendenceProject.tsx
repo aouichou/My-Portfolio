@@ -55,38 +55,74 @@ function SimpleFallback() {
 }
 
 export function TranscendenceProject({ initialProject }: { initialProject?: Project | null }) {
-  const { data: project, isLoading } = useProjectBySlug('ft_transcendence', initialProject);
-  const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  const [lightboxAlt, setLightboxAlt] = useState("");
-
-  // Ensure graceful handling if project data fails to load
-  const isEmpty = !project || isLoading;
-  
-  if (isEmpty) {
-    return <SimpleFallback />;
-  }
-
-  // Get all images from project galleries - without filtering by gallery name
-  const allGalleries = project?.galleries || [];
-  
-  // Extract images from all galleries
-  const demoImages: string[] = [];
-  const screenshotImages: string[] = [];
-  
-  // Separate first 4 images for demos/GIFs (if available) and the rest for screenshots
-  allGalleries.forEach(gallery => {
-	if (!gallery.images) return;
-
-    gallery.images.forEach(img => {
-      // Use file extension to determine if it's likely a GIF
-      if (img.image.toLowerCase().endsWith('.gif') && demoImages.length < 4) {
-        demoImages.push(img.image);
-      } else {
-        screenshotImages.push(img.image);
-      }
-    });
-  });
+	const { data: project, isLoading } = useProjectBySlug('ft_transcendence', initialProject);
+	const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
+	const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+	const [lightboxAlt, setLightboxAlt] = useState("");
+	
+	// Add progressive loading for images
+	const [loadedImages, setLoadedImages] = useState<string[]>([]);
+	
+	// Use an empty state to initialize the arrays
+	const [demoImages, setDemoImages] = useState<string[]>([]);
+	const [screenshotImages, setScreenshotImages] = useState<string[]>([]);
+	
+	// Ensure graceful handling if project data fails to load
+	if (!project) {
+	  return <SimpleFallback />;
+	}
+	
+	// Use optional chaining here
+	const allGalleries = project.galleries ?? [];
+	
+	// Optimize image processing - Fix TypeScript error by using optional chaining
+	useEffect(() => {
+	  if (!project?.galleries) return;
+	  
+	  const tempDemoImages: string[] = [];
+	  const tempScreenshotImages: string[] = [];
+	  
+	  // Process first batch immediately
+	  project.galleries.forEach(gallery => {
+		if (!gallery.images) return;
+		
+		gallery.images.forEach(img => {
+		  if (!img.image) return;
+		  
+		  if (img.image.toLowerCase().endsWith('.gif') && tempDemoImages.length < 2) {
+			tempDemoImages.push(img.image);
+		  } else if (tempScreenshotImages.length < 6) {
+			tempScreenshotImages.push(img.image);
+		  }
+		});
+	  });
+	  
+	  // Update state with processed images
+	  setDemoImages(tempDemoImages);
+	  setScreenshotImages(tempScreenshotImages);
+	  setLoadedImages([...tempDemoImages, ...tempScreenshotImages]);
+	  
+	  // Process remaining images after initial render
+	  const processRemainingImages = () => {
+		const remainingImages: string[] = [];
+		project.galleries?.forEach(gallery => {
+		  if (!gallery.images) return;
+		  
+		  gallery.images.forEach(img => {
+			if (img.image && !loadedImages.includes(img.image)) {
+			  remainingImages.push(img.image);
+			}
+		  });
+		});
+		
+		if (remainingImages.length > 0) {
+		  setLoadedImages(prev => [...prev, ...remainingImages]);
+		}
+	  };
+	  
+	  const timer = setTimeout(processRemainingImages, 1000);
+	  return () => clearTimeout(timer);
+	}, [project?.galleries]);
 
   // Auto-rotate demo images
   useEffect(() => {
