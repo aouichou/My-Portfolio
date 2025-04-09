@@ -11,6 +11,7 @@ import BlockCloudflare from '@/components/BlockCloudflare';
 import DebugCSP from '@/components/DebugCSP';
 import ServiceWarmup from '@/components/ServiceWarmup'
 import LoadingOverlay from '@/components/LoadingOverlay';
+import { ErrorBoundary } from 'next/dist/client/components/error-boundary';
 
 const inter = Inter({
 	subsets: ['latin'],
@@ -39,6 +40,7 @@ export default function RootLayout({
 	  <html lang="en">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 		<body className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+		 <ErrorBoundary>
 		  <BlockCloudflare />
 		  <FontLoader />
 		  <DebugCSP />
@@ -48,6 +50,7 @@ export default function RootLayout({
 			{children}
 			<Toaster position="top-center" />
 		  </ClientLayout>
+		  </ErrorBoundary>
 		</body>
 	  </html>
 	);

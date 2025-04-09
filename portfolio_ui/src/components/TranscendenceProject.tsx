@@ -72,6 +72,8 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
   
   // Separate first 4 images for demos/GIFs (if available) and the rest for screenshots
   allGalleries.forEach(gallery => {
+	if (!gallery.images) return;
+
     gallery.images.forEach(img => {
       // Use file extension to determine if it's likely a GIF
       if (img.image.toLowerCase().endsWith('.gif') && demoImages.length < 4) {
@@ -104,10 +106,6 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
     setLightboxImage(null);
     document.body.style.overflow = 'auto';
   };
-  
-  if (!project) {
-    return <div className="flex items-center justify-center min-h-screen">Loading project...</div>;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black">
@@ -123,27 +121,27 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
       {/* Hero Banner */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-24 px-4">
         <div className="container mx-auto">
-          <motion.h1
+          <MotionH1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-5xl md:text-6xl font-bold text-white text-center mb-6"
           >
             {project.title}
-          </motion.h1>
+          </MotionH1>
           
-          <motion.p
+          <MotionP
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.6 }}
             className="text-xl text-white/90 text-center max-w-3xl mx-auto mb-8"
           >
             Real-time Pong-inspired web app featuring tournaments, AI opponents, secure user management, and a microservices-based backend
-          </motion.p>
+          </MotionP>
           
           <div className="flex flex-wrap justify-center gap-4">
             {project.live_url && (
-              <motion.a
+              <MotionA
                 href={project.live_url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -155,11 +153,11 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
               >
                 <span className="text-xl">🚀</span>
                 Visit Live Site
-              </motion.a>
+              </MotionA>
             )}
             
             {project.code_url && (
-              <motion.a
+              <MotionA
                 href={project.code_url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -171,7 +169,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
               >
                 <span className="text-xl">💻</span>
                 Source Code
-              </motion.a>
+              </MotionA>
             )}
           </div>
         </div>
@@ -181,7 +179,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-12">
           {/* Left Column - Demo GIFs/Images */}
-          <motion.div 
+          <MotionDiv 
             className="md:col-span-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -224,7 +222,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {screenshotImages.length > 0 ? (
                 screenshotImages.map((path, index) => (
-                  <motion.div
+                  <MotionDiv
                     key={index}
                     className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer"
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -247,7 +245,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </MotionDiv>
                 ))
               ) : (
                 <div className="col-span-3 bg-gray-100 dark:bg-gray-800 aspect-video rounded-lg flex items-center justify-center">
@@ -255,10 +253,10 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                 </div>
               )}
             </div>
-          </motion.div>
+          </MotionDiv>
 
           {/* Right Column - Technical Info */}
-          <motion.div
+          <MotionDiv
             className="md:col-span-1"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -322,7 +320,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                 </a>
               )}
             </div>
-          </motion.div>
+          </MotionDiv>
         </div>
         
         {/* Features Section */}
