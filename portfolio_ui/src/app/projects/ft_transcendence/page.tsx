@@ -1,7 +1,5 @@
 // portfolio_ui/src/app/projects/ft_transcendence/page.tsx
 
-'use client';
-
 import { getProjectBySlug } from '@/library/api-client';
 import { Metadata } from 'next';
 import ClientTranscendenceWrapper from '@/components/ClientTranscendenceWrapper';
