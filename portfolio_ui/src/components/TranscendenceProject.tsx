@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
-+import { safeRender } from '@/library/utils';
+import { safeRender } from '@/library/utils';
 
 const MotionSection = motion.section;
 const MotionDiv = motion.div;
