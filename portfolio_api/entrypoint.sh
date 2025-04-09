@@ -17,7 +17,7 @@ done
 python manage.py makemigrations
 python manage.py migrate
 
-import projects from JSON file
+# import projects from JSON file
 echo "Importing projects from projects.json..."
 if [ -f "/app/projects.json" ]; then
   # Run the import_projects management command
