@@ -266,6 +266,7 @@ MEDIA_URL = f'https://s3.eu-west-1.amazonaws.com/{os.getenv("BUCKETEER_BUCKET_NA
 
 # Channel layers for WebSocket
 ASGI_APPLICATION = 'portfolio_api.asgi.application'
+CHANNELS_CONCURRENCY = 10
 CHANNEL_LAYERS = {
     'default': {
         ## Use Redis in development

@@ -25,12 +25,19 @@ export const api = axios.create({
 export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
 						'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
 
-export async function getProjectBySlug(slug: string): Promise<Project> {
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // ms
+
+export async function getProjectBySlug(slug: string, attempt = 0): Promise<Project> {
   try {
-	// Will get transformed to `/projects/minirt/` by the interceptor
 	const response = await api.get<Project>(`/projects/${slug}`);
 	return response.data;
   } catch (error) {
+	if (axios.isAxiosError(error) && error.code === 'ECONNABORTED' && attempt < MAX_RETRIES) {
+	  console.warn(`Request timed out, retrying (${attempt+1}/${MAX_RETRIES})...`);
+	  await new Promise(r => setTimeout(r, RETRY_DELAY * Math.pow(2, attempt)));
+	  return getProjectBySlug(slug, attempt + 1);
+	}
 	console.error('Error fetching project:', error);
 	throw new Error('Failed to fetch project details');
   }
