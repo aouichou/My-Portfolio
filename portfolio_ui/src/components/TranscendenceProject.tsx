@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
 import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
++import { safeRender } from '@/library/utils';
 
 const MotionSection = motion.section;
 const MotionDiv = motion.div;
@@ -127,7 +128,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             transition={{ duration: 0.6 }}
             className="text-5xl md:text-6xl font-bold text-white text-center mb-6"
           >
-            {project.title}
+            {safeRender(project.title)}
           </MotionH1>
           
           <MotionP

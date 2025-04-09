@@ -40,3 +40,15 @@ export function normalizeProject(project: any): Project {
   
   return normalized as Project;
 }
+
+export function safeRender(value: any): React.ReactNode {
+	if (value === null || value === undefined) {
+	  return null;
+	}
+	
+	if (typeof value === 'object') {
+	  return JSON.stringify(value);
+	}
+	
+	return value;
+  }

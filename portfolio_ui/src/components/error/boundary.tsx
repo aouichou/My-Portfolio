@@ -7,8 +7,9 @@ import Link from 'next/link';
 import * as Sentry from '@sentry/react';
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
+	children: ReactNode;
+	fallback?: ReactNode;
+	onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface ErrorBoundaryState {
@@ -31,6 +32,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // Log the error to console
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     
+	// Call onError if provided
+	if (this.props.onError) {
+	   this.props.onError(error, errorInfo);
+	}
+
     // Report to Sentry only in browser environment
     if (typeof window !== 'undefined') {
       Sentry.captureException(error, {
