@@ -43,25 +43,28 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
   );
 }
 
+function SimpleFallback() {
+	return (
+	  <div className="min-h-screen p-8">
+		<div className="max-w-3xl mx-auto text-center">
+		  <h1 className="text-4xl font-bold mb-6">Loading Project...</h1>
+		  <p>Please wait while we fetch the project details.</p>
+		</div>
+	  </div>
+	);
+}
+
 export function TranscendenceProject({ initialProject }: { initialProject?: Project | null }) {
-  const { data: project } = useProjectBySlug('ft_transcendence', initialProject);
+  const { data: project, isLoading } = useProjectBySlug('ft_transcendence', initialProject);
   const [currentGalleryItem, setCurrentGalleryItem] = useState(0);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [lightboxAlt, setLightboxAlt] = useState("");
 
   // Ensure graceful handling if project data fails to load
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl font-bold mb-6">ft_transcendence Project</h1>
-          <p className="mb-8">We're having trouble loading this project's details. Please try again later.</p>
-          <a href="/projects" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            View All Projects
-          </a>
-        </div>
-      </div>
-    );
+  const isEmpty = !project || isLoading;
+  
+  if (isEmpty) {
+    return <SimpleFallback />;
   }
 
   // Get all images from project galleries - without filtering by gallery name

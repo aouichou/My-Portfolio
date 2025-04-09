@@ -18,6 +18,8 @@ export const api = axios.create({
 	'Content-Type': 'application/json',
   },
   withCredentials: true,
+  timeout: 15000, // 15 seconds timeout
+  timeoutErrorMessage: 'Request timed out. Please try again.',
 });
 
 export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
