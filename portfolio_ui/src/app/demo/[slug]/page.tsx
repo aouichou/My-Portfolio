@@ -7,19 +7,35 @@ import { useProjectBySlug } from '@/library/queries';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import React from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 // Dynamic import with SSR disabled
 const LiveTerminal = dynamic(() => import('@/components/LiveTerminal'), {
   ssr: false,
-//   loading: () => (
-//     <div className="flex items-center justify-center h-full">
-//       <div className="text-center">
-//         <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-700 border-l-blue-600 border-r-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-//         <p>Loading terminal...</p>
-//       </div>
-//     </div>
-//   ),
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-700 border-l-blue-600 border-r-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p>Loading terminal...</p>
+      </div>
+    </div>
+  ),
 });
+
+function TerminalErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+    return (
+      <div role="alert" className="h-full flex flex-col items-center justify-center">
+        <p>Failed to load terminal:</p>
+        <pre>{error.message}</pre>
+        <button 
+          onClick={resetErrorBoundary}
+          className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
 export default function ProjectDemoPage() {
   const params = useParams();
@@ -38,40 +54,40 @@ export default function ProjectDemoPage() {
     );
   }
 
-	const commandsFromReadme = React.useMemo(() => {
-	if (!project?.readme) return [];
-	
-	const commandRegex = /`([^`]+)`/g;
-	const commands = [];
-	let match;
-	
-	// Use exec in a loop instead of matchAll for better compatibility
-	while ((match = commandRegex.exec(project.readme)) !== null) {
-		if (match[1] && !match[1].includes('\n') && match[1].length < 30) {
-		commands.push(match[1]);
-		}
-	}
-	
-	// Also look for code blocks (```sh commands ```)
-	const codeBlockRegex = /```sh\s*([\s\S]*?)\s*```/g;
-	while ((match = codeBlockRegex.exec(project.readme)) !== null) {
-		if (match[1]) {
-		// Split by lines and filter for command-like entries
-		const lines = match[1].split('\n')
-			.map(line => line.trim())
-			.filter(line => 
-			line.startsWith('./') || 
-			line.startsWith('make') ||
-			line.startsWith('git') ||
-			line.startsWith('cd')
-			);
-		
-		commands.push(...lines);
-		}
-	}
-	
-	return commands.slice(0, 8); // Limit to 8 commands
-	}, [project?.readme]);
+    const commandsFromReadme = React.useMemo(() => {
+    if (!project?.readme) return [];
+    
+    const commandRegex = /`([^`]+)`/g;
+    const commands = [];
+    let match;
+    
+    // Use exec in a loop instead of matchAll for better compatibility
+    while ((match = commandRegex.exec(project.readme)) !== null) {
+        if (match[1] && !match[1].includes('\n') && match[1].length < 30) {
+        commands.push(match[1]);
+        }
+    }
+    
+    // Also look for code blocks (```sh commands ```)
+    const codeBlockRegex = /```sh\s*([\s\S]*?)\s*```/g;
+    while ((match = codeBlockRegex.exec(project.readme)) !== null) {
+        if (match[1]) {
+        // Split by lines and filter for command-like entries
+        const lines = match[1].split('\n')
+            .map(line => line.trim())
+            .filter(line => 
+            line.startsWith('./') || 
+            line.startsWith('make') ||
+            line.startsWith('git') ||
+            line.startsWith('cd')
+            );
+        
+        commands.push(...lines);
+        }
+    }
+    
+    return commands.slice(0, 8); // Limit to 8 commands
+    }, [project?.readme]);
   
   return (
     <div className="flex flex-col h-screen">
@@ -105,7 +121,12 @@ export default function ProjectDemoPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Terminal - Now using LiveTerminal */}
         <div className="flex-1 overflow-hidden bg-black">
-          <LiveTerminal project={project} slug={slug} />
+            <ErrorBoundary
+                FallbackComponent={TerminalErrorFallback}
+                onReset={() => window.location.reload()}
+                >
+            <LiveTerminal project={project} slug={slug} />
+            </ErrorBoundary>
         </div>
         
         {/* Documentation panel */}
@@ -137,8 +158,8 @@ export default function ProjectDemoPage() {
               )}
             </ul>
           </div>
-		</div>
-	  </div>
-	</div>
+        </div>
+      </div>
+    </div>
   );
 }

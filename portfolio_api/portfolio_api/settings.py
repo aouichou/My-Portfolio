@@ -27,11 +27,11 @@ X_FRAME_OPTIONS = 'DENY'
 
 ALLOWED_HOSTS = [
 	'api.aouichou.me',
-    'aouichou.me',
-    'www.aouichou.me',
-    'portfolio-backend-dytv.onrender.com',  # Add exact Render host
-    'portfolio-frontend.herokuapp.com',
-    '*.onrender.com'  # Wildcard for Render
+	'aouichou.me',
+	'www.aouichou.me',
+	'portfolio-backend-dytv.onrender.com',  # Add exact Render host
+	'portfolio-frontend.herokuapp.com',
+	'*.onrender.com'  # Wildcard for Render
 ]
 
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
@@ -39,9 +39,13 @@ MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 MEDIA_ROOT = '/app/media'
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    }
+	'default': {
+		'BACKEND': 'django_redis.cache.RedisCache',
+		'LOCATION': os.environ.get('REDIS_URL', 'redis://localhost:6379/1'),
+		'OPTIONS': {
+			'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+		}
+	}
 }
 
 RATELIMIT_USE_CACHE = 'default'
@@ -51,27 +55,27 @@ RATELIMIT_FAIL_OPEN = False
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+	'django.contrib.admin',
+	'django.contrib.auth',
+	'django.contrib.contenttypes',
+	'django.contrib.sessions',
+	'django.contrib.messages',
+	'django.contrib.staticfiles',
 	'rest_framework',
-    'corsheaders',
-    'projects',
+	'corsheaders',
+	'projects',
 ]
 
 MIDDLEWARE = [
 	'corsheaders.middleware.CorsMiddleware',
 	'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'django.middleware.security.SecurityMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware',
+	'django.middleware.common.CommonMiddleware',
+	'django.middleware.csrf.CsrfViewMiddleware',
+	'django.contrib.auth.middleware.AuthenticationMiddleware',
+	'django.contrib.messages.middleware.MessageMiddleware',
+	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'django_ratelimit.middleware.RatelimitMiddleware',
 ]
 
@@ -85,8 +89,8 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://portfolio-frontend.herokuapp.com",
-    "https://*.aouichou.me"
+	"https://portfolio-frontend.herokuapp.com",
+	"https://*.aouichou.me"
 ]
 
 # Rate limiting configuration
@@ -95,26 +99,26 @@ RATELIMIT_VIEW = 'portfolio_api.views.rate_limit_response'
 
 CORS_ALLOWED_ORIGINS = [
 	"https://portfolio-frontend-*.herokuapp.com", # Wildcard
-    "https://*.aouichou.me", 
+	"https://*.aouichou.me", 
 	"https://portfolio-frontend-9fc822c2f19a.herokuapp.com",
-    "https://portfolio-frontend.herokuapp.com",
-    "https://portfolio-backend-dytv.onrender.com",
-    "https://aouichou.me",
-    "https://www.aouichou.me",
+	"https://portfolio-frontend.herokuapp.com",
+	"https://portfolio-backend-dytv.onrender.com",
+	"https://aouichou.me",
+	"https://www.aouichou.me",
 	"https://portfolio-backend.onrender.com",
-    "https://api.aouichou.me",
+	"https://api.aouichou.me",
 ]
 
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+	'accept',
+	'accept-encoding',
+	'authorization',
+	'content-type',
+	'dnt',
+	'origin',
+	'user-agent',
+	'x-csrftoken',
+	'x-requested-with',
 ]
 
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
@@ -124,19 +128,19 @@ CORS_ALLOW_ALL_ORIGINS = False
 ROOT_URLCONF = 'portfolio_api.urls'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
+	{
+		'BACKEND': 'django.template.backends.django.DjangoTemplates',
+		'DIRS': [],
+		'APP_DIRS': True,
+		'OPTIONS': {
+			'context_processors': [
+				'django.template.context_processors.debug',
+				'django.template.context_processors.request',
+				'django.contrib.auth.context_processors.auth',
+				'django.contrib.messages.context_processors.messages',
+			],
+		},
+	},
 ]
 
 WSGI_APPLICATION = 'portfolio_api.wsgi.application'
@@ -147,11 +151,11 @@ APPEND_SLASH = True
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
+	'default': dj_database_url.config(
+		conn_max_age=600,
+		conn_health_checks=True,
 		default=os.getenv('DATABASE_URL', 'postgres://localhost')
-    )
+	)
 }
 
 # DB settings for local development
@@ -168,26 +172,26 @@ DATABASES = {
 # }
 
 if os.getenv('RENDER'):
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+	SECURE_SSL_REDIRECT = True
+	SESSION_COOKIE_SECURE = True
+	CSRF_COOKIE_SECURE = True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+	{
+		'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+	},
+	{
+		'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+	},
+	{
+		'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+	},
+	{
+		'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+	},
 ]
 
 
@@ -234,17 +238,17 @@ VERIFY_EMAIL_DOMAINS = True  # Set to False to skip domain verification
 BLOCK_DISPOSABLE_EMAILS = True  # Set to False to allow disposable email addresses
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'DEBUG' if DEBUG else 'WARNING',
-    },
+	'version': 1,
+	'disable_existing_loggers': False,
+	'handlers': {
+		'console': {
+			'class': 'logging.StreamHandler',
+		},
+	},
+	'root': {
+		'handlers': ['console'],
+		'level': 'DEBUG' if DEBUG else 'WARNING',
+	},
 }
 
 # S3 settings
@@ -267,19 +271,19 @@ MEDIA_URL = f'https://s3.eu-west-1.amazonaws.com/{os.getenv("BUCKETEER_BUCKET_NA
 # Channel layers for WebSocket
 ASGI_APPLICATION = 'portfolio_api.asgi.application'
 CHANNEL_LAYERS = {
-    'default': {
-        ## Use Redis in development
-        # 'BACKEND': 'channels.layers.InMemoryChannelLayer',
-        ## Use Redis in production
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-        }
-    }
+	'default': {
+		## Use Redis in development
+		# 'BACKEND': 'channels.layers.InMemoryChannelLayer',
+		## Use Redis in production
+		'BACKEND': 'channels_redis.core.RedisChannelLayer',
+		'CONFIG': {
+			'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+		}
+	}
 }
 
 TERMINAL_SETTINGS = {
-    'MAX_SESSION_DURATION': 900,  # 15 minutes
-    'MAX_OUTPUT_LENGTH': 10000,   # 10KB per command
-    'CONCURRENT_SESSIONS': 3,     # Max 3 sessions per IP
+	'MAX_SESSION_DURATION': 900,  # 15 minutes
+	'MAX_OUTPUT_LENGTH': 10000,   # 10KB per command
+	'CONCURRENT_SESSIONS': 3,     # Max 3 sessions per IP
 }

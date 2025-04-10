@@ -58,21 +58,38 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 	host = 'api.aouichou.me';
 	}
 	
-	const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/`;
+	// const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/`;
+	const wsUrl = `${wsProtocol}//api.aouichou.me/ws/terminal/${slug}/`;
     const socket = new WebSocket(wsUrl);
     socketRef.current = socket;
     
+	const connectionTimeout = setTimeout(() => {
+		if (socket.readyState === WebSocket.CONNECTING) {
+		  socket.close();
+		  setError('Connection timed out');
+		}
+	  }, 5000);
+
     socket.onopen = () => {
+	  clearTimeout(connectionTimeout);
       setConnected(true);
       term.write('Connected to terminal server...\r\n');
     };
     
     socket.onclose = (event) => {
       setConnected(false);
+	  clearTimeout(connectionTimeout);
       term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
     };
     
     socket.onerror = (event) => {
+	  clearTimeout(connectionTimeout);
+	  setConnected(false);
+	  if (event instanceof ErrorEvent) {
+		console.error('WebSocket error:', event.message);
+	  } else {
+		console.error('WebSocket error:', event);
+	  }
 	  console.error('WebSocket error:', event);
       setError('WebSocket error occurred');
       term.write('\r\nError connecting to terminal server.\r\n');
