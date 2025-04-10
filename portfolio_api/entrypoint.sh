@@ -7,7 +7,7 @@ mkdir -p /app/media
 cp -r /app/prepopulated_media/* /app/media/ 2>/dev/null || true
 echo "Media files copied."
 
-# Wait for external Render PostgreSQL
+# Wait for external PostgreSQL
 echo "Waiting for database at $DB_HOST:$DB_PORT..."
 while ! python -c "import socket; s = socket.socket(); s.settimeout(5); s.connect(('$DB_HOST', $DB_PORT))" 2>/dev/null; do
   sleep 2
@@ -18,14 +18,14 @@ python manage.py makemigrations
 python manage.py migrate
 
 # import projects from JSON file
-echo "Importing projects from projects.json..."
-if [ -f "/app/projects.json" ]; then
-  # Run the import_projects management command
-  python manage.py import_projects /app/projects.json --media-dir /app/media --update
-  echo "Projects imported successfully."
-else
-  echo "Warning: projects.json file not found. Skipping project import."
-fi
+# echo "Importing projects from projects.json..."
+# if [ -f "/app/projects.json" ]; then
+#   # Run the import_projects management command
+#   python manage.py import_projects /app/projects.json --media-dir /app/media --update
+#   echo "Projects imported successfully."
+# else
+#   echo "Warning: projects.json file not found. Skipping project import."
+# fi
 
 # Create a superuser if it doesn't exist
 # python -c "
