@@ -2,23 +2,23 @@ FROM ubuntu:22.04
 
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip \
-    build-essential gcc g++ make \
-    git curl wget \
-    nodejs npm \
-    bash-completion \
-    vim nano \
-    libreadline-dev \
+	python3 python3-pip \
+	build-essential gcc g++ make \
+	git curl wget \
+	nodejs npm \
+	bash-completion \
+	vim nano \
+	libreadline-dev \
 	valgrind \
-    libx11-dev \
-    libxext-dev \
-    libxrandr-dev \
-    libxi-dev \
-    libxrender-dev \
-    libbsd-dev \
-    mesa-common-dev \
-    libglu1-mesa-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+	libx11-dev \
+	libxext-dev \
+	libxrandr-dev \
+	libxi-dev \
+	libxrender-dev \
+	libbsd-dev \
+	mesa-common-dev \
+	libglu1-mesa-dev \
+	&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
 RUN useradd -m -s /bin/bash coder
@@ -27,27 +27,27 @@ RUN chown -R coder:coder /home/coder
 
 # Install zsh and oh-my-zsh
 RUN apt-get update && apt-get install -y zsh curl git \
-    && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
-    && chsh -s /bin/zsh coder \
-    && cp -R /root/.oh-my-zsh /home/coder/ \
-    && cp /root/.zshrc /home/coder/ \
-    && sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="agnoster"/' /home/coder/.zshrc \
-    && chmod -R 755 /home/coder/.oh-my-zsh \
-    && chown -R coder:coder /home/coder/.oh-my-zsh /home/coder/.zshrc
+	&& sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
+	&& chsh -s /bin/zsh coder \
+	&& cp -R /root/.oh-my-zsh /home/coder/ \
+	&& cp /root/.zshrc /home/coder/ \
+	&& sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="agnoster"/' /home/coder/.zshrc \
+	&& chmod -R 755 /home/coder/.oh-my-zsh \
+	&& chown -R coder:coder /home/coder/.oh-my-zsh /home/coder/.zshrc
 
 # Add plugins
 RUN sed -i 's/ZSH_THEME="agnoster"/ZSH_THEME="robbyrussell"/' /home/coder/.zshrc && \
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/coder/.oh-my-zsh/custom/themes/powerlevel10k && \
-    sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' /home/coder/.zshrc && \
-    echo 'POWERLEVEL9K_MODE="nerdfont-complete"' >> /home/coder/.zshrc && \
-    echo 'POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)' >> /home/coder/.zshrc && \
-    echo 'POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)' >> /home/coder/.zshrc
+	git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/coder/.oh-my-zsh/custom/themes/powerlevel10k && \
+	sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' /home/coder/.zshrc && \
+	echo 'POWERLEVEL9K_MODE="nerdfont-complete"' >> /home/coder/.zshrc && \
+	echo 'POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)' >> /home/coder/.zshrc && \
+	echo 'POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)' >> /home/coder/.zshrc
 
 # Add custom settings for better terminal experience
 RUN echo "export TERM=xterm-256color" >> /home/coder/.zshrc && \
-    echo "setopt share_history" >> /home/coder/.zshrc && \
-    echo "setopt auto_cd" >> /home/coder/.zshrc && \
-    echo "setopt prompt_subst" >> /home/coder/.zshrc
+	echo "setopt share_history" >> /home/coder/.zshrc && \
+	echo "setopt auto_cd" >> /home/coder/.zshrc && \
+	echo "setopt prompt_subst" >> /home/coder/.zshrc
 
 # Install Python dependencies
 COPY requirements.txt .
