@@ -11,21 +11,21 @@ import { API_URL } from '@/library/api-client';
 
 // Updated paths to match your actual S3 structure
 const GIF_PATHS = [
-  'galleries/2025/03/27/demo-42Oauth.gif',
-  'galleries/2025/03/27/demo-lobby.gif',
-  'galleries/2025/03/27/demo_match.gif',
-  'galleries/2025/03/27/demo-match_vs_IA.gif'
+  'galleries/2025/04/09/demo-42Oauth.gif',
+  'galleries/2025/04/09/demo-lobby.gif',
+  'galleries/2025/04/09/demo_match.gif',
+  'galleries/2025/04/09/demo-match_vs_IA.gif'
 ];
 
 const IMAGE_PATHS = [
-  'galleries/2025/03/26/first_page.png',
-  'galleries/2025/03/26/lobby1.png',
-  'galleries/2025/03/26/lobby2.png',
-  'galleries/2025/03/26/login.png',
-  'galleries/2025/03/26/playscreen.png',
-  'galleries/2025/03/26/redirect.png',
-  'galleries/2025/03/26/signup.png',
-  'galleries/2025/03/26/workstation_pc_in_lobby.png'
+  'galleries/2025/04/09/first_page.png',
+  'galleries/2025/04/09/lobby1.png',
+  'galleries/2025/04/09/lobby2.png',
+  'galleries/2025/04/09/login.png',
+  'galleries/2025/04/09/playscreen.png',
+  'galleries/2025/04/09/redirect.png',
+  'galleries/2025/04/09/signup.png',
+  'galleries/2025/04/09/workstation_pc_in_lobby.png'
 ];
 
 const MotionSection = motion.section;
