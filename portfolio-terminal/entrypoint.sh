@@ -10,5 +10,6 @@ if [ ! -f /home/coder/projects/minishell/README.md ]; then
     echo "Welcome to the terminal demo!" >> /home/coder/projects/minishell/README.md
 fi
 
+chown -R coder:coder /home/coder
 # Start the terminal service
 exec uvicorn main:app --host 0.0.0.0 --port 8000

@@ -2,186 +2,289 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
+import { Unicode11Addon } from '@xterm/addon-unicode11';
 import '@xterm/xterm/css/xterm.css';
 import { Project } from '@/library/types';
-import { Unicode11Addon } from '@xterm/addon-unicode11';
+import { api } from '@/library/api-client';
 
 interface LiveTerminalProps {
   project: Project;
   slug: string;
 }
 
+// Function to get an auth token
+async function fetchAuthToken() {
+  try {
+    const response = await api.get('/auth/terminal-token/');
+    return response.data.token;
+  } catch (error) {
+    console.error('Failed to fetch auth token:', error);
+    return null;
+  }
+}
+
 export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   const terminalRef = useRef<Terminal | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resizeHandlerRef = useRef<(() => void) | null>(null);
+  
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
+  // Fetch auth token when component mounts
   useEffect(() => {
-    const terminalElement = document.getElementById('terminal');
-    if (!terminalElement) return;
-    
-    // Initialize terminal
-	const term = new Terminal({
-	  cursorStyle: 'block',
-	  cursorBlink: true,
-	  macOptionIsMeta: true,
-	  fontSize: 14,
-	  fontFamily: "'MesloLGS NF', 'Fira Code', 'Cascadia Code', monospace",
-	  theme: {
-	    background: '#1e1e1e',
-	    foreground: '#d4d4d4',
-	    cursor: '#a0a0a0',
-		cursorAccent: '#000000',
-		selectionBackground: '#4d4d4d',
-	  },
-	  disableStdin: false,
-	  allowTransparency: true,
-	  convertEol: true,  // Important: Convert line feeds
-	  scrollback: 1000,
-	  tabStopWidth: 4,
-	  allowProposedApi: true,
-	  fontWeightBold: 'bold',
-	});
-    
-    // Connect to WebSocket
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // const wsUrl = `${wsProtocol}//api.aouichou.me/ws/terminal/${slug}/`;
+    async function getToken() {
+      const token = await fetchAuthToken();
+      setAuthToken(token);
+    }
+    getToken();
+  }, []);
 
-	let host = window.location.host;
-	// If on the main domain, use the API subdomain
-	if (host === 'aouichou.me' || host === 'www.aouichou.me') {
-	host = 'api.aouichou.me';
-	}
-	
-	// const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/`;
-	const wsUrl = `${wsProtocol}//api.aouichou.me/ws/terminal/${slug}/`;
-    const socket = new WebSocket(wsUrl);
-    socketRef.current = socket;
+  // Terminal resize function
+  const resizeTerminal = useCallback((term: Terminal | null, fitAddon: FitAddon | null, socket: WebSocket | null) => {
+    if (!term || !fitAddon) return;
     
-	const connectionTimeout = setTimeout(() => {
-		if (socket.readyState === WebSocket.CONNECTING) {
-		  socket.close();
-		  setError('Connection timed out');
-		}
-	  }, 5000);
-
-    socket.onopen = () => {
-	  clearTimeout(connectionTimeout);
-      setConnected(true);
-      term.write('Connected to terminal server...\r\n');
-    };
-    
-    socket.onclose = (event) => {
-      setConnected(false);
-	  clearTimeout(connectionTimeout);
-      term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
-    };
-    
-    socket.onerror = (event) => {
-	  clearTimeout(connectionTimeout);
-	  setConnected(false);
-	  if (event instanceof ErrorEvent) {
-		console.error('WebSocket error:', event.message);
-	  } else {
-		console.error('WebSocket error:', event);
-	  }
-	  console.error('WebSocket error:', event);
-      setError('WebSocket error occurred');
-      term.write('\r\nError connecting to terminal server.\r\n');
-    };
-    
-    socket.onmessage = (event) => {
+    setTimeout(() => {
       try {
-        const data = JSON.parse(event.data);
-        if (data.output) {
-          term.write(data.output);
+        fitAddon.fit();
+        
+        if (connected && socket?.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            resize: { cols: term.cols, rows: term.rows }
+          }));
         }
       } catch (e) {
-		console.error("Error processing message:", e);
-        term.write(event.data);
+        console.error("Fit error:", e);
       }
-    };
+    }, 100);
+  }, [connected]);
+
+  // Initialize terminal and WebSocket
+  useEffect(() => {
+    // Don't initialize until we have an auth token
+    if (!authToken) {
+      return;
+    }
+
+    // Initialization delay to ensure DOM is ready
+    const initTimer = setTimeout(() => {
+      if (!containerRef.current) {
+        setError("Terminal container not ready");
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        // Initialize terminal with security settings
+        const term = new Terminal({
+          cursorStyle: 'block',
+          cursorBlink: true,
+          macOptionIsMeta: true,
+          fontSize: 14,
+          fontFamily: "'MesloLGS NF', 'Fira Code', 'Cascadia Code', monospace",
+          theme: {
+            background: '#1e1e1e',
+            foreground: '#d4d4d4',
+            cursor: '#a0a0a0',
+            cursorAccent: '#000000',
+            selectionBackground: '#4d4d4d',
+          },
+          disableStdin: false,
+          allowTransparency: true,
+          convertEol: true,
+          scrollback: 1000,
+          tabStopWidth: 4,
+          allowProposedApi: true,
+          fontWeightBold: 'bold',
+        });
+        terminalRef.current = term;
+        
+        // Initialize Add-ons
+        const fitAddon = new FitAddon();
+        fitAddonRef.current = fitAddon;
+        
+        term.loadAddon(fitAddon);
+        term.loadAddon(new WebLinksAddon());
+        
+        const unicodeAddon = new Unicode11Addon();
+        term.loadAddon(unicodeAddon);
+        term.unicode.activeVersion = '11';
+        
+        // Open terminal in the container
+        term.open(containerRef.current);
+        
+        // Connect to secure WebSocket with token authentication
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let host = window.location.host;
+        
+        if (host === 'aouichou.me' || host === 'www.aouichou.me') {
+          host = 'api.aouichou.me';
+        }
+        
+        const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/?token=${authToken}`;
+        
+        try {
+          term.write('Connecting to secure terminal...\r\n');
+          const socket = new WebSocket(wsUrl);
+          socketRef.current = socket;
+          
+          // Connection timeout
+          const connectionTimeout = setTimeout(() => {
+            if (socket.readyState === WebSocket.CONNECTING) {
+              socket.close();
+              setError('Connection timed out - please refresh');
+              setIsLoading(false);
+            }
+          }, 5000);
+          
+          // Socket event handlers
+          socket.onopen = () => {
+            clearTimeout(connectionTimeout);
+            setConnected(true);
+            setIsLoading(false);
+            term.write('Connected to terminal server...\r\n');
+            setTimeout(() => term.focus(), 500);
+          };
+          
+          socket.onclose = (event) => {
+            clearTimeout(connectionTimeout);
+            setConnected(false);
+            term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
+            
+            if (event.code === 4003) {
+              setError('Authentication failed. Please refresh the page.');
+            }
+          };
+          
+          socket.onerror = (event) => {
+            clearTimeout(connectionTimeout);
+            setConnected(false);
+            setIsLoading(false);
+            console.error('WebSocket error:', event);
+            setError('WebSocket error occurred - please try again');
+            term.write('\r\nError connecting to terminal server.\r\n');
+          };
+          
+          socket.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.output) {
+                term.write(data.output);
+              }
+              // Handle auth challenge if implemented
+              if (data.action === 'require_mfa') {
+                // Show MFA dialog to user
+                promptForMFA(socket);
+              }
+            } catch (e) {
+              // If not JSON, write directly
+              term.write(event.data);
+            }
+          };
+          
+          // Input handling
+          term.onData((data) => {
+            if (socket.readyState === WebSocket.OPEN) {
+              socket.send(JSON.stringify({ 
+                input: data
+              }));
+            }
+          });
+          
+          // Set up resize handling
+          const handleResize = () => resizeTerminal(term, fitAddon, socket);
+          resizeHandlerRef.current = handleResize;
+          
+          window.addEventListener('resize', handleResize);
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+              handleResize();
+            }
+          });
+          
+          // Initial terminal resize
+          handleResize();
+          
+        } catch (e) {
+          console.error("WebSocket initialization error:", e);
+          setError(`Failed to connect: ${e instanceof Error ? e.message : String(e)}`);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error("Terminal initialization error:", err);
+        setError(err instanceof Error ? err.message : "Failed to initialize terminal");
+        setIsLoading(false);
+      }
+    }, 500); // 500ms delay to ensure DOM is ready
     
-	setTimeout(() => {
-		term.focus();
-	}, 1000);
-
-	terminalRef.current = term;
-    
-    const fitAddon = new FitAddon();
-    term.loadAddon(fitAddon);
-    term.loadAddon(new WebLinksAddon());
-    
-	const unicodeAddon = new Unicode11Addon();
-	term.loadAddon(unicodeAddon);
-	term.unicode.activeVersion = '11';
-
-	// Define resize function
-	const resizeTerminal = () => {
-		// Short delay to ensure DOM layout is complete
-		setTimeout(() => {
-		try {
-			fitAddon.fit();
-			
-			// Send the resize command to the server
-			if (connected && socket.readyState === WebSocket.OPEN) {
-			socket.send(JSON.stringify({
-				resize: { cols: term.cols, rows: term.rows }
-			}));
-			}
-		} catch (e) {
-			console.error("Fit error:", e);
-		}
-		}, 100);
-	};
-	
-	// Open terminal in the container
-	term.open(terminalElement);
-	resizeTerminal();  // Initial fit
-	
-	// Handle window resize events
-	window.addEventListener('resize', resizeTerminal);
-	
-	document.addEventListener('visibilitychange', () => {
-		if (!document.hidden) {
-		  resizeTerminal();
-		}
-	  });
-
-	term.onData((data) => {
-		
-		if (socket.readyState === WebSocket.OPEN) {
-		  // Simply send raw data to the server - don't try to track commands locally
-		  socket.send(JSON.stringify({ 
-			input: data  // Send raw character data
-		  }));
-		  if (data.charCodeAt(0) >= 32 || data === '\r' || data === '\n') {
-			// term.write(data);
-		  }
-		} else {
-		}
-	  });
-
-    // Cleanup
+    // Cleanup function
     return () => {
-      window.removeEventListener('resize', resizeTerminal);
+      clearTimeout(initTimer);
+      
+      // Clean up event listeners
+      if (resizeHandlerRef.current) {
+        window.removeEventListener('resize', resizeHandlerRef.current);
+        document.removeEventListener('visibilitychange', resizeHandlerRef.current);
+      }
+      
+      // Clean up socket
       if (socketRef.current) {
         socketRef.current.close();
       }
+      
+      // Clean up terminal
       if (terminalRef.current) {
         terminalRef.current.dispose();
       }
     };
-  }, [slug]);
+  }, [slug, authToken, resizeTerminal]);
+  
+  // Function to prompt user for MFA code if needed
+  const promptForMFA = (socket: WebSocket) => {
+    const code = prompt("Please enter your MFA code:");
+    if (code) {
+      socket.send(JSON.stringify({ mfa_code: code }));
+    } else {
+      setError("MFA verification required");
+    }
+  };
   
   return (
-	<div className="terminal-wrapper relative h-full">
-		<div id="terminal" className="absolute top-0 left-0 right-0 bottom-0" />
-	</div>
+    <div className="terminal-wrapper relative h-full">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-10">
+          <div className="text-white text-center p-6">
+            <div className="w-12 h-12 border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin mx-auto mb-4"></div>
+            <p>Initializing secure terminal...</p>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-20">
+          <div className="bg-red-900/80 text-white p-6 rounded-lg max-w-md text-center">
+            <h3 className="text-xl font-bold mb-2">Terminal Error</h3>
+            <p className="mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-white text-red-900 rounded hover:bg-gray-200 transition-colors"
+            >
+              Reload Terminal
+            </button>
+          </div>
+        </div>
+      )}
+      
+      <div ref={containerRef} className="absolute top-0 left-0 right-0 bottom-0" />
+    </div>
   );
 }

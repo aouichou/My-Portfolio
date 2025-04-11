@@ -50,8 +50,20 @@ services:
   terminal:
     build: 
       context: ./portfolio-terminal
+    security_opt:
+      - seccomp:seccomp-profile.json
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     expose:
       - "8000"
+    read_only: true       # Make the container filesystem read-only
+    tmpfs:                # Mount temporary directories for write access
+      - /tmp:exec,size=64M
+      - /home/coder/sandboxes:exec,size=128M
+      - /home/coder/projects:exec,size=128M
     volumes:
       - ./portfolio-terminal:/app
     networks:

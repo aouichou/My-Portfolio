@@ -25,6 +25,9 @@ import tempfile
 import zipfile
 import boto3
 from rest_framework import viewsets
+import datetime
+from rest_framework.permissions import IsAuthenticated
+import jwt
 
 logger = logging.getLogger(__name__)
 class ProjectList(generics.ListAPIView):
@@ -289,3 +292,28 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 		project_names = list(queryset.values_list('title', flat=True))
 		
 		return queryset
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def generate_terminal_token(request):
+    """Generate a JWT token for terminal access"""
+    
+    # Set expiration time (5 minutes)
+    expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    
+    # Create payload
+    payload = {
+        'user_id': request.user.id,
+        'username': request.user.username,
+        'purpose': 'terminal_access',
+        'exp': expiration
+    }
+    
+    # Create token
+    token = jwt.encode(
+        payload,
+        settings.SECRET_KEY,
+        algorithm="HS256"
+    )
+    
+    return Response({'token': token})

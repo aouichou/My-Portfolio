@@ -287,3 +287,8 @@ TERMINAL_SETTINGS = {
 	'MAX_OUTPUT_LENGTH': 10000,   # 10KB per command
 	'CONCURRENT_SESSIONS': 3,     # Max 3 sessions per IP
 }
+
+# Set Content Security Policy
+CSP_DEFAULT_SRC = ["'self'"]
+CSP_CONNECT_SRC = ["'self'", "wss://api.aouichou.me"]
+CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]  # Consider stricter settings if possible

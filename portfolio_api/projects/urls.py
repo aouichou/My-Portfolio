@@ -11,4 +11,5 @@ urlpatterns = [
 	path('projects/<slug:slug>/files/', views.project_files, name='project-files'),
 	path('import-data/', views.trigger_import),
 	path('health/', views.health_check, name='health-check'),
+	path('auth/terminal-token/', views.generate_terminal_token, name='terminal_token'),
 ]

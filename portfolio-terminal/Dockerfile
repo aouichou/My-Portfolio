@@ -67,8 +67,18 @@ RUN chmod 755 /app/entrypoint.sh
 # Expose port
 EXPOSE 8000
 
+# Runtime safety configurations
+RUN echo "alias sudo='echo \"Command not permitted: sudo\"'" >> /home/coder/.bashrc && \
+    echo "alias docker='echo \"Command not permitted: docker\"'" >> /home/coder/.bashrc && \
+    echo "alias kubectl='echo \"Command not permitted: kubectl\"'" >> /home/coder/.bashrc && \
+    echo "set -o noclobber" >> /home/coder/.bashrc
+
+# Copy security policy files
+COPY --chown=coder:coder security/seccomp-profile.json /app/security/
+# COPY --chown=coder:coder security/capabilities-list.txt /app/security/
+
 # Run as non-root user
 USER coder
 
 # Start the service
-CMD ["/app/entrypoint.sh"]
+CMD ["dumb-init", "--", "bash", "-c", "ulimit -n 1024; ./entrypoint.sh"]
