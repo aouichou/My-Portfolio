@@ -8,6 +8,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import React from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { useEffect, useState } from 'react';
 
 // Dynamic import with SSR disabled
 const LiveTerminal = dynamic(() => import('@/components/LiveTerminal'), {
@@ -37,11 +38,24 @@ function TerminalErrorFallback({ error, resetErrorBoundary }: { error: Error; re
     );
   }
 
-export default function ProjectDemoPage() {
-  const params = useParams();
-  const slug = params.slug as string;
-  const { data: project, isLoading } = useProjectBySlug(slug);
-  
+  export default function ProjectDemoPage() {
+	const params = useParams();
+	const slug = params.slug as string;
+	const { data: project, isLoading } = useProjectBySlug(slug);
+	const [errorInfo, setErrorInfo] = useState<string | null>(null);
+
+	useEffect(() => {
+		const originalError = console.error;
+		console.error = (...args) => {
+		  setErrorInfo(args.join(' '));
+		  originalError(...args);
+		};
+		
+		return () => {
+		  console.error = originalError;
+		};
+	  }, []);
+
   if (isLoading || !project) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -119,14 +133,34 @@ export default function ProjectDemoPage() {
       </header>
       
       <div className="flex flex-1 overflow-hidden">
-        {/* Terminal - Now using LiveTerminal */}
+        {/* Terminal - Now using LiveTerminal with improved error boundary */}
         <div className="flex-1 overflow-hidden bg-black">
-            <ErrorBoundary
-                FallbackComponent={TerminalErrorFallback}
-                onReset={() => window.location.reload()}
+          <ErrorBoundary
+            FallbackComponent={({ error, resetErrorBoundary }) => (
+              <div role="alert" className="h-full flex flex-col items-center justify-center bg-gray-900 p-6">
+                <h2 className="text-2xl font-bold mb-4 text-white">Terminal Error</h2>
+                <p className="text-red-400 mb-4">Something went wrong with the terminal</p>
+                {errorInfo && (
+                  <div className="bg-gray-800 p-4 rounded mb-4 max-w-lg overflow-auto">
+                    <p className="text-red-300 font-mono text-sm">{errorInfo}</p>
+                  </div>
+                )}
+                <button 
+                  onClick={resetErrorBoundary}
+                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                 >
+                  Try Again
+                </button>
+              </div>
+            )}
+            onReset={() => {
+              setErrorInfo(null);
+              // Force a clean remount
+              setTimeout(() => window.location.reload(), 100);
+            }}
+          >
             <LiveTerminal project={project} slug={slug} />
-            </ErrorBoundary>
+          </ErrorBoundary>
         </div>
         
         {/* Documentation panel */}
