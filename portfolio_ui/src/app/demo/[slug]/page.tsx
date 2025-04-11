@@ -23,22 +23,7 @@ const LiveTerminal = dynamic(() => import('@/components/LiveTerminal'), {
   ),
 });
 
-function TerminalErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
-    return (
-      <div role="alert" className="h-full flex flex-col items-center justify-center">
-        <p>Failed to load terminal:</p>
-        <pre>{error.message}</pre>
-        <button 
-          onClick={resetErrorBoundary}
-          className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
-  export default function ProjectDemoPage() {
+export default function ProjectDemoPage() {
 	const params = useParams();
 	const slug = params.slug as string;
 	const { data: project, isLoading } = useProjectBySlug(slug);
