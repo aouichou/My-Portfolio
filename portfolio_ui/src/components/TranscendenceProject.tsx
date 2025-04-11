@@ -18,9 +18,9 @@ const GIF_PATHS = [
 ];
 
 const IMAGE_PATHS = [
-  'galleries/2025/04/09/first_page.png',
+  'galleries/2025/04/11/first_page.png',
   'galleries/2025/04/09/lobby1.png',
-  'galleries/2025/04/09/lobby2.png',
+  'galleries/2025/04/11/lobby2.png',
   'galleries/2025/04/09/login.png',
   'galleries/2025/04/09/playscreen.png',
   'galleries/2025/04/09/redirect.png',
