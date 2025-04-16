@@ -35,7 +35,7 @@ This design ensures greater security as the terminal service is never directly e
 ## 🏗️ DevOps Architecture
 
 <p align="center">
-  <img src="docs/architecture_diagram.png" width="650px" alt="System Architecture">
+  <img src="portfolio_ui/public/diagrams/architecture-diagram-dark.png" width="650px" alt="System Architecture">
 </p>
 
 ```mermaid
