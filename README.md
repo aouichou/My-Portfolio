@@ -60,8 +60,8 @@ graph TD
 
 | Service | Technology | Provider | Purpose |
 |---------|------------|----------|---------|
-| Frontend | Next.js 14, TypeScript, TailwindCSS | Heroku | User interface |
-| Backend API | Django 4.2, Django REST Framework | Render | Data & authentication |
+| Frontend | Next.js 15.2, TypeScript, TailwindCSS | Heroku | User interface |
+| Backend API | Django 5, Django REST Framework | Render | Data & authentication |
 | Terminal Service | FastAPI, pexpect, PTY | Render | WebSocket terminal |
 | Database | PostgreSQL 15 | Render | Persistent storage |
 | Cache | Redis 7 | Render | WebSocket channel layer |
