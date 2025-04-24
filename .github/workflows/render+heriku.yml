@@ -68,6 +68,18 @@ jobs:
             echo "🚀 Deploying backend because backend files changed"
           fi
 
+      - name: Deploy to Fly.io
+        uses: superfly/flyctl-actions@1.1
+        with:
+          apiToken: ${{ secrets.FLY_API_TOKEN }}
+          app: ${{ secrets.FLY_APP_NAME }}
+          dockerfile: "portfolio_api/Dockerfile"
+          env: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            REDIS_URL=${{ secrets.REDIS_URL }}
+            AWS_ACCESS_KEY_ID=${{ secrets.TIGRIS_ACCESS_KEY }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.TIGRIS_SECRET_KEY }}
+
       - name: Update Render Environment Variables
         run: |
           curl -X PATCH \
