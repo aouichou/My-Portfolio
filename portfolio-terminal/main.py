@@ -142,6 +142,7 @@ app_start_time = time.time()
 
 @app.get("/healthz")
 async def health_check():
+	logger.info("Health check endpoint called")
 	return {"status": "healthy"}
 
 @app.websocket("/terminal/{project_slug}/")

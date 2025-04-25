@@ -270,6 +270,8 @@ def download_project_files(project_slug):
 
 @api_view(['GET'])
 def health_check(request):
+	"""Health check endpoint"""
+	logger.info("Health check endpoint hit")
 	return Response({'status': 'healthy'}, status=200)
 
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
