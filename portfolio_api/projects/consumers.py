@@ -61,7 +61,8 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		await self.accept()
 		
 		# Get terminal service URL from environment
-		terminal_base_url = os.environ.get('TERMINAL_SERVICE_URL', 'wss://portfolio-terminal-4t9w.onrender.com')
+		# terminal_base_url = os.environ.get('TERMINAL_SERVICE_URL', 'wss://portfolio-terminal-4t9w.onrender.com')
+		terminal_base_url = os.environ.get('TERMINAL_SERVICE_URL', 'wss://portfolio-terminal.fly.dev')
 		if terminal_base_url.startswith('wss://'):
 			# For production
 			self.terminal_url = f"{terminal_base_url}/terminal/{self.project_slug}/"

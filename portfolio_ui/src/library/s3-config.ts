@@ -1,4 +1,6 @@
-export const S3_BUCKET_URL = 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
+// portfolio_ui/src/library/s3-config.ts
+
+export const S3_BUCKET_URL = 'https://portfolio-media.fly.storage.tigris.dev/media';
 
 export const getMediaUrl = (path: string): string => {
   if (!path) {

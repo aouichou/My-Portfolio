@@ -16,7 +16,6 @@ RUN apt-get update && \
 
 COPY . .
 
-# Build-time secret (will be overridden by Render's env vars)
 ENV SECRET_KEY=build-key-123
 RUN python manage.py collectstatic --noinput
 

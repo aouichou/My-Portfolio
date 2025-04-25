@@ -1,0 +1,39 @@
+app = "portfolio-backend-twilight-tree-2724"
+primary_region = "cdg"
+kill_signal = "SIGINT"
+kill_timeout = 5
+
+[env]
+  PORT = "8080"
+  ALLOWED_HOSTS = "*.fly.dev,api.aouichou.me,localhost"
+  CORS_ALLOWED_ORIGINS = "https://aouichou.me,http://localhost:3000"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[services.concurrency]
+  hard_limit = 25
+  soft_limit = 20
+  type = "connections"
+
+[[services.ports]]
+  handlers = ["http"]
+  port = 80
+
+[[services.ports]]
+  handlers = ["tls", "http"]
+  port = 443
+
+[[services.http_checks]]
+  interval = "10s"
+  grace_period = "30s"
+  method = "get"
+  path = "/healthz"
+  protocol = "http"
+  restart_limit = 3
+  timeout = "5s"
