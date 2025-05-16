@@ -50,32 +50,29 @@ python manage.py migrate
 # "
 
 
-# #Start gunicorn in background for HTTP
-# gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi &
-# GUNICORN_PID=$!
+#Start gunicorn in background for HTTP
+gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi &
+GUNICORN_PID=$!
 
-# # Set PORT if not set
-# export PORT=${PORT:-8081}
-# echo "Daphne will listen on port $PORT"
+# Set PORT if not set
+export PORT=${PORT:-8081}
+echo "Daphne will listen on port $PORT"
 
-# # Start daphne for WebSockets
-# daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application &
-# DAPHNE_PID=$!
+# Start daphne for WebSockets
+daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application &
+DAPHNE_PID=$!
 
-# # Create a simpler signal handler compatible with BusyBox shell
-# handle_exit() {
-#   echo "Received shutdown signal, stopping servers..."
-#   kill $GUNICORN_PID
-#   kill $DAPHNE_PID
-#   exit 0
-# }
+# Create a simpler signal handler compatible with BusyBox shell
+handle_exit() {
+  echo "Received shutdown signal, stopping servers..."
+  kill $GUNICORN_PID
+  kill $DAPHNE_PID
+  exit 0
+}
 
-# # Set trap for each signal individually
-# trap handle_exit INT
-# trap handle_exit TERM
+# Set trap for each signal individually
+trap handle_exit INT
+trap handle_exit TERM
 
-# # Wait for either process to exit
-# wait
-
-echo "Starting ASGI server on 0.0.0.0:8080..."
-exec uvicorn portfolio_api.asgi:application --host 0.0.0.0 --port 8080
+# Wait for either process to exit
+wait
