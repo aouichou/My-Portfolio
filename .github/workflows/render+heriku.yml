@@ -1,4 +1,4 @@
-name: Fly.io + Heroku Deploy
+name: Heroku + Render Deploy
 on: [push]
 
 jobs:
@@ -44,6 +44,14 @@ jobs:
               - 'docker-compose.yml'
               - 'nginx.conf'
 
+      - name: Report changes
+        run: |
+          echo "Backend changes: ${{ steps.filter.outputs.backend }}"
+          echo "Terminal changes: ${{ steps.filter.outputs.terminal }}"
+          echo "Frontend changes: ${{ steps.filter.outputs.frontend }}"
+          echo "Shared config changes: ${{ steps.filter.outputs.shared }}"
+          echo "Force deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}"
+
   # Backend deployment job with condition
   deploy-backend:
     needs: [check-changes]
@@ -52,19 +60,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Deploy to Fly.io
-        uses: superfly/flyctl-actions@1.3
+      - name: Deploy reason
+        run: |
+          if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
+            echo "🚀 Deploying backend because force deploy was requested in commit message"
+          else
+            echo "🚀 Deploying backend because backend files changed"
+          fi
+
+      - name: Update Render Environment Variables
+        run: |
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "envVars": [
+              {"key": "SMTP_USER", "value": "${{ secrets.SMTP_USER }}"},
+              {"key": "SMTP_PASSWORD", "value": "${{ secrets.SMTP_PASSWORD }}"}
+            ]
+          }' \
+          https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/env-vars
+              
+      - name: Render Deploy Action
+        uses: johnbeynon/render-deploy-action@v0.0.8
         with:
-          args: "deploy ./portfolio_api --remote-only"
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.TIGRIS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.TIGRIS_SECRET_KEY }}
-          AWS_STORAGE_BUCKET_NAME: "portfolio-media"
-          AWS_S3_ENDPOINT_URL: "https://fly.storage.tigris.dev"
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          
+      - name: Run Migrations and Import Data
+        run: |
+          # First deployment to create service
+          curl -X POST -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+               https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
+          
+          # Wait for service to be ready
+          sleep 120
+          
+          # Run migrations
+          curl -X POST -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+               -H "Content-Type: application/json" \
+               -d '{"clearCache": "do_not_clear"}' \
+               https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
 
   # Frontend deployment job with condition
   deploy-frontend:
@@ -107,11 +143,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Deploy Terminal to Fly.io
-        uses: superfly/flyctl-actions@1.3
+      - name: Deploy reason
+        run: |
+          if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
+            echo "🚀 Deploying terminal service because force deploy was requested"
+          elif [[ "${{ needs.check-changes.outputs.shared }}" == "true" ]]; then
+            echo "🚀 Deploying terminal service because shared configs changed"
+          else
+            echo "🚀 Deploying terminal service because terminal files changed"
+          fi
+
+      - name: Render Deploy Action for Terminal Service
+        uses: johnbeynon/render-deploy-action@v0.0.8
         with:
-          args: "deploy ./portfolio-terminal --remote-only"
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          TERMINAL_SECRET: ${{ secrets.TERMINAL_SECRET }}
+          service-id: ${{ secrets.RENDER_TERMINAL_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}

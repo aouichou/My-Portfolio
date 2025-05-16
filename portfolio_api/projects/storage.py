@@ -6,20 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CustomS3Storage(S3Boto3Storage):
-    """Custom S3 storage that works with Fly.io S3 storage"""
-    location = 'media'
-    file_overwrite = False
-
-    def _get_or_create_bucket(self, name):
-        """
-        Returns bucket object with the given name.
-        For Fly.io we assume the bucket already exists.
-        """
-        try:
-            return self.connection.Bucket(name)
-        except Exception as e:
-            logger.error(f"Error accessing bucket {name}: {str(e)}")
-            raise
+    """Custom S3 storage that fixes hostname issues, skips file existence checks and handles ACL restrictions"""
     
     def exists(self, name):
         """

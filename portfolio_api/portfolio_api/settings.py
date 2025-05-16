@@ -252,26 +252,20 @@ LOGGING = {
 }
 
 # S3 settings
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY') 
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', 'portfolio-media')
-AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', 'https://fly.storage.tigris.dev')
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-AWS_LOCATION = 'media'
-AWS_DEFAULT_ACL = None
-AWS_S3_REGION_NAME = 'auto'  # Must match bucket region
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_ACCESS_KEY_ID = os.getenv('BUCKETEER_AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('BUCKETEER_AWS_SECRET_ACCESS_KEY') 
+AWS_STORAGE_BUCKET_NAME = os.getenv('BUCKETEER_BUCKET_NAME')
+AWS_S3_REGION_NAME = 'eu-west-1'  # Must match bucket region
 AWS_S3_ADDRESSING_STYLE = 'path'  # Use path-style instead of virtual-hosted style
+AWS_S3_ENDPOINT_URL = 'https://s3.eu-west-1.amazonaws.com'  # Direct endpoint
 AWS_QUERYSTRING_AUTH = False  # For signed URLs
 AWS_S3_FILE_OVERWRITE = False
+# AWS_DEFAULT_ACL = 'public-read'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_USE_SSL = True
-AWS_S3_VERIFY = True
-
-MEDIA_URL = os.getenv('MEDIA_URL', f'https://{AWS_STORAGE_BUCKET_NAME}.fly.storage.tigris.dev/media/')
-DEFAULT_FILE_STORAGE = 'projects.storage.CustomS3Storage'
+AWS_S3_VERIFY = True 
+MEDIA_URL = f'https://s3.eu-west-1.amazonaws.com/{os.getenv("BUCKETEER_BUCKET_NAME")}/'
 
 
 # Channel layers for WebSocket
@@ -288,7 +282,6 @@ CHANNEL_LAYERS = {
 	}
 }
 
-TERMINAL_SERVICE_URL = "wss://portfolio-terminal.fly.dev"
 TERMINAL_SETTINGS = {
 	'MAX_SESSION_DURATION': 900,  # 15 minutes
 	'MAX_OUTPUT_LENGTH': 10000,   # 10KB per command
