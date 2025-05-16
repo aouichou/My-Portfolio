@@ -74,7 +74,7 @@ RUN echo "alias sudo='echo \"Command not permitted: sudo\"'" >> /home/coder/.bas
     echo "set -o noclobber" >> /home/coder/.bashrc
 
 # Copy security policy files
-COPY --chown=coder:coder security/seccomp-profile.json /app/security/
+COPY --chown=coder:coder ./seccomp-profile.json /app/security/
 # COPY --chown=coder:coder security/capabilities-list.txt /app/security/
 
 # Run as non-root user
