@@ -28,3 +28,12 @@ kill_timeout = 5
 [[services.ports]]
   handlers = ["tls", "http"]
   port = 443
+
+[[services.http_checks]]
+  interval = "10s"
+  grace_period = "30s"
+  method = "get"
+  path = "/healthz"
+  protocol = "http"
+  restart_limit = 3
+  timeout = "5s"
