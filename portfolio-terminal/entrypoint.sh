@@ -14,4 +14,4 @@ if [ "$(whoami)" = "root" ]; then
   chown -R coder:coder /home/coder
 fi
 # Start the terminal service
-exec uvicorn main:app --host 0.0.0.0 --port 8080
+exec uvicorn main:app --host 0.0.0.0 --port 8000
