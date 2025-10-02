@@ -83,3 +83,7 @@ __snapshots__/
 portfolio_api/test.py
 nginx.local.conf
 portfolio_ui/security-headers.js
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
