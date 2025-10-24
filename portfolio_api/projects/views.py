@@ -21,7 +21,7 @@ from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -310,20 +310,29 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 		return queryset
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # Allow anonymous access for demo terminal
 def generate_terminal_token(request):
     """Generate a JWT token for terminal access"""
     
     # Set expiration time (5 minutes)
     expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
     
-    # Create payload
-    payload = {
-        'user_id': request.user.id,
-        'username': request.user.username,
-        'purpose': 'terminal_access',
-        'exp': expiration
-    }
+    # Create payload for both authenticated and anonymous users
+    if request.user.is_authenticated:
+        payload = {
+            'user_id': request.user.id,
+            'username': request.user.username,
+            'purpose': 'terminal_access',
+            'exp': expiration
+        }
+    else:
+        # Anonymous user - generate a guest token
+        payload = {
+            'user_id': None,
+            'username': 'guest',
+            'purpose': 'terminal_access',
+            'exp': expiration
+        }
     
     # Create token
     token = jwt.encode(
