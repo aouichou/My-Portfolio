@@ -202,6 +202,9 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	await websocket.accept()
 	logger.info(f"WebSocket connection accepted for {project_slug}")
 	
+	# Initialize variables that might be used in finally block
+	read_task = None
+	
 	try:
 		# Validate and sanitize project slug
 		project_slug = sanitize_project_slug(project_slug)
@@ -383,10 +386,10 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 			await websocket.send_json({
 				'output': f"\r\n\r\nTerminal error: {str(e)}\r\n"
 			})
-		except:
+		except Exception:
 			pass
 	finally:
-		if 'read_task' in locals() and not read_task.done():
+		if read_task and not read_task.done():
 			read_task.cancel()
 			try:
 				await read_task
@@ -399,8 +402,8 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				active_terminals[session_id].terminate()
 				del active_terminals[session_id]
 				logger.info(f"Terminated session {session_id}")
-			except:
-				logger.error(f"Failed to terminate session {session_id}")
+			except Exception as cleanup_error:
+				logger.error(f"Failed to terminate session {session_id}: {cleanup_error}")
 
 async def read_terminal_output(websocket, child):
 	while True:
@@ -423,7 +426,7 @@ async def read_terminal_output(websocket, child):
 				'output': "\r\nSession terminated.\r\n"
 			}))
 			break
-		except Exception as e:
+		except Exception:
 			# Timeout or other error, just continue
 			await asyncio.sleep(0.1)
 
@@ -529,7 +532,7 @@ def download_project_files(project_slug, project_dir):
 		bucket_name = os.environ.get('BUCKETEER_BUCKET_NAME')
 		
 		if not bucket_name:
-			print(f"Missing S3 bucket configuration")
+			print("Missing S3 bucket configuration")
 			return False
 			
 		print(f"Looking for S3 object: {s3_path} in bucket {bucket_name}")
@@ -541,9 +544,9 @@ def download_project_files(project_slug, project_dir):
 				try:
 					timestamp = float(f.read().strip())
 					if time.time() - timestamp < 86400:  # 24 hours
-						print(f"Using cached project files (downloaded less than 24h ago)")
+						print("Using cached project files (downloaded less than 24h ago)")
 						return True
-				except:
+				except Exception:
 					pass
 
 		try:
