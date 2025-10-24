@@ -23,14 +23,14 @@ const nextConfig = {
     // Define Content-Security-Policy
 	const ContentSecurityPolicy = `
 	  default-src 'self';
-	  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com;
+	  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://challenges.cloudflare.com;
 	  style-src 'self' 'unsafe-inline';
 	  img-src 'self' data: blob: https: http:;
 	  font-src 'self' data: https:;
 	  connect-src 'self' https: http: wss: ws:;
 	  media-src 'self' data: blob: https: http:;
 	  object-src 'none';
-	  frame-src 'self';
+	  frame-src 'self' https://challenges.cloudflare.com;
 	`;
 
     // Define all security headers inline

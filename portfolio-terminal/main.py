@@ -584,11 +584,11 @@ def download_project_files(project_slug, project_dir):
 						last_reported = progress
 						print(f"Download progress: {progress}%")
 				
-				# Use TransferConfig for optimized downloads
+				# Use TransferConfig with reduced threads for Render free tier
 				config = boto3.s3.transfer.TransferConfig(
-					multipart_threshold=1024 * 25,  # 25MB
-					max_concurrency=10,
-					use_threads=True
+					multipart_threshold=1024 * 50,  # 50MB
+					max_concurrency=2,  # Reduced from 10 to avoid thread exhaustion
+					use_threads=False  # Disable threading on free tier
 				)
 				
 				s3.download_file(
@@ -608,13 +608,19 @@ def download_project_files(project_slug, project_dir):
 				
 				# Extract the zip file to the project directory with progress updates
 				print(f"Opening ZIP file {temp_file.name}")
-				ALLOWED_EXTENSIONS = {'.c', '.h', '.md', '.py'}
+				ALLOWED_EXTENSIONS = {'.c', '.h', '.md', '.py', '.txt', '.sh', '.Makefile', ''}
 				with zipfile.ZipFile(temp_file.name, 'r') as zip_ref:
 					for file in zip_ref.namelist():
-						if os.path.splitext(file)[1] not in ALLOWED_EXTENSIONS:
+						# Skip directory entries (end with /)
+						if file.endswith('/'):
+							continue
+						# Check file extension
+						file_ext = os.path.splitext(file)[1].lower()
+						# Allow files with no extension (like Makefile) or allowed extensions
+						if file_ext and file_ext not in ALLOWED_EXTENSIONS:
 							raise zipfile.BadZipFile(f"Disallowed file type: {file}")
-					total_files = len(zip_ref.namelist())
-					print(f"ZIP contains {total_files} files: {zip_ref.namelist()[:5]}...")
+					total_files = len([f for f in zip_ref.namelist() if not f.endswith('/')])
+					print(f"ZIP contains {total_files} files (excluding directories): {zip_ref.namelist()[:5]}...")
 					
 					# Extract in smaller batches to avoid memory issues
 					for i, file in enumerate(zip_ref.namelist()):
