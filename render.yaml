@@ -5,8 +5,10 @@ services:
     plan: free
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
-    healthCheckPath: /api/healthz/
+    # Note: On Render, this bypasses Dockerfile CMD and entrypoint.sh
+    # Daphne handles both HTTP and WebSocket on the PORT Render assigns
+    startCommand: python manage.py migrate && daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
+    healthCheckPath: /healthz
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
