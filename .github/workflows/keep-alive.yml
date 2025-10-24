@@ -5,9 +5,13 @@ on:
     - cron: '*/20 * * * *'
   workflow_dispatch:
 
+# No permissions needed - workflow only makes external HTTP requests
+permissions: {}
+
 jobs:
   ping-services:
     runs-on: ubuntu-latest
+    permissions: {}  # No repository access needed
     steps:
       - name: Ping backend service
         run: curl -s -o /dev/null -w "%{http_code}" https://api.aouichou.me/healthz || echo "Backend ping failed"

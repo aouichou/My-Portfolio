@@ -17,7 +17,7 @@ import aiohttp
 import boto3
 import psutil
 import redis
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from pexpect import EOF, spawn
 

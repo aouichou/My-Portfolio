@@ -1,10 +1,16 @@
 name: Heroku + Render Deploy
 on: [push]
 
+# Set minimal permissions at workflow level (least privilege principle)
+permissions:
+  contents: read
+
 jobs:
   # First job: detect which parts have changed
   check-changes:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Need to read repo contents for checkout and path filtering
     outputs:
       backend: ${{ steps.filter.outputs.backend || steps.check-commit-msg.outputs.force_deploy == 'true' }}
       terminal: ${{ steps.filter.outputs.terminal || steps.check-commit-msg.outputs.force_deploy == 'true' }}
@@ -57,6 +63,8 @@ jobs:
     needs: [check-changes]
     if: needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Need to read repo for checkout
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
@@ -107,6 +115,8 @@ jobs:
     needs: [check-changes]
     if: needs.check-changes.outputs.frontend == 'true' || needs.check-changes.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Need to read repo for checkout
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
@@ -140,6 +150,8 @@ jobs:
     needs: [check-changes]
     if: needs.check-changes.outputs.terminal == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Need to read repo for checkout
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       

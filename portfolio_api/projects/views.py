@@ -230,7 +230,10 @@ def trigger_import(request):
 		call_command('import_projects', 'projects.json')
 		return Response({'status': 'Import started'})
 	except Exception as e:
-		return Response({'error': str(e)}, status=500)
+		# Log the actual error for debugging
+		logger.error(f"Project import failed: {str(e)}")
+		# Don't expose internal error details to users
+		return Response({'error': 'Import failed. Please check server logs.'}, status=500)
 
 @api_view(['GET'])
 def project_files(request, slug):
