@@ -58,7 +58,7 @@ jobs:
     if: needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Deploy reason
         run: |
@@ -82,7 +82,7 @@ jobs:
           https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/env-vars
               
       - name: Render Deploy Action
-        uses: johnbeynon/render-deploy-action@85a37d7146d0b291c21374e9fc0e393fd27175e6 # v0.0.8
+        uses: johnbeynon/render-deploy-action@a0588f9aca995a15d69a72cb2bfbf37c12e5b540 # v0.0.8
         with:
           service-id: ${{ secrets.RENDER_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
@@ -128,7 +128,7 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       
       - name: Build, Push and Release a Docker container to Heroku
-        uses: gonuit/heroku-docker-deploy@bef0fb097bf63618b7652f2c7e5d95b29b7ac3f5 # v1.3.3
+        uses: gonuit/heroku-docker-deploy@9ab97585f979857642d66612a2ae4062b3347d53 # v1.3.3
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "portfolio-frontend"
@@ -154,7 +154,7 @@ jobs:
           fi
 
       - name: Render Deploy Action for Terminal Service
-        uses: johnbeynon/render-deploy-action@85a37d7146d0b291c21374e9fc0e393fd27175e6 # v0.0.8
+        uses: johnbeynon/render-deploy-action@a0588f9aca995a15d69a72cb2bfbf37c12e5b540 # v0.0.8
         with:
           service-id: ${{ secrets.RENDER_TERMINAL_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
