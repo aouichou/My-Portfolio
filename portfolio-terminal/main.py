@@ -11,16 +11,68 @@ import time
 import uuid
 import zipfile
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import aiohttp
 import boto3
 import psutil
 import redis
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import FileResponse
 from pexpect import EOF, spawn
 
 logger = logging.getLogger(__name__)
+
+# Security: Allowed project slugs (whitelist approach)
+ALLOWED_PROJECTS = {
+    'minishell', 'push_swap', 'philosophers', 'minitalk', 
+    'fdf', 'ft_irc', 'minirt', 'cub3d', 'ft_transcendence'
+}
+
+def sanitize_project_slug(project_slug: str) -> str:
+    """
+    Validate and sanitize project slug to prevent path traversal attacks.
+    Returns sanitized slug or raises HTTPException.
+    """
+    # Remove any whitespace
+    project_slug = project_slug.strip()
+    
+    # Check if empty
+    if not project_slug:
+        raise HTTPException(status_code=400, detail="Project slug cannot be empty")
+    
+    # Only allow alphanumeric, underscore, and hyphen
+    if not re.match(r'^[a-zA-Z0-9_-]+$', project_slug):
+        raise HTTPException(status_code=400, detail="Invalid project slug format")
+    
+    # Check against whitelist
+    if project_slug.lower() not in ALLOWED_PROJECTS:
+        raise HTTPException(status_code=403, detail="Project not found")
+    
+    # Prevent path traversal attempts
+    if '..' in project_slug or '/' in project_slug or '\\' in project_slug:
+        raise HTTPException(status_code=400, detail="Invalid characters in project slug")
+    
+    return project_slug.lower()
+
+def safe_join_path(base_dir: str, *paths: str) -> str:
+    """
+    Safely join paths and ensure result is within base_dir.
+    Prevents path traversal attacks.
+    """
+    # Resolve the base directory to an absolute path
+    base = Path(base_dir).resolve()
+    
+    # Join and resolve the full path
+    full_path = Path(base, *paths).resolve()
+    
+    # Ensure the resolved path is within the base directory
+    try:
+        full_path.relative_to(base)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: path traversal detected")
+    
+    return str(full_path)
 
 def apply_security_restrictions(child_process):
     """Apply security restrictions to spawned processes"""
@@ -149,6 +201,14 @@ async def health_check():
 async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	await websocket.accept()
 	logger.info(f"WebSocket connection accepted for {project_slug}")
+	
+	try:
+		# Validate and sanitize project slug
+		project_slug = sanitize_project_slug(project_slug)
+	except HTTPException as e:
+		await websocket.send_json({'error': e.detail})
+		await websocket.close()
+		return
 
 	# Create unique session ID
 	session_id = str(uuid.uuid4())
@@ -169,7 +229,9 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	
 	try:
 		# Check for project directory and download files if needed
-		project_dir = f"/home/coder/projects/{project_slug}"
+		# Use safe_join_path to prevent path traversal
+		base_projects_dir = "/home/coder/projects"
+		project_dir = safe_join_path(base_projects_dir, project_slug)
 		should_download = False
 		
 		if not os.path.exists(project_dir):
@@ -589,13 +651,38 @@ def download_project_files(project_slug, project_dir):
 @app.get("/images/{project_slug}/{image_name}")
 async def get_project_image(project_slug: str, image_name: str):
 	"""Serve project generated images"""
-	project_dir = f"/home/coder/projects/{project_slug}"
-	image_path = os.path.join(project_dir, "images", image_name)
-	
-	if not os.path.exists(image_path):
-		return {"error": "Image not found"}
-	
-	return FileResponse(image_path)
+	try:
+		# Validate and sanitize project slug
+		project_slug = sanitize_project_slug(project_slug)
+		
+		# Validate image name - only allow alphanumeric, dots, hyphens, underscores
+		if not re.match(r'^[a-zA-Z0-9._-]+$', image_name):
+			raise HTTPException(status_code=400, detail="Invalid image name")
+		
+		# Prevent path traversal in image name
+		if '..' in image_name or '/' in image_name or '\\' in image_name:
+			raise HTTPException(status_code=400, detail="Invalid characters in image name")
+		
+		# Use safe_join_path to construct the path
+		base_projects_dir = "/home/coder/projects"
+		project_dir = safe_join_path(base_projects_dir, project_slug)
+		image_path = safe_join_path(project_dir, "images", image_name)
+		
+		# Verify the file exists and is within the expected directory
+		if not os.path.exists(image_path):
+			raise HTTPException(status_code=404, detail="Image not found")
+		
+		# Additional security: verify it's actually a file, not a directory
+		if not os.path.isfile(image_path):
+			raise HTTPException(status_code=403, detail="Invalid file type")
+		
+		return FileResponse(image_path)
+		
+	except HTTPException:
+		raise
+	except Exception as e:
+		logger.error(f"Error serving image: {e}")
+		raise HTTPException(status_code=500, detail="Internal server error")
 
 def check_terminal_security():
     """Verify security setup of terminal environment"""
