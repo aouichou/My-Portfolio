@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
 	libbsd-dev \
 	mesa-common-dev \
 	libglu1-mesa-dev \
+	dumb-init \
 	&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
@@ -73,12 +74,12 @@ RUN echo "alias sudo='echo \"Command not permitted: sudo\"'" >> /home/coder/.bas
     echo "alias kubectl='echo \"Command not permitted: kubectl\"'" >> /home/coder/.bashrc && \
     echo "set -o noclobber" >> /home/coder/.bashrc
 
-# Copy security policy files
-COPY --chown=coder:coder ./seccomp-profile.json /app/security/
-# COPY --chown=coder:coder security/capabilities-list.txt /app/security/
+# Copy security policy files and create directory
+RUN mkdir -p /app/security && chown -R coder:coder /app/security
+COPY --chown=coder:coder seccomp-profile.json /app/security/
 
 # Run as non-root user
 USER coder
 
-# Start the service
-CMD ["dumb-init", "--", "bash", "-c", "ulimit -n 1024; ./entrypoint.sh"]
+# Start the service  
+CMD ["dumb-init", "bash", "-c", "ulimit -n 1024 && exec ./entrypoint.sh"]
