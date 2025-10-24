@@ -2,14 +2,14 @@
 
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { Terminal } from '@xterm/xterm';
-import { FitAddon } from '@xterm/addon-fit';
-import { WebLinksAddon } from '@xterm/addon-web-links';
-import { Unicode11Addon } from '@xterm/addon-unicode11';
-import '@xterm/xterm/css/xterm.css';
-import { Project } from '@/library/types';
 import { api } from '@/library/api-client';
+import { Project } from '@/library/types';
+import { FitAddon } from '@xterm/addon-fit';
+import { Unicode11Addon } from '@xterm/addon-unicode11';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { Terminal } from '@xterm/xterm';
+import '@xterm/xterm/css/xterm.css';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface LiveTerminalProps {
   project: Project;
@@ -72,10 +72,11 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   useEffect(() => {
     // Don't initialize until we have an auth token
     if (!authToken) {
+      console.log('Waiting for auth token...');
       return;
     }
 
-    // Initialization delay to ensure DOM is ready
+    // Initialization delay to ensure DOM is ready and avoid race conditions
     const initTimer = setTimeout(() => {
       if (!containerRef.current) {
         setError("Terminal container not ready");
@@ -84,6 +85,8 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       }
       
       try {
+        console.log('Initializing terminal with token:', authToken.substring(0, 20) + '...');
+        
         // Initialize terminal with security settings
         const term = new Terminal({
           cursorStyle: 'block',
@@ -137,14 +140,14 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           const socket = new WebSocket(wsUrl);
           socketRef.current = socket;
           
-          // Connection timeout
+          // Connection timeout - increased to 15 seconds for Render cold starts
           const connectionTimeout = setTimeout(() => {
             if (socket.readyState === WebSocket.CONNECTING) {
               socket.close();
-              setError('Connection timed out - please refresh');
+              setError('Connection timed out - server may be starting up. Please try again.');
               setIsLoading(false);
             }
-          }, 5000);
+          }, 15000); // Increased from 5s to 15s
           
           // Socket event handlers
           socket.onopen = () => {
@@ -224,7 +227,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         setError(err instanceof Error ? err.message : "Failed to initialize terminal");
         setIsLoading(false);
       }
-    }, 500); // 500ms delay to ensure DOM is ready
+    }, 1000); // Increased from 500ms to 1000ms for more stable initialization
     
     // Cleanup function
     return () => {
@@ -246,7 +249,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         terminalRef.current.dispose();
       }
     };
-  }, [slug, authToken, resizeTerminal]);
+  }, [slug, authToken]); // Removed resizeTerminal from dependencies to prevent unnecessary re-renders
   
   // Function to prompt user for MFA code if needed
   const promptForMFA = (socket: WebSocket) => {

@@ -1,14 +1,15 @@
 # In portfolio_api/projects/consumers.py
 
+import asyncio
+import json
+import logging
+import os
+from urllib.parse import parse_qs
+
+import jwt
 import websockets
 from channels.generic.websocket import AsyncWebsocketConsumer
-import json
-import os
-import asyncio
-import logging
-from urllib.parse import parse_qs
 from django.conf import settings
-import jwt
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -72,11 +73,14 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		logger.info(f"Connecting to terminal service at: {self.terminal_url}")
 		
 		try:
-			# Connect to terminal service with a timeout
-			# Increased timeout to handle the large file download
+			# Connect to terminal service with increased timeout for S3 downloads
+			# Timeout increased to account for:
+			# - Render free tier cold start (10-30s)
+			# - S3 file download for large projects (30-60s)
+			# - ZIP extraction and bash initialization (10-20s)
 			self.terminal_ws = await asyncio.wait_for(
 				websockets.connect(self.terminal_url, ping_interval=30, ping_timeout=120),
-				timeout=60  # 60-second connection timeout
+				timeout=180  # Increased from 60s to 180s (3 minutes)
 			)
 			
 			# Start forwarding messages from terminal to browser
@@ -88,7 +92,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			}))
 			
 		except asyncio.TimeoutError:
-			error_msg = f"Connection to terminal service timed out after 60 seconds\r\n"
+			error_msg = f"Connection to terminal service timed out after 180 seconds. Server may be downloading project files.\r\n"
 			logger.error(error_msg)
 			await self.send(text_data=json.dumps({'output': error_msg}))
 			await self.close()

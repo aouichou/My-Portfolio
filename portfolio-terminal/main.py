@@ -1,23 +1,24 @@
 # portfolio-terminal/main.py
 
 import asyncio
-import os
-import redis
 import json
-import time
-import uuid
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from pexpect import spawn, EOF
-import psutil
-import re
-from contextlib import asynccontextmanager
-import aiohttp
-from fastapi.responses import FileResponse
 import logging
+import os
+import re
 import shutil
 import tempfile
+import time
+import uuid
 import zipfile
+from contextlib import asynccontextmanager
+
+import aiohttp
 import boto3
+import psutil
+import redis
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
+from pexpect import EOF, spawn
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +183,10 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		
 		if should_download:
 			await websocket.send_json({
-				'output': f"\r\nDownloading project files for {project_slug}. This may take a minute...\r\n"
+				'output': f"\r\n📦 Downloading project files for {project_slug}...\r\n"
+			})
+			await websocket.send_json({
+				'output': "This may take 1-2 minutes for large projects. Please wait...\r\n\r\n"
 			})
 			
 			# Download in a separate thread to avoid blocking
@@ -193,7 +197,11 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 			
 			if not files_downloaded:
 				await websocket.send_json({
-					'output': "\r\nFailed to download project files. Using empty project.\r\n"
+					'output': "\r\n⚠️  Failed to download project files. Using empty project.\r\n"
+				})
+			else:
+				await websocket.send_json({
+					'output': "\r\n✅ Project files downloaded successfully!\r\n"
 				})
 		else:
 			logger.info(f"Using existing project directory: {project_dir}, contains: {os.listdir(project_dir)}")
@@ -206,7 +214,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 
 		# Initialize terminal with bash instead of zsh - more reliable
 		await websocket.send_json({
-			'output': "\r\nStarting terminal session...\r\n"
+			'output': "\r\n🚀 Spawning terminal session...\r\n"
 		})
 		
 		# Use bash instead of zsh for more reliable prompt detection
@@ -215,19 +223,38 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		child.setwinsize(40, 120)  # Initial size
 
 		
-		# More permissive prompt detection
+		# More permissive prompt detection with longer timeout
+		# Account for:
+		# - Shell initialization scripts (bashrc, profile)
+		# - Network-mounted home directories
+		# - Slow I/O on Render free tier
 		try:
-			# Less strict prompt detection pattern
+			# More lenient prompt patterns to catch various bash prompt styles
+			# Including: colored prompts, custom PS1, unicode characters
 			await asyncio.wait_for(
 				asyncio.get_event_loop().run_in_executor(
-					None, lambda: child.expect([r'[$#>]', r'[~]?.*[$#>]', r'.*[$#>]'])
+					None, lambda: child.expect([
+						r'[$#>]',  # Basic prompt chars
+						r'bash.*[$#>]',  # bash-4.4$
+						r'[@\w-]+[:~].*[$#>]',  # user@host:path$
+						r'\[.*\].*[$#>]',  # Colored prompts with escape codes
+						'.*[$#>]\s*$',  # Any prompt ending with $/#/>
+					])
 				),
-				timeout=15
+				timeout=45  # Increased from 15s to 45s to handle slow initialization
 			)
+			logger.info("Bash prompt detected successfully")
+		except asyncio.TimeoutError:
+			# Don't fail - just log and continue
+			# The terminal might be ready even if we didn't detect the prompt
+			logger.warning("Prompt detection timed out after 45s, but continuing anyway")
+			await websocket.send_json({
+				'output': "\r\n⚠️  Prompt detection timed out, but terminal should be ready.\r\n"
+			})
 		except Exception as e:
 			logger.error(f"Error waiting for prompt: {e}")
 			await websocket.send_json({
-				'output': "\r\nPrompt detection timed out, but terminal may still be ready.\r\n"
+				'output': f"\r\n⚠️  Prompt detection error: {str(e)}, but terminal may still work.\r\n"
 			})
 		
 		active_terminals[session_id] = child
@@ -253,9 +280,29 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 					logger.info(f"Resizing terminal to {rows}x{cols}")
 					child.setwinsize(rows, cols)
 				
-				# Handle input
+				# Handle input with command validation
 				elif 'input' in message:
-					child.write(message['input'])
+					user_input = message['input']
+					
+					# Check if this looks like a command (ends with enter/newline)
+					if '\r' in user_input or '\n' in user_input:
+						# Extract the command (everything before the newline)
+						command = user_input.replace('\r', '').replace('\n', '').strip()
+						
+						# Validate command before sending to shell
+						if command and not validate_command(command):
+							# Command blocked - notify user
+							await websocket.send_json({
+								'output': f"\r\n❌ Command blocked by security policy: '{command}'\r\n"
+							})
+							await websocket.send_json({
+								'output': "Only basic file inspection and compilation commands are allowed.\r\n"
+							})
+							# Don't send to the shell
+							continue
+					
+					# Command is allowed or is just keystrokes - send to shell
+					child.write(user_input)
 					
 			except json.JSONDecodeError:
 				# Treat as raw input
@@ -320,6 +367,13 @@ async def read_terminal_output(websocket, child):
 
 def validate_command(command):
     """Validate terminal commands with improved security"""
+    # Strip whitespace for cleaner matching
+    command = command.strip()
+    
+    # Allow empty commands (just pressing enter)
+    if not command:
+        return True
+    
     # Allowlist approach for basic commands
     allowed_patterns = [
         # Basic navigation and file inspection
@@ -346,10 +400,12 @@ def validate_command(command):
     ]
     
     # Check if command matches any allowed pattern
-    if any(re.match(pattern, command) for pattern in allowed_patterns):
-        return True
+    for pattern in allowed_patterns:
+        if re.match(pattern, command):
+            logger.info(f"Command allowed by pattern: {command}")
+            return True
         
-    # Container escape checks
+    # Container escape checks - CRITICAL SECURITY
     blocked_sequences = [
         'docker', 'kubectl', 'sudo', 'su ', 'ssh',
         '--privileged', '--cap-add', 'nsenter', 
@@ -368,14 +424,14 @@ def validate_command(command):
         return False
         
     # Protect against command chaining/injection
-    command_operators = [';', '&&', '||', '`', '$(',  '|', '>', '<', '*', '?']
+    command_operators = [';', '&&', '||', '`', '$(',  '|', '>', '<']
     if any(op in command for op in command_operators):
         logger.warning(f"Blocked command with operator: {command}")
         return False
         
     # Additional deny list for extra security
     dangerous_commands = [
-        'rm -rf', 'sudo', 'chmod 777', ':(){', 'curl | bash',
+        'rm -rf', 'chmod 777', ':(){', 'curl | bash',
         'wget | bash', '> /dev', '> /proc', '> /sys'
     ]
     
@@ -383,9 +439,9 @@ def validate_command(command):
         logger.warning(f"Blocked dangerous command: {command}")
         return False
 
-    # If nothing matched our block rules, log it for review
-    logger.info(f"Allowing command that didn't match patterns: {command}")
-    return False  # Default deny for extra security
+    # If nothing matched, deny by default (security first)
+    logger.warning(f"Command denied (no matching pattern): {command}")
+    return False
 
 @app.get("/error-stats")
 async def error_statistics():
