@@ -135,6 +135,13 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         
         const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/?token=${authToken}`;
         
+        console.log('🔌 WebSocket Configuration:');
+        console.log('  - Protocol:', wsProtocol);
+        console.log('  - Host:', host);
+        console.log('  - Slug:', slug);
+        console.log('  - Full URL:', wsUrl);
+        console.log('  - Token present:', !!authToken);
+        
         try {
           term.write('Connecting to secure terminal...\r\n');
           const socket = new WebSocket(wsUrl);
@@ -143,6 +150,8 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           // Connection timeout - increased to 15 seconds for Render cold starts
           const connectionTimeout = setTimeout(() => {
             if (socket.readyState === WebSocket.CONNECTING) {
+              console.error('❌ WebSocket connection timeout after 15s');
+              console.error('  - ReadyState:', socket.readyState);
               socket.close();
               setError('Connection timed out - server may be starting up. Please try again.');
               setIsLoading(false);
@@ -151,6 +160,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           
           // Socket event handlers
           socket.onopen = () => {
+            console.log('✅ WebSocket connected successfully');
             clearTimeout(connectionTimeout);
             setConnected(true);
             setIsLoading(false);
@@ -159,21 +169,30 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           };
           
           socket.onclose = (event) => {
+            console.log('🔌 WebSocket closed');
+            console.log('  - Code:', event.code);
+            console.log('  - Reason:', event.reason);
+            console.log('  - Clean:', event.wasClean);
             clearTimeout(connectionTimeout);
             setConnected(false);
             term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
             
             if (event.code === 4003) {
               setError('Authentication failed. Please refresh the page.');
+            } else if (!event.wasClean) {
+              setError(`Connection failed (code: ${event.code}). Please try again.`);
             }
           };
           
           socket.onerror = (event) => {
+            console.error('❌ WebSocket error occurred');
+            console.error('  - Event:', event);
+            console.error('  - ReadyState:', socket.readyState);
+            console.error('  - URL:', wsUrl);
             clearTimeout(connectionTimeout);
             setConnected(false);
             setIsLoading(false);
-            console.error('WebSocket error:', event);
-            setError('WebSocket error occurred - please try again');
+            setError('WebSocket connection failed - check browser console for details');
             term.write('\r\nError connecting to terminal server.\r\n');
           };
           
