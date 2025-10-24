@@ -1,9 +1,10 @@
 # portfolio_api/settings.py
 
-from dotenv import load_dotenv
-from pathlib import Path
-import dj_database_url
 import os
+from pathlib import Path
+
+import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -229,12 +230,13 @@ EMAIL_PORT = 587  # SMTP2GO recommends port 587 with TLS
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('SMTP_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
+EMAIL_TIMEOUT = 10  # 10 second timeout for SMTP connections
 DEFAULT_FROM_EMAIL = 'contact@aouichou.me'  # branded sender email
 SERVER_EMAIL = 'system@aouichou.me'  # System notifications
 ADMIN_EMAIL = os.getenv('CONTACT_RECIPIENT', 'your@email.com')
 
 # Email validation settings
-VERIFY_EMAIL_DOMAINS = True  # Set to False to skip domain verification
+VERIFY_EMAIL_DOMAINS = False  # DISABLED: DNS checks can hang and cause server shutdown
 BLOCK_DISPOSABLE_EMAILS = True  # Set to False to allow disposable email addresses
 
 LOGGING = {

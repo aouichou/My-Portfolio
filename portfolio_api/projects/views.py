@@ -1,33 +1,34 @@
 # portfolio_api/projects/views.py
 
-from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
-from django.conf import settings
-from django_ratelimit.decorators import ratelimit
-from django.utils.decorators import method_decorator
-from .models import Project, Gallery, GalleryImage
-from .serializers import ProjectSerializer, ContactSubmissionSerializer
-from django.db.models import Prefetch
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import AllowAny
-from django.utils import timezone
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
-from .storage import CustomS3Storage
-import dns.resolver
+import datetime
 import logging
 import os
 import tempfile
+import threading
 import zipfile
+
 import boto3
-from rest_framework import viewsets
-import datetime
-from rest_framework.permissions import IsAuthenticated
+import dns.resolver
 import jwt
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.core.validators import validate_email
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
+from rest_framework import generics, status, viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from .models import Gallery, Project
+from .serializers import ContactSubmissionSerializer, ProjectSerializer
+from .storage import CustomS3Storage
 
 logger = logging.getLogger(__name__)
 class ProjectList(generics.ListAPIView):
@@ -98,7 +99,7 @@ class ContactSubmissionView(APIView):
 	permission_classes = [AllowAny]
 	
 	def validate_domain(self, email):
-		"""Verify if email domain has valid MX records"""
+		"""Verify if email domain has valid MX records with timeout"""
 		try:
 			domain = email.split('@')[-1]
 			
@@ -107,17 +108,26 @@ class ContactSubmissionView(APIView):
 			if domain.lower() in disposable_domains:
 				return False, "Disposable email addresses are not allowed"
 			
+			# Create a resolver with explicit timeout settings
+			resolver = dns.resolver.Resolver()
+			resolver.timeout = 2.0  # 2 second timeout for each query
+			resolver.lifetime = 3.0  # 3 second total lifetime for all queries
+			
 			# Check for valid MX record
 			try:
-				dns.resolver.resolve(domain, 'MX')
+				resolver.resolve(domain, 'MX')
 				return True, "Valid domain"
 			except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.resolver.NoNameservers):
 				# No MX record found, try A record as fallback
 				try:
-					dns.resolver.resolve(domain, 'A')
+					resolver.resolve(domain, 'A')
 					return True, "Valid domain (A record)"
 				except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.resolver.NoNameservers):
 					return False, "Domain doesn't appear to be valid"
+			except dns.resolver.LifetimeTimeout:
+				logger.warning(f"DNS lookup timed out for domain: {domain}")
+				# Don't block submission on timeout
+				return True, "DNS timeout, allowing submission"
 		except Exception as e:
 			logger.error(f"Domain verification error: {e}")
 			# If verification fails, just continue - don't block submission
@@ -167,17 +177,26 @@ Message:
 Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
 			"""
 			
-			try:
-				send_mail(
-					subject=subject,
-					message=message_body,
-					from_email=settings.DEFAULT_FROM_EMAIL,
-					recipient_list=[settings.ADMIN_EMAIL],
-					fail_silently=False,
-				)
-			except Exception as e:
-				logger.error(f"Email sending failed: {e}")
+			# Send email in a background thread to prevent blocking
+			# This prevents the server from hanging if SMTP is slow or unresponsive
+			def send_email_async():
+				try:
+					send_mail(
+						subject=subject,
+						message=message_body,
+						from_email=settings.DEFAULT_FROM_EMAIL,
+						recipient_list=[settings.ADMIN_EMAIL],
+						fail_silently=False,
+					)
+					logger.info(f"Email sent successfully for submission from {submission.name}")
+				except Exception as e:
+					logger.error(f"Email sending failed: {e}")
 			
+			# Start email sending in background thread (daemon=True means it won't block shutdown)
+			email_thread = threading.Thread(target=send_email_async, daemon=True)
+			email_thread.start()
+			
+			# Return immediately without waiting for email to send
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -285,11 +304,6 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 		
 		if not include_all:
 			queryset = queryset.filter(is_featured=True)
-		
-		count = queryset.count()
-		
-		# Log actual project names being returned
-		project_names = list(queryset.values_list('title', flat=True))
 		
 		return queryset
 

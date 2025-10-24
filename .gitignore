@@ -85,5 +85,7 @@ nginx.local.conf
 portfolio_ui/security-headers.js
 
 
-#Ignore vscode AI rules
-.github/instructions/codacy.instructions.md
+#Ignore vscode settings
+.github/*
+.vscode/*
+.codacy/*
