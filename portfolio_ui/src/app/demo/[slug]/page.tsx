@@ -2,13 +2,12 @@
 
 'use client';
 
-import { useParams } from 'next/navigation';
 import { useProjectBySlug } from '@/library/queries';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import React from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useEffect, useState } from 'react';
 
 // Dynamic import with SSR disabled
 const LiveTerminal = dynamic(() => import('@/components/LiveTerminal'), {
@@ -28,6 +27,7 @@ export default function ProjectDemoPage() {
 	const slug = params.slug as string;
 	const { data: project, isLoading } = useProjectBySlug(slug);
 	const [errorInfo, setErrorInfo] = useState<string | null>(null);
+	const [terminalKey, setTerminalKey] = useState(0); // Key to force terminal remount
 
 	useEffect(() => {
 		const originalError = console.error;
@@ -121,7 +121,7 @@ export default function ProjectDemoPage() {
         {/* Terminal - Now using LiveTerminal with improved error boundary */}
         <div className="flex-1 overflow-hidden bg-black">
           <ErrorBoundary
-            FallbackComponent={({ error, resetErrorBoundary }) => (
+            FallbackComponent={({ resetErrorBoundary }) => (
               <div role="alert" className="h-full flex flex-col items-center justify-center bg-gray-900 p-6">
                 <h2 className="text-2xl font-bold mb-4 text-white">Terminal Error</h2>
                 <p className="text-red-400 mb-4">Something went wrong with the terminal</p>
@@ -131,7 +131,11 @@ export default function ProjectDemoPage() {
                   </div>
                 )}
                 <button 
-                  onClick={resetErrorBoundary}
+                  onClick={() => {
+                    setErrorInfo(null);
+                    setTerminalKey(k => k + 1); // Force remount with new key
+                    resetErrorBoundary();
+                  }}
                   className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                 >
                   Try Again
@@ -139,12 +143,11 @@ export default function ProjectDemoPage() {
               </div>
             )}
             onReset={() => {
+              // Clean reset without page reload
               setErrorInfo(null);
-              // Force a clean remount
-              setTimeout(() => window.location.reload(), 100);
             }}
           >
-            <LiveTerminal project={project} slug={slug} />
+            <LiveTerminal key={terminalKey} project={project} slug={slug} />
           </ErrorBoundary>
         </div>
         

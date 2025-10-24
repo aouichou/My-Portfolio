@@ -33,6 +33,8 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   const fitAddonRef = useRef<FitAddon | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const resizeHandlerRef = useRef<(() => void) | null>(null);
+  const isInitializingRef = useRef(false); // Prevent double initialization
+  const isMountedRef = useRef(true); // Track mount status
   
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,11 +44,27 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 
   // Fetch auth token when component mounts
   useEffect(() => {
+    isMountedRef.current = true;
+    
     async function getToken() {
-      const token = await fetchAuthToken();
-      setAuthToken(token);
+      try {
+        const token = await fetchAuthToken();
+        if (isMountedRef.current) {
+          setAuthToken(token);
+        }
+      } catch (err) {
+        console.error('Failed to fetch auth token:', err);
+        if (isMountedRef.current) {
+          setError('Failed to authenticate. Please refresh the page.');
+          setIsLoading(false);
+        }
+      }
     }
     getToken();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // Terminal resize function
@@ -76,11 +94,28 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       return;
     }
 
+    // Prevent double initialization (React strict mode can cause this)
+    if (isInitializingRef.current) {
+      console.log('Already initializing, skipping...');
+      return;
+    }
+    
+    isInitializingRef.current = true;
+
     // Initialization delay to ensure DOM is ready and avoid race conditions
     const initTimer = setTimeout(() => {
+      // Check if component is still mounted
+      if (!isMountedRef.current) {
+        console.log('Component unmounted before initialization');
+        return;
+      }
+      
       if (!containerRef.current) {
-        setError("Terminal container not ready");
-        setIsLoading(false);
+        if (isMountedRef.current) {
+          setError("Terminal container not ready");
+          setIsLoading(false);
+        }
+        isInitializingRef.current = false;
         return;
       }
       
@@ -251,6 +286,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     // Cleanup function
     return () => {
       clearTimeout(initTimer);
+      isInitializingRef.current = false;
       
       // Clean up event listeners
       if (resizeHandlerRef.current) {
@@ -261,11 +297,13 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       // Clean up socket
       if (socketRef.current) {
         socketRef.current.close();
+        socketRef.current = null;
       }
       
       // Clean up terminal
       if (terminalRef.current) {
         terminalRef.current.dispose();
+        terminalRef.current = null;
       }
     };
   }, [slug, authToken]); // Removed resizeTerminal from dependencies to prevent unnecessary re-renders
