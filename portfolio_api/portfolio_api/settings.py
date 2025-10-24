@@ -226,7 +226,7 @@ CSRF_TRUSTED_ORIGINS = ['https://aouichou.me']
 # Email Configuration for SMTP2GO
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'mail.smtp2go.com'
-EMAIL_PORT = 587  # SMTP2GO recommends port 587 with TLS
+EMAIL_PORT = 2525  # Alternative port for cloud platforms that block 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('SMTP_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')

@@ -89,3 +89,4 @@ portfolio_ui/security-headers.js
 .github/*
 .vscode/*
 .codacy/*
+portfolio_api/.env.backup
