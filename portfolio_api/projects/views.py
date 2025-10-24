@@ -181,6 +181,7 @@ Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S'
 			# This prevents the server from hanging if SMTP is slow or unresponsive
 			def send_email_async():
 				try:
+					logger.info(f"Starting email send for submission from {submission.name}")
 					send_mail(
 						subject=subject,
 						message=message_body,
@@ -188,12 +189,13 @@ Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S'
 						recipient_list=[settings.ADMIN_EMAIL],
 						fail_silently=False,
 					)
-					logger.info(f"Email sent successfully for submission from {submission.name}")
+					logger.info(f"✅ Email sent successfully for submission from {submission.name}")
 				except Exception as e:
-					logger.error(f"Email sending failed: {e}")
+					logger.error(f"❌ Email sending failed: {e}", exc_info=True)
 			
-			# Start email sending in background thread (daemon=True means it won't block shutdown)
-			email_thread = threading.Thread(target=send_email_async, daemon=True)
+			# Start email sending in background thread
+			# daemon=False to ensure thread completes before process ends
+			email_thread = threading.Thread(target=send_email_async, daemon=False, name="EmailSenderThread")
 			email_thread.start()
 			
 			# Return immediately without waiting for email to send
