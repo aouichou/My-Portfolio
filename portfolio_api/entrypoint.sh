@@ -50,10 +50,35 @@ python manage.py migrate
 # "
 
 
-# Set PORT if not set (Render provides this)
-export PORT=${PORT:-8000}
-echo "Starting Daphne on port $PORT (handles both HTTP and WebSocket)"
-
-# Start Daphne - it handles both HTTP and WebSocket via ASGI
-# No need for Gunicorn - Daphne is production-ready
-exec daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
+# Check if running on Render (production) or locally with docker-compose
+if [ -n "$RENDER" ]; then
+  # PRODUCTION (Render): Use only Daphne for both HTTP and WebSocket
+  # Render only exposes ONE port, so Daphne handles everything
+  export PORT=${PORT:-8000}
+  echo "🚀 PRODUCTION MODE: Starting Daphne on port $PORT (HTTP + WebSocket)"
+  exec daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
+else
+  # LOCAL DEVELOPMENT (docker-compose): Run both servers
+  # Nginx routes HTTP to Gunicorn:8080 and WebSocket to Daphne:$PORT
+  echo "🔧 LOCAL MODE: Starting Gunicorn (HTTP) and Daphne (WebSocket)"
+  
+  # Start Gunicorn for HTTP on port 8080 (nginx proxies here)
+  gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi &
+  GUNICORN_PID=$!
+  
+  # Start Daphne for WebSocket on port 8081
+  export PORT=${PORT:-8081}
+  daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application &
+  DAPHNE_PID=$!
+  
+  # Signal handler for clean shutdown
+  handle_exit() {
+    echo "Shutting down servers..."
+    kill $GUNICORN_PID 2>/dev/null || true
+    kill $DAPHNE_PID 2>/dev/null || true
+    exit 0
+  }
+  
+  trap handle_exit INT TERM
+  wait
+fi
