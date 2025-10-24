@@ -86,7 +86,10 @@ portfolio_ui/security-headers.js
 
 
 #Ignore vscode settings
-.github/*
+.github/instructions/*
 .vscode/*
 .codacy/*
 portfolio_api/.env.backup
+
+# Documentation and test scripts (contains sensitive info)
+docs/
