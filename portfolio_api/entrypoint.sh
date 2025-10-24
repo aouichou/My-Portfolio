@@ -50,29 +50,10 @@ python manage.py migrate
 # "
 
 
-#Start gunicorn in background for HTTP
-gunicorn --bind 0.0.0.0:8080 portfolio_api.wsgi &
-GUNICORN_PID=$!
+# Set PORT if not set (Render provides this)
+export PORT=${PORT:-8000}
+echo "Starting Daphne on port $PORT (handles both HTTP and WebSocket)"
 
-# Set PORT if not set
-export PORT=${PORT:-8081}
-echo "Daphne will listen on port $PORT"
-
-# Start daphne for WebSockets
-daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application &
-DAPHNE_PID=$!
-
-# Create a simpler signal handler compatible with BusyBox shell
-handle_exit() {
-  echo "Received shutdown signal, stopping servers..."
-  kill $GUNICORN_PID
-  kill $DAPHNE_PID
-  exit 0
-}
-
-# Set trap for each signal individually
-trap handle_exit INT
-trap handle_exit TERM
-
-# Wait for either process to exit
-wait
+# Start Daphne - it handles both HTTP and WebSocket via ASGI
+# No need for Gunicorn - Daphne is production-ready
+exec daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
