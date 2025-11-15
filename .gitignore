@@ -87,7 +87,10 @@ portfolio_ui/security-headers.js
 
 #Ignore vscode settings
 .github/instructions/*
+.github/*.md
 .vscode/*
+# But allow MCP configuration (no secrets, OAuth-based)
+!.vscode/mcp.json
 .codacy/*
 portfolio_api/.env.backup
 
