@@ -2,6 +2,7 @@
 
 > A modern, production-grade portfolio with interactive terminal demos, running on a distributed cloud architecture
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/db3f1b73496040b39030c8c45c54e5a9)](https://app.codacy.com/gh/aouichou/My-Portfolio?utm_source=github.com&utm_medium=referral&utm_content=aouichou/My-Portfolio&utm_campaign=Badge_Grade)
 [![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=render)](https://aouichou.me)
 [![WebSocket Status](https://img.shields.io/badge/WebSockets-active-4BC51D?style=for-the-badge&logo=websocket)](https://api.aouichou.me/ws)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/My-Portfolio/render+heriku.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
