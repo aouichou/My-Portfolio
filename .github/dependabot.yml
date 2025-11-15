@@ -1,0 +1,96 @@
+# Dependabot Configuration for My-Portfolio
+# Automated dependency updates for security and maintenance
+
+version: 2
+updates:
+  # Frontend (Next.js/React)
+  - package-ecosystem: "npm"
+    directory: "/portfolio_ui"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "deps(ui)"
+      include: "scope"
+    # Security updates only for now
+    allow:
+      - dependency-type: "all"
+    # Group minor/patch updates
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "react*"
+          - "@types/*"
+    versioning-strategy: increase
+
+  # Backend API (Django/Python)
+  - package-ecosystem: "pip"
+    directory: "/portfolio_api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "backend"
+    commit-message:
+      prefix: "deps(api)"
+      include: "scope"
+    allow:
+      - dependency-type: "all"
+    groups:
+      django-dependencies:
+        patterns:
+          - "django*"
+          - "djangorestframework"
+    versioning-strategy: increase
+
+  # Terminal Service (FastAPI/Python)
+  - package-ecosystem: "pip"
+    directory: "/portfolio-terminal"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "terminal"
+    commit-message:
+      prefix: "deps(terminal)"
+      include: "scope"
+    allow:
+      - dependency-type: "all"
+    versioning-strategy: increase
+
+  # Docker base images
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "deps(docker)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci-cd"
+    commit-message:
+      prefix: "ci"
