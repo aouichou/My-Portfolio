@@ -75,19 +75,50 @@ updates:
       - dependency-type: "all"
     versioning-strategy: increase
 
-  # Docker base images
+  # Docker base images - Frontend UI
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/portfolio_ui"
     schedule:
       interval: "monthly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels:
       - "dependencies"
       - "docker"
+      - "frontend"
     commit-message:
-      prefix: "deps(docker)"
+      prefix: "deps(docker-ui)"
+
+  # Docker base images - Backend API
+  - package-ecosystem: "docker"
+    directory: "/portfolio_api"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "docker"
+      - "backend"
+    commit-message:
+      prefix: "deps(docker-api)"
+
+  # Docker base images - Terminal Service
+  - package-ecosystem: "docker"
+    directory: "/portfolio-terminal"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "docker"
+      - "terminal"
+    commit-message:
+      prefix: "deps(docker-terminal)"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
