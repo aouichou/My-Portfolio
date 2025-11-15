@@ -94,5 +94,13 @@ portfolio_ui/security-headers.js
 .codacy/*
 portfolio_api/.env.backup
 
-# Documentation and test scripts (contains sensitive info)
-docs/
+# GitHub Token (NEVER commit)
+.github/scripts/.env
+**/.env
+
+# Documentation
+docs/*
+
+# Project tracker (PRIVATE)
+.project-tracker.md
+jira-progress-tracker.md
