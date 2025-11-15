@@ -61,7 +61,9 @@ jobs:
   # Backend deployment job with condition
   deploy-backend:
     needs: [check-changes]
-    if: needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true'
+    if: |
+      github.actor != 'dependabot[bot]' && 
+      (needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Need to read repo for checkout
@@ -113,7 +115,9 @@ jobs:
   # Frontend deployment job with condition
   deploy-frontend:
     needs: [check-changes]
-    if: needs.check-changes.outputs.frontend == 'true' || needs.check-changes.outputs.force_deploy == 'true'
+    if: |
+      github.actor != 'dependabot[bot]' && 
+      (needs.check-changes.outputs.frontend == 'true' || needs.check-changes.outputs.force_deploy == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Need to read repo for checkout
@@ -148,7 +152,9 @@ jobs:
   # Terminal service deployment job
   deploy-terminal:
     needs: [check-changes]
-    if: needs.check-changes.outputs.terminal == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true'
+    if: |
+      github.actor != 'dependabot[bot]' && 
+      (needs.check-changes.outputs.terminal == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Need to read repo for checkout
