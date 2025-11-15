@@ -10,7 +10,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "frontend"
@@ -20,12 +20,18 @@ updates:
     # Security updates only for now
     allow:
       - dependency-type: "all"
-    # Group minor/patch updates
+    # Group all npm updates together
     groups:
-      frontend-dependencies:
-        patterns:
-          - "react*"
-          - "@types/*"
+      npm-production:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      npm-development:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
     versioning-strategy: increase
 
   # Backend API (Django/Python)
@@ -88,9 +94,13 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "ci-cd"
     commit-message:
       prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
