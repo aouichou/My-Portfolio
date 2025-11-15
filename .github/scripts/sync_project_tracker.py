@@ -91,6 +91,7 @@ class ProjectSync:
                 }
                 nodes {
                   id
+                  type
                   content {
                     ... on Issue {
                       number
@@ -103,6 +104,10 @@ class ProjectSync:
                       title
                       state
                       url
+                    }
+                    ... on DraftIssue {
+                      title
+                      body
                     }
                   }
                   fieldValues(first: 20) {
@@ -230,7 +235,7 @@ class ProjectSync:
     def update_markdown_tracker(self, issues: List[Dict], status_map: Dict[int, str]):
         """Update the markdown tracker with current issue states"""
         
-        # Group issues by status
+        # Group issues by status (map Kanban statuses to our sections)
         sections = {
             "To Do": [],
             "In Progress": [],
@@ -239,8 +244,25 @@ class ProjectSync:
             "Done": []
         }
         
+        # Map Kanban status names to our sections
+        status_mapping = {
+            "Backlog": "To Do",
+            "Todo": "To Do",
+            "To Do": "To Do",
+            "In progress": "In Progress",
+            "In Progress": "In Progress",
+            "In review": "Review",
+            "In Review": "Review",
+            "Review": "Review",
+            "Blocked": "Blocked",
+            "Done": "Done",
+            "Completed": "Done"
+        }
+        
         for issue in issues:
-            status = status_map.get(issue['number'], 'To Do')
+            kanban_status = status_map.get(issue['number'], 'To Do')
+            # Map to our standard sections
+            status = status_mapping.get(kanban_status, 'To Do')
             if status in sections:
                 sections[status].append(issue)
         
@@ -257,30 +279,49 @@ class ProjectSync:
 """
         
         for issue in sections["To Do"]:
-            markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
+            if issue.get('is_draft'):
+                markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+            else:
+                markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
         markdown += "\n### 🔄 In Progress\n"
         for issue in sections["In Progress"]:
-            markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
+            if issue.get('is_draft'):
+                markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+            else:
+                markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
         markdown += "\n### 👀 Review\n"
         for issue in sections["Review"]:
-            markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
+            if issue.get('is_draft'):
+                markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+            else:
+                markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
         markdown += "\n### 🚫 Blocked\n"
         for issue in sections["Blocked"]:
-            markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
+            if issue.get('is_draft'):
+                markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+            else:
+                markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
         markdown += "\n### ✅ Done\n"
         for issue in sections["Done"]:
-            markdown += f"- [x] #{issue['number']} {issue['title']}\n"
+            if issue.get('is_draft'):
+                markdown += f"- [x] 🔒 DRAFT: {issue['title']}\n"
+            else:
+                markdown += f"- [x] #{issue['number']} {issue['title']}\n"
+        
+        # Calculate metrics
+        draft_count = sum(1 for i in issues if i.get('is_draft'))
+        regular_count = len(issues) - draft_count
         
         markdown += f"""
 ---
 
 ## 📊 Sprint Metrics
 
-**Total Issues:** {len(issues)}
+**Total Items:** {len(issues)} ({regular_count} issues, {draft_count} drafts)
 **Completed:** {len(sections['Done'])}
 **In Progress:** {len(sections['In Progress'])}
 **Blocked:** {len(sections['Blocked'])}
@@ -289,6 +330,7 @@ class ProjectSync:
 ---
 
 *This file is auto-synced with GitHub Projects. Manual edits may be overwritten.*
+*🔒 DRAFT items are private and only visible in the GitHub Project board.*
 """
         
         # Ensure directory exists
@@ -312,31 +354,59 @@ class ProjectSync:
         # Extract issue data and status
         issues = []
         status_map = {}
+        draft_counter = 1
         
         for item in items:
-            if item.get("content"):
-                content = item["content"]
-                number = content.get("number")
+            item_type = item.get("type", "")
+            content = item.get("content")
+            
+            if not content:
+                continue
+            
+            # Handle regular Issues and Pull Requests (have issue numbers)
+            if "number" in content:
+                number = content["number"]
+                issues.append({
+                    "number": number,
+                    "title": content.get("title", ""),
+                    "url": content.get("url", ""),
+                    "state": content.get("state", ""),
+                    "is_draft": False
+                })
                 
-                if number:
-                    issues.append({
-                        "number": number,
-                        "title": content.get("title", ""),
-                        "url": content.get("url", ""),
-                        "state": content.get("state", "")
-                    })
-                    
-                    # Extract status from field values
-                    status = "To Do"
-                    for field_value in item.get("fieldValues", {}).get("nodes", []):
-                        if field_value.get("field", {}).get("name") == "Status":
-                            status = field_value.get("name", "To Do")
-                            break
-                    
-                    status_map[number] = status
+                # Extract status from field values
+                status = "To Do"
+                for field_value in item.get("fieldValues", {}).get("nodes", []):
+                    if field_value.get("field", {}).get("name") == "Status":
+                        status = field_value.get("name", "To Do")
+                        break
+                
+                status_map[number] = status
+            
+            # Handle DraftIssues (no issue number, use negative IDs)
+            elif item_type == "DRAFT_ISSUE":
+                draft_id = -(draft_counter)  # Use negative numbers for drafts
+                draft_counter += 1
+                
+                issues.append({
+                    "number": draft_id,
+                    "title": content.get("title", "Untitled Draft"),
+                    "url": "",
+                    "state": "DRAFT",
+                    "is_draft": True
+                })
+                
+                # Extract status from field values
+                status = "To Do"
+                for field_value in item.get("fieldValues", {}).get("nodes", []):
+                    if field_value.get("field", {}).get("name") == "Status":
+                        status = field_value.get("name", "To Do")
+                        break
+                
+                status_map[draft_id] = status
         
         self.update_markdown_tracker(issues, status_map)
-        print(f"✅ Synced {len(issues)} issues to markdown")
+        print(f"✅ Synced {len(issues)} issues to markdown ({sum(1 for i in issues if i['is_draft'])} drafts)")
         return True
     
     def sync_markdown_to_github(self, project_number: int = 1):
