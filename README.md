@@ -2,6 +2,7 @@
 
 > A modern, production-grade portfolio with interactive terminal demos, running on a distributed cloud architecture
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/db3f1b73496040b39030c8c45c54e5a9)](https://app.codacy.com/gh/aouichou/My-Portfolio?utm_source=github.com&utm_medium=referral&utm_content=aouichou/My-Portfolio&utm_campaign=Badge_Grade)
 [![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=render)](https://aouichou.me)
 [![WebSocket Status](https://img.shields.io/badge/WebSockets-active-4BC51D?style=for-the-badge&logo=websocket)](https://api.aouichou.me/ws)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/My-Portfolio/render+heriku.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
@@ -16,10 +17,11 @@
 
 ### Terminal Implementation Highlights
 
-- **WebSocket Backend**: Django Channels with Redis for async communication
+- **WebSocket Backend**: Django Channels (browser connection) + Redis channel layer
+- **Terminal Execution**: FastAPI service with PTY process management
 - **Security**: Command allowlist with regex validation, execution limits, sandboxed environment
 - **Live Updates**: Zero-latency character streaming for natural terminal feel
-- **Docker Integration**: Custom lightweight Debian-based container with GCC toolchain
+- **Docker Integration**: Custom Ubuntu 24.04 container with GCC toolchain and Python runtime
 
 ### Proxied Terminal Connection
 
@@ -59,12 +61,12 @@ graph TD
 ### Infrastructure Components
 
 | Service | Technology | Provider | Purpose |
-|---------|------------|----------|---------|
-| Frontend | Next.js 15.2, TypeScript, TailwindCSS | Heroku | User interface |
-| Backend API | Django 5, Django REST Framework | Render | Data & authentication |
-| Terminal Service | FastAPI, pexpect, PTY | Render | WebSocket terminal |
+|---------|------------|----------|---------||
+| Frontend | Next.js 16 + React 19, TypeScript, Tailwind CSS 3 | Heroku | User interface with Turbopack |
+| Backend API | Django 5.1 + Channels 4, DRF 3.15, Daphne | Render | Data, auth & WebSocket proxy |
+| Terminal Service | FastAPI 0.115, pexpect, PTY, Uvicorn | Render | Terminal execution service |
 | Database | PostgreSQL 15 | Render | Persistent storage |
-| Cache | Redis 7 | Render | WebSocket channel layer |
+| Cache | Redis 7 | Render | Django Channels layer |
 | Storage | S3-compatible | AWS | Project files, assets |
 | CDN | Cloudflare | Cloudflare | Edge caching, WAF |
 | CI/CD | GitHub Actions | GitHub | Automated deployment |
@@ -80,6 +82,7 @@ graph TD
   - Strict command allowlist with regex validation
   - Read-only filesystem access (except project directories)
   - Resource limits (512MB RAM, timeout after 30min)
+  - Ubuntu 24.04 sandboxed environment
   - WAF protection against common attacks
 
 - **Infrastructure Security**
@@ -101,9 +104,12 @@ Bundle Size: 128kb              Cache Hit Rate: 92%
 
 ## 🧰 Technical Decisions
 
-- **FastAPI vs Express.js**: Chose FastAPI for the terminal service due to strong async/await support and built-in WebSocket handling
-- **Django Channels vs Socket.IO**: Selected Django Channels for seamless integration with existing Django backend and Redis
-- **Render vs Heroku**: Split deployment between providers to leverage Render's superior container support and Heroku's simpler frontend deployment
+- **Hybrid WebSocket Architecture**: Django Channels handles browser connections with Redis channel layer, then proxies to FastAPI terminal service for actual command execution
+- **FastAPI for Terminal Service**: Chose FastAPI over Express.js for strong async/await support, built-in WebSocket handling, and seamless Python PTY integration
+- **React 19 Early Adoption**: Upgraded to React 19 for improved concurrent rendering and automatic batching
+- **Tailwind CSS v3 over v4**: Stayed on v3 for production stability; v4 requires significant migration effort
+- **Next.js 16 with Turbopack**: Leveraging Turbopack for faster development builds and improved HMR
+- **Split Deployment Strategy**: Heroku for frontend (simple Docker deployment), Render for backend services (superior container support, free PostgreSQL & Redis)
 - **Custom S3 Integration**: Built custom S3 storage class to handle delayed file processing and zip extraction
 
 ## 🚀 Getting Started
