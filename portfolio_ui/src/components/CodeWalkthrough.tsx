@@ -2,10 +2,10 @@
 
 'use client';
 
+import { useTheme } from '@/context/ThemeContext';
 import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useTheme } from '@/context/ThemeContext';
+import { vs, vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export interface CodeSnippet {
   code: string;
@@ -53,8 +53,8 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
           {projectTitle}: Code Sample {currentStep + 1}/{validSteps.length}
         </h3>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+          <button
+            onClick={() => { setCurrentStep(prev => Math.max(0, prev - 1)); }}
             disabled={currentStep === 0}
             className="bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-50 hover:bg-blue-700 transition-colors"
           >
@@ -63,8 +63,8 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
           <span className="text-sm font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
             {currentStep + 1} / {validSteps.length}
           </span>
-          <button 
-            onClick={() => setCurrentStep(prev => Math.min(validSteps.length - 1, prev + 1))}
+          <button
+            onClick={() => { setCurrentStep(prev => Math.min(validSteps.length - 1, prev + 1)); }}
             disabled={currentStep === validSteps.length - 1}
             className="bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-50 hover:bg-blue-700 transition-colors"
           >

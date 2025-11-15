@@ -104,3 +104,7 @@ docs/*
 # Project tracker (PRIVATE)
 .project-tracker.md
 jira-progress-tracker.md
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

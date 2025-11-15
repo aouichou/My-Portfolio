@@ -1,0 +1,171 @@
+diff --git a/portfolio_ui/src/components/CodeWalkthrough.tsx b/portfolio_ui/src/components/CodeWalkthrough.tsx
+--- a/portfolio_ui/src/components/CodeWalkthrough.tsx
++++ b/portfolio_ui/src/components/CodeWalkthrough.tsx
+@@ -57,1 +57,1 @@
+-            onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
++            onClick={() => { setCurrentStep(prev => Math.max(0, prev - 1)); }}
+@@ -67,1 +67,1 @@
+-            onClick={() => setCurrentStep(prev => Math.min(validSteps.length - 1, prev + 1))}
++            onClick={() => { setCurrentStep(prev => Math.min(validSteps.length - 1, prev + 1)); }}
+diff --git a/portfolio_ui/src/components/TranscendenceProject.tsx b/portfolio_ui/src/components/TranscendenceProject.tsx
+--- a/portfolio_ui/src/components/TranscendenceProject.tsx
++++ b/portfolio_ui/src/components/TranscendenceProject.tsx
+@@ -53,1 +53,1 @@
+-          onClick={(e) => e.stopPropagation()}
++          onClick={(e) => { e.stopPropagation(); }}
+@@ -71,1 +71,1 @@
+-    return () => clearInterval(interval);
++    return () => { clearInterval(interval); };
+@@ -196,1 +196,1 @@
+-                    onClick={() => setCurrentGif(i)}
++                    onClick={() => { setCurrentGif(i); }}
+@@ -213,1 +213,1 @@
+-                  onClick={() => openLightbox(path, `Transcendence Screenshot ${index + 1}`)}
++                  onClick={() => { openLightbox(path, `Transcendence Screenshot ${index + 1}`); }}
+diff --git a/portfolio_ui/src/components/AutoRenderMermaid.tsx b/portfolio_ui/src/components/AutoRenderMermaid.tsx
+--- a/portfolio_ui/src/components/AutoRenderMermaid.tsx
++++ b/portfolio_ui/src/components/AutoRenderMermaid.tsx
+@@ -13,1 +13,1 @@
+-        window.renderMermaidDiagrams();
++        void window.renderMermaidDiagrams();
+diff --git a/portfolio_ui/src/components/ProjectsGrid.tsx b/portfolio_ui/src/components/ProjectsGrid.tsx
+--- a/portfolio_ui/src/components/ProjectsGrid.tsx
++++ b/portfolio_ui/src/components/ProjectsGrid.tsx
+@@ -82,1 +82,1 @@
+-					{project.tech_stack?.map((tech: string) => (
++					{project.tech_stack.map((tech: string) => (
+diff --git a/portfolio_ui/src/components/LiveTerminal.tsx b/portfolio_ui/src/components/LiveTerminal.tsx
+--- a/portfolio_ui/src/components/LiveTerminal.tsx
++++ b/portfolio_ui/src/components/LiveTerminal.tsx
+@@ -63,1 +63,1 @@
+-    getToken();
++    void getToken();
+@@ -261,1 +261,1 @@
+-          const handleResize = () => resizeTerminal(term, fitAddon, socket);
++          const handleResize = () => { resizeTerminal(term, fitAddon, socket); };
+@@ -338,1 +338,1 @@
+-              onClick={() => window.location.reload()}
++              onClick={() => { window.location.reload(); }}
+diff --git a/portfolio_ui/src/app/api/image-proxy/route.ts b/portfolio_ui/src/app/api/image-proxy/route.ts
+--- a/portfolio_ui/src/app/api/image-proxy/route.ts
++++ b/portfolio_ui/src/app/api/image-proxy/route.ts
+@@ -22,1 +22,1 @@
+-    const timeoutId = setTimeout(() => controller.abort(), 5000);
++    const timeoutId = setTimeout(() => { controller.abort(); }, 5000);
+diff --git a/portfolio_ui/src/components/CheckMermaid.tsx b/portfolio_ui/src/components/CheckMermaid.tsx
+--- a/portfolio_ui/src/components/CheckMermaid.tsx
++++ b/portfolio_ui/src/components/CheckMermaid.tsx
+@@ -16,1 +16,1 @@
+-		version: (mermaid as any).version || 'unknown',
++		version: (mermaid as unknown).version || 'unknown',
+diff --git a/portfolio_ui/src/components/ClientImage.tsx b/portfolio_ui/src/components/ClientImage.tsx
+--- a/portfolio_ui/src/components/ClientImage.tsx
++++ b/portfolio_ui/src/components/ClientImage.tsx
+@@ -14,1 +14,1 @@
+-  [key: string]: any;
++  [key: string]: unknown;
+diff --git a/portfolio_ui/src/components/MermaidScriptLoader.tsx b/portfolio_ui/src/components/MermaidScriptLoader.tsx
+--- a/portfolio_ui/src/components/MermaidScriptLoader.tsx
++++ b/portfolio_ui/src/components/MermaidScriptLoader.tsx
+@@ -67,1 +67,1 @@
+-      return () => observer.disconnect();
++      return () => { observer.disconnect(); };
+diff --git a/portfolio_ui/src/components/ProjectsDebug.tsx b/portfolio_ui/src/components/ProjectsDebug.tsx
+--- a/portfolio_ui/src/components/ProjectsDebug.tsx
++++ b/portfolio_ui/src/components/ProjectsDebug.tsx
+@@ -19,1 +19,1 @@
+-        img.onload = () => console.log('Direct thumbnail load successful!');
++        img.onload = () => { console.log('Direct thumbnail load successful!'); };
+@@ -20,1 +20,1 @@
+-        img.onerror = () => console.error('Direct thumbnail load failed!');
++        img.onerror = () => { console.error('Direct thumbnail load failed!'); };
+diff --git a/portfolio_ui/src/components/ThemeToggle.tsx b/portfolio_ui/src/components/ThemeToggle.tsx
+--- a/portfolio_ui/src/components/ThemeToggle.tsx
++++ b/portfolio_ui/src/components/ThemeToggle.tsx
+@@ -14,1 +14,1 @@
+-  useEffect(() => setMounted(true), []);
++  useEffect(() => { setMounted(true); }, []);
+diff --git a/portfolio_ui/src/components/ImageCarousel.tsx b/portfolio_ui/src/components/ImageCarousel.tsx
+--- a/portfolio_ui/src/components/ImageCarousel.tsx
++++ b/portfolio_ui/src/components/ImageCarousel.tsx
+@@ -21,1 +21,1 @@
+-    return () => window.removeEventListener('keydown', handleKeyDown);
++    return () => { window.removeEventListener('keydown', handleKeyDown); };
+@@ -46,1 +46,1 @@
+-            onClick={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
++            onClick={() => { setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1)); }}
+@@ -52,1 +52,1 @@
+-            onClick={() => setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
++            onClick={() => { setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0)); }}
+diff --git a/portfolio_ui/src/components/ServiceWarmup.tsx b/portfolio_ui/src/components/ServiceWarmup.tsx
+--- a/portfolio_ui/src/components/ServiceWarmup.tsx
++++ b/portfolio_ui/src/components/ServiceWarmup.tsx
+@@ -30,1 +30,1 @@
+-    warmupServices();
++    void warmupServices();
+@@ -35,1 +35,1 @@
+-    return () => clearInterval(interval);
++    return () => { clearInterval(interval); };
+diff --git a/portfolio_ui/src/components/MermaidComponent.tsx b/portfolio_ui/src/components/MermaidComponent.tsx
+--- a/portfolio_ui/src/components/MermaidComponent.tsx
++++ b/portfolio_ui/src/components/MermaidComponent.tsx
+@@ -84,1 +84,1 @@
+-    renderDiagram();
++    void renderDiagram();
+@@ -89,1 +89,1 @@
+-    return () => clearTimeout(timer);
++    return () => { clearTimeout(timer); };
+diff --git a/portfolio_ui/src/components/Navbar.tsx b/portfolio_ui/src/components/Navbar.tsx
+--- a/portfolio_ui/src/components/Navbar.tsx
++++ b/portfolio_ui/src/components/Navbar.tsx
+@@ -25,1 +25,1 @@
+-    return () => window.removeEventListener('scroll', handleScroll);
++    return () => { window.removeEventListener('scroll', handleScroll); };
+@@ -97,1 +97,1 @@
+-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
++              onClick={() => { setMobileMenuOpen(!mobileMenuOpen); }}
+@@ -129,1 +129,1 @@
+-                onClick={() => setMobileMenuOpen(false)}
++                onClick={() => { setMobileMenuOpen(false); }}
+diff --git a/portfolio_ui/src/components/LoadingOverlay.tsx b/portfolio_ui/src/components/LoadingOverlay.tsx
+--- a/portfolio_ui/src/components/LoadingOverlay.tsx
++++ b/portfolio_ui/src/components/LoadingOverlay.tsx
+@@ -35,1 +35,1 @@
+-    return () => clearInterval(timer);
++    return () => { clearInterval(timer); };
+@@ -50,1 +50,1 @@
+-          onClick={() => setIsVisible(false)}
++          onClick={() => { setIsVisible(false); }}
+diff --git a/portfolio_ui/src/components/ContactForm.tsx b/portfolio_ui/src/components/ContactForm.tsx
+--- a/portfolio_ui/src/components/ContactForm.tsx
++++ b/portfolio_ui/src/components/ContactForm.tsx
+@@ -60,1 +60,1 @@
+-    } catch (error: any) {
++    } catch (error: unknown) {
+diff --git a/portfolio_ui/src/components/ProjectDetail.tsx b/portfolio_ui/src/components/ProjectDetail.tsx
+--- a/portfolio_ui/src/components/ProjectDetail.tsx
++++ b/portfolio_ui/src/components/ProjectDetail.tsx
+@@ -90,1 +90,1 @@
+-				window.renderMermaidDiagrams();
++				void window.renderMermaidDiagrams();
+@@ -107,1 +107,1 @@
+-		return () => window.removeEventListener('scroll', handleScroll);
++		return () => { window.removeEventListener('scroll', handleScroll); };
+@@ -264,1 +264,1 @@
+-        {project.features.map((feature: any, index: number) => {
++        {project.features.map((feature: unknown, index: number) => {
+diff --git a/portfolio_ui/src/components/PortfolioPage.tsx b/portfolio_ui/src/components/PortfolioPage.tsx
+--- a/portfolio_ui/src/components/PortfolioPage.tsx
++++ b/portfolio_ui/src/components/PortfolioPage.tsx
+@@ -40,1 +40,1 @@
+-			return () => observer.disconnect();
++			return () => { observer.disconnect(); };
+@@ -96,1 +96,1 @@
+-                onClick={() => setActiveTab(tab)}
++                onClick={() => { setActiveTab(tab); }}
+diff --git a/portfolio_ui/src/components/ScrollToTop.tsx b/portfolio_ui/src/components/ScrollToTop.tsx
+--- a/portfolio_ui/src/components/ScrollToTop.tsx
++++ b/portfolio_ui/src/components/ScrollToTop.tsx
+@@ -34,1 +34,1 @@
+-    return () => window.removeEventListener('scroll', toggleVisibility);
++    return () => { window.removeEventListener('scroll', toggleVisibility); };

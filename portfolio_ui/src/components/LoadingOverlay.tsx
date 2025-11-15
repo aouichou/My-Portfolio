@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function LoadingOverlay() {
   const [isVisible, setIsVisible] = useState(true);
@@ -32,7 +32,7 @@ export default function LoadingOverlay() {
       });
     }, 1000);
     
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); };
   }, []);
   
   if (!isVisible) return null;
@@ -46,9 +46,9 @@ export default function LoadingOverlay() {
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Auto-continuing in {countdown} seconds
         </p>
-        <button 
-          onClick={() => setIsVisible(false)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+        <button
+          onClick={() => { setIsVisible(false); }}
+          className="mt-8 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           Continue Now
         </button>
