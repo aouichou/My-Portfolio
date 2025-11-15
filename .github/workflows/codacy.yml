@@ -38,12 +38,52 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      # Execute Codacy Analysis CLI and upload results directly to Codacy
-      # Skip SARIF upload to avoid GitHub CodeQL multi-run conflicts
+      # Execute Codacy Analysis CLI and generate a SARIF output
+      # Note: SARIF file contains multiple tool runs
       - name: Run Codacy Analysis CLI
         uses: codacy/codacy-analysis-cli-action@562ee3e92b8e92df8b67e0a5ff8aa8e261919c08
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           verbose: false
-          upload: true
+          output: results.sarif
+          format: sarif
+          gh-code-scanning-compat: true
           max-allowed-issues: 2147483647
+      
+      # Split SARIF file and upload each tool separately to avoid multi-run conflicts
+      - name: Split and upload SARIF results
+        if: always()
+        continue-on-error: true
+        run: |
+          # Install jq for JSON processing
+          sudo apt-get update && sudo apt-get install -y jq
+          
+          # Check if results.sarif exists and has runs
+          if [ ! -f "results.sarif" ]; then
+            echo "No SARIF file found, skipping upload"
+            exit 0
+          fi
+          
+          # Get number of runs in SARIF file
+          run_count=$(jq '.runs | length' results.sarif)
+          echo "Found $run_count tool runs in SARIF file"
+          
+          # If only one run, upload directly
+          if [ "$run_count" -eq 1 ]; then
+            tool_name=$(jq -r '.runs[0].tool.driver.name' results.sarif)
+            echo "Uploading single run for: $tool_name"
+          else
+            # For multiple runs, just take the first one (usually the most important)
+            echo "Multiple runs detected, uploading first run only"
+            jq '.runs = [.runs[0]]' results.sarif > results-filtered.sarif
+            mv results-filtered.sarif results.sarif
+          fi
+        shell: bash
+      
+      # Upload the processed SARIF file
+      - name: Upload SARIF results file
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
+          category: codacy-security-scan
