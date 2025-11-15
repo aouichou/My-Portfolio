@@ -34,10 +34,10 @@ jobs:
       
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -60,7 +60,7 @@ jobs:
           echo "✅ Tracker updated locally (file is gitignored for security)"
       
       - name: Upload tracker as artifact (for debugging)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: project-tracker
           path: docs/jira-progress-tracker.md
