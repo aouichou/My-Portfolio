@@ -281,6 +281,12 @@ class ProjectSync:
         for issue in sections["To Do"]:
             if issue.get('is_draft'):
                 markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+                if issue.get('body'):
+                    # Add description indented under the draft issue
+                    body_lines = issue['body'].strip().split('\n')
+                    for line in body_lines[:3]:  # First 3 lines of description
+                        if line.strip():
+                            markdown += f"  > {line.strip()}\n"
             else:
                 markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
@@ -288,6 +294,11 @@ class ProjectSync:
         for issue in sections["In Progress"]:
             if issue.get('is_draft'):
                 markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+                if issue.get('body'):
+                    body_lines = issue['body'].strip().split('\n')
+                    for line in body_lines[:3]:
+                        if line.strip():
+                            markdown += f"  > {line.strip()}\n"
             else:
                 markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
@@ -295,6 +306,11 @@ class ProjectSync:
         for issue in sections["Review"]:
             if issue.get('is_draft'):
                 markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+                if issue.get('body'):
+                    body_lines = issue['body'].strip().split('\n')
+                    for line in body_lines[:3]:
+                        if line.strip():
+                            markdown += f"  > {line.strip()}\n"
             else:
                 markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
@@ -302,6 +318,11 @@ class ProjectSync:
         for issue in sections["Blocked"]:
             if issue.get('is_draft'):
                 markdown += f"- [ ] 🔒 DRAFT: {issue['title']}\n"
+                if issue.get('body'):
+                    body_lines = issue['body'].strip().split('\n')
+                    for line in body_lines[:3]:
+                        if line.strip():
+                            markdown += f"  > {line.strip()}\n"
             else:
                 markdown += f"- [ ] #{issue['number']} {issue['title']}\n"
         
@@ -309,6 +330,11 @@ class ProjectSync:
         for issue in sections["Done"]:
             if issue.get('is_draft'):
                 markdown += f"- [x] 🔒 DRAFT: {issue['title']}\n"
+                if issue.get('body'):
+                    body_lines = issue['body'].strip().split('\n')
+                    for line in body_lines[:3]:
+                        if line.strip():
+                            markdown += f"  > {line.strip()}\n"
             else:
                 markdown += f"- [x] #{issue['number']} {issue['title']}\n"
         
@@ -391,6 +417,7 @@ class ProjectSync:
                 issues.append({
                     "number": draft_id,
                     "title": content.get("title", "Untitled Draft"),
+                    "body": content.get("body", ""),
                     "url": "",
                     "state": "DRAFT",
                     "is_draft": True
