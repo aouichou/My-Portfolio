@@ -2,13 +2,12 @@
 
 'use client';
 
+import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useAllProjects, useFeaturedProjects } from '../library/queries';
+import { Project } from '../library/types';
 import ClientImage from './ClientImage';
 import LoadingSkeleton from './LoadingSkeleton';
-import { Project } from '../library/types';
-import { useFeaturedProjects, useAllProjects } from '../library/queries';
-import { motion } from 'framer-motion';
-import { getAllProjectsUnfiltered } from '@/library/api-client';
 
 export default function ProjectsGrid({ showAll = false }) {
 
@@ -79,7 +78,7 @@ export default function ProjectsGrid({ showAll = false }) {
 					{project.title}
 				  </h3>
 				  <div className="flex flex-wrap gap-2 mb-4">
-					{project.tech_stack?.map((tech: string) => (
+					{project.tech_stack.map((tech: string) => (
 					  <span key={tech} className="badge-tech">
 						{tech}
 					  </span>

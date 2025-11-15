@@ -9,8 +9,8 @@ export default function AutoRenderMermaid() {
     // Use a more aggressive approach to render diagrams
     const renderAllDiagrams = () => {
       
-      if (window.renderMermaidDiagrams) {
-        window.renderMermaidDiagrams();
+      if (typeof window.renderMermaidDiagrams === 'function') {
+        void window.renderMermaidDiagrams();
       } else {
         setTimeout(renderAllDiagrams, 500);
       }

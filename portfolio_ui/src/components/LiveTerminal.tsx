@@ -334,9 +334,9 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           <div className="bg-red-900/80 text-white p-6 rounded-lg max-w-md text-center">
             <h3 className="text-xl font-bold mb-2">Terminal Error</h3>
             <p className="mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-white text-red-900 rounded hover:bg-gray-200 transition-colors"
+            <button
+              onClick={() => { window.location.reload(); }}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
             >
               Reload Terminal
             </button>

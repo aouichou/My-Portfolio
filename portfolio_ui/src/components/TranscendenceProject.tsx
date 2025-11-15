@@ -2,12 +2,10 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useProjectBySlug } from '@/library/queries';
-import ClientImage from './ClientImage';
 import { Project } from '@/library/types';
-import { API_URL } from '@/library/api-client';
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 // Updated paths to match your actual S3 structure
 const GIF_PATHS = [
@@ -50,7 +48,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
           src={`/api/image-proxy?url=${encodeURIComponent(`https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src}`)}`}
           alt={alt} 
           className="max-h-[85vh] max-w-full object-contain"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); }}
         />
       </div>
     </div>
@@ -68,7 +66,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
     const interval = setInterval(() => {
       setCurrentGif((prev) => (prev + 1) % GIF_PATHS.length);
     }, 10000);
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, []);
 
   // Handle opening the lightbox
@@ -188,12 +186,12 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
               {/* Pagination dots */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
                 {GIF_PATHS.map((_, i) => (
-                  <button
+                  <div
                     key={i}
                     className={`h-3 w-3 rounded-full ${
                       i === currentGif ? 'bg-blue-600' : 'bg-gray-400'
                     }`}
-                    onClick={() => setCurrentGif(i)}
+                    onClick={() => { setCurrentGif(i); }}
                   />
                 ))}
               </div>
@@ -210,7 +208,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 * index, duration: 0.4 }}
                   whileHover={{ scale: 1.05, zIndex: 10 }}
-                  onClick={() => openLightbox(path, `Transcendence Screenshot ${index + 1}`)}
+                  onClick={() => { openLightbox(path, `Transcendence Screenshot ${index + 1}`); }}
                 >
                   <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
                     <img

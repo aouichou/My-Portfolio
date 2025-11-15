@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import { getMediaUrl } from '@/library/s3-config';
+import { useEffect, useState } from 'react';
 
 type ClientImageProps = {
   src?: string;
@@ -11,7 +11,7 @@ type ClientImageProps = {
   className?: string;
   width?: number;
   height?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export default function ClientImage({ 
