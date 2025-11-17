@@ -11,9 +11,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "frontend"
     commit-message:
       prefix: "deps(ui)"
       include: "scope"
@@ -42,9 +39,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "backend"
     commit-message:
       prefix: "deps(api)"
       include: "scope"
@@ -65,9 +59,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "terminal"
     commit-message:
       prefix: "deps(terminal)"
       include: "scope"
@@ -83,10 +74,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 2
-    labels:
-      - "dependencies"
-      - "docker"
-      - "frontend"
     commit-message:
       prefix: "deps(docker-ui)"
 
@@ -98,10 +85,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 2
-    labels:
-      - "dependencies"
-      - "docker"
-      - "backend"
     commit-message:
       prefix: "deps(docker-api)"
 
@@ -113,10 +96,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 2
-    labels:
-      - "dependencies"
-      - "docker"
-      - "terminal"
     commit-message:
       prefix: "deps(docker-terminal)"
 
@@ -126,9 +105,6 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3
-    labels:
-      - "dependencies"
-      - "ci-cd"
     commit-message:
       prefix: "ci"
     groups:
