@@ -33,8 +33,9 @@ class AsyncPTY:
 			try:
 				os.chdir(self.cwd)
 				# Use hardcoded shell path instead of dynamic command
-				shell_path = '/bin/bash'  # Hardcoded secure shell path
-				# Use os.execv instead of os.execve for shell execution
+				shell_path = os.getenv('SHELL_PATH', '/bin/bash')
+				if not os.path.exists(shell_path):
+					shell_path = '/bin/sh'  # Fallback to sh
 				os.execv(shell_path, [shell_path, '-l'])  # -l for login shell
 			except Exception as e:
 				print(f"Error executing command: {e}")
