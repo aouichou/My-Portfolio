@@ -29,10 +29,12 @@ class AsyncPTY:
 		)
 		
 		if self.pid == 0:  # Child process
-			# Execute shell
+			# Execute shell with hardcoded path to prevent command injection
 			try:
 				os.chdir(self.cwd)
-				os.execve(self.command, [self.command], self.env)
+				# Use hardcoded shell path instead of dynamic command
+				shell_path = '/bin/bash'  # Hardcoded secure shell path
+				os.execve(shell_path, [shell_path], self.env)
 			except Exception as e:
 				print(f"Error executing command: {e}")
 				os._exit(1)

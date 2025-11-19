@@ -1,17 +1,17 @@
 # portfolio_api/requirements.txt
 
-Django>=5.1.10
+Django>=5.1.14
 djangorestframework>=3.15.2
 django-ratelimit>=4.1.0
 gunicorn>=23.0.0
-Pillow>=11.2.1
+Pillow>=11.3.0
 python-dotenv>=1.0.1
 psycopg2-binary>=2.9.10
 dj_database_url>=2.3.0
 whitenoise>=6.9.0
 django-storages>=1.14.5
 boto3>=1.37.6
-djangorestframework-simplejwt>=5.5.0
+djangorestframework-simplejwt>=5.5.1
 django-cors-headers>=4.7.0
 dnspython>=2.7.0
 channels>=4.2.0
