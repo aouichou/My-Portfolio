@@ -255,7 +255,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
         <div className="mt-12">
           <h4 className="text-xl font-semibold mb-6">Development Timeline</h4>
           <div className="relative pl-6 border-l-2 border-accent">
-            {project.development_steps.map((step, index) => (
+            {project.development_steps.map((step: { title: string; description: string }, index: number) => (
               <MotionDiv
                 key={index}
                 className="mb-8 pl-6 relative"

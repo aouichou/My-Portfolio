@@ -24,7 +24,7 @@ def validate_jwt(token):
 		)
 		# Check if token is for terminal access
 		if payload.get('purpose') != 'terminal_access':
-			logger.warning("Token has wrong purpose: %s", payload.get('purpose'))  # codacy-ignore
+			logger.warning("Token has wrong purpose")
 			return False
 
 		# Check if token is expired
@@ -37,11 +37,11 @@ def validate_jwt(token):
 	except jwt.ExpiredSignatureError:
 		logger.warning("Token has expired")
 		return False
-	except jwt.InvalidTokenError as e:
-		logger.warning("Invalid token: %s", str(e)) #nosec
+	except jwt.InvalidTokenError:
+		logger.warning("Invalid token")
 		return False
-	except Exception as e:
-		logger.error("Token validation error: %s", str(e)) #nosec
+	except Exception:
+		logger.error("Token validation error")
 		return False
 
 class TerminalConsumer(AsyncWebsocketConsumer):

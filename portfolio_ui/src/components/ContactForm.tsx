@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 import { api } from '../library/api-client';
 import { toast } from 'sonner';
 
-// Email validation regex - RFC 5322 compliant
-const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+// Email validation regex - simplified safe version
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -57,13 +57,15 @@ export default function ContactForm() {
       });
       setFormData({ name: '', email: '', message: '' });
       setErrors({ email: '' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check for validation errors from backend
-      if (error.response?.data?.email) {
-        setErrors({ email: error.response.data.email[0] });
-        toast.error('Invalid Email', {
-          description: error.response.data.email[0],
-        });
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { email?: string[] } } };
+        if (axiosError.response?.data?.email) {
+          setErrors({ email: axiosError.response.data.email[0] });
+          toast.error('Invalid Email', {
+            description: axiosError.response.data.email[0],
+          });
       } else {
         toast.error('Error', {
           description: "Failed to send message. Please try again later.",

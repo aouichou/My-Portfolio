@@ -90,8 +90,8 @@ class AsyncPTY:
 					attempts = 0
 				except OSError:
 					break
-		except Exception as e:
-			print("Error reading from PTY %s", e)
+		except Exception:
+			print("Error reading from PTY")
 		return output
 
 	def resize(self, rows, cols):

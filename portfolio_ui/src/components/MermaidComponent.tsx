@@ -55,8 +55,8 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
         
       } catch (error) {
         console.error('Mermaid render error:', error);
+        // Use DOM manipulation instead of innerHTML to prevent XSS
         if (containerRef.current) {
-          // Use DOM manipulation instead of innerHTML to prevent XSS
           const errorDiv = document.createElement('div');
           errorDiv.className = 'p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded';
           

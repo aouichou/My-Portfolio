@@ -28,7 +28,7 @@ services:
       - DJANGO_SETTINGS_MODULE=portfolio_api.settings
     networks:
       - app-network
-    startCommand: daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
+    command: daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
     restart: unless-stopped
 
   reverse-proxy:
