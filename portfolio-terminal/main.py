@@ -25,97 +25,97 @@ logger = logging.getLogger(__name__)
 
 # Security: Allowed project slugs (whitelist approach)
 ALLOWED_PROJECTS = {
-    'minishell', 'push_swap', 'philosophers', 'minitalk', 
-    'fdf', 'ft_irc', 'minirt', 'cub3d', 'ft_transcendence'
+	'minishell', 'push_swap', 'philosophers', 'minitalk', 
+	'fdf', 'ft_irc', 'minirt', 'cub3d', 'ft_transcendence'
 }
 
 def sanitize_project_slug(project_slug: str) -> str:
-    """
-    Validate and sanitize project slug to prevent path traversal attacks.
-    Returns sanitized slug or raises HTTPException.
-    """
-    # Remove any whitespace
-    project_slug = project_slug.strip()
-    
-    # Check if empty
-    if not project_slug:
-        raise HTTPException(status_code=400, detail="Project slug cannot be empty")
-    
-    # Only allow alphanumeric, underscore, and hyphen
-    if not re.match(r'^[a-zA-Z0-9_-]+$', project_slug):
-        raise HTTPException(status_code=400, detail="Invalid project slug format")
-    
-    # Check against whitelist
-    if project_slug.lower() not in ALLOWED_PROJECTS:
-        raise HTTPException(status_code=403, detail="Project not found")
-    
-    # Prevent path traversal attempts
-    if '..' in project_slug or '/' in project_slug or '\\' in project_slug:
-        raise HTTPException(status_code=400, detail="Invalid characters in project slug")
-    
-    return project_slug.lower()
+	"""
+	Validate and sanitize project slug to prevent path traversal attacks.
+	Returns sanitized slug or raises HTTPException.
+	"""
+	# Remove any whitespace
+	project_slug = project_slug.strip()
+	
+	# Check if empty
+	if not project_slug:
+		raise HTTPException(status_code=400, detail="Project slug cannot be empty")
+	
+	# Only allow alphanumeric, underscore, and hyphen
+	if not re.match(r'^[a-zA-Z0-9_-]+$', project_slug):
+		raise HTTPException(status_code=400, detail="Invalid project slug format")
+	
+	# Check against whitelist
+	if project_slug.lower() not in ALLOWED_PROJECTS:
+		raise HTTPException(status_code=403, detail="Project not found")
+	
+	# Prevent path traversal attempts
+	if '..' in project_slug or '/' in project_slug or '\\' in project_slug:
+		raise HTTPException(status_code=400, detail="Invalid characters in project slug")
+	
+	return project_slug.lower()
 
 def safe_join_path(base_dir: str, *paths: str) -> str:
-    """
-    Safely join paths and ensure result is within base_dir.
-    Prevents path traversal attacks.
-    """
-    # Resolve the base directory to an absolute path
-    base = Path(base_dir).resolve()
-    
-    # Join and resolve the full path
-    full_path = Path(base, *paths).resolve()
-    
-    # Ensure the resolved path is within the base directory
-    try:
-        full_path.relative_to(base)
-    except ValueError:
-        raise HTTPException(status_code=403, detail="Access denied: path traversal detected")
-    
-    return str(full_path)
+	"""
+	Safely join paths and ensure result is within base_dir.
+	Prevents path traversal attacks.
+	"""
+	# Resolve the base directory to an absolute path
+	base = Path(base_dir).resolve()
+	
+	# Join and resolve the full path
+	full_path = Path(base, *paths).resolve()
+	
+	# Ensure the resolved path is within the base directory
+	try:
+		full_path.relative_to(base)
+	except ValueError:
+		raise HTTPException(status_code=403, detail="Access denied: path traversal detected")
+	
+	return str(full_path)
 
 def apply_security_restrictions(child_process):
-    """Apply security restrictions to spawned processes"""
-    try:
-        # Create a sandbox directory with restricted permissions
-        sandbox_dir = f"/home/coder/sandboxes/{uuid.uuid4()}"
-        os.makedirs(sandbox_dir, exist_ok=True)
-        os.chmod(sandbox_dir, 0o755)  # rwx for owner, rx for others
-        
-        # Set resource limits
-        import resource
-        # Max CPU time in seconds
-        resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
-        # Max file size in bytes (10MB)
-        resource.setrlimit(resource.RLIMIT_FSIZE, (10*1024*1024, 10*1024*1024))
-        # Max number of processes
-        resource.setrlimit(resource.RLIMIT_NPROC, (50, 50))
-        
-        # Configure environment for security
-        env = os.environ.copy()
-        env['SHELL'] = '/bin/bash'
-        env['PATH'] = '/usr/local/bin:/usr/bin:/bin'
-        # Remove potentially dangerous environment variables
-        for var in ['LD_PRELOAD', 'LD_LIBRARY_PATH']:
-            if var in env:
-                del env[var]
-                
-        # Set secure umask for file creation
-        os.umask(0o022)  # Files created with 644, directories with 755
-        
-        # Log security application
-        logger.info("Security restrictions applied to process")
-        
-        return env, sandbox_dir
-    except Exception as e:
-        logger.error("Failed to apply security restrictions: %s", e)
-        raise
+	"""Apply security restrictions to spawned processes"""
+	try:
+		# Create a sandbox directory with restricted permissions
+		sandbox_dir = f"/home/coder/sandboxes/{uuid.uuid4()}"
+		os.makedirs(sandbox_dir, exist_ok=True)
+		os.chmod(sandbox_dir, 0o755)  # rwx for owner, rx for others
+
+		# Set resource limits
+		import resource
+		# Max CPU time in seconds
+		resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
+		# Max file size in bytes (10MB)
+		resource.setrlimit(resource.RLIMIT_FSIZE, (10*1024*1024, 10*1024*1024))
+		# Max number of processes
+		resource.setrlimit(resource.RLIMIT_NPROC, (50, 50))
+
+		# Configure environment for security
+		env = os.environ.copy()
+		env['SHELL'] = '/bin/bash'
+		env['PATH'] = '/usr/local/bin:/usr/bin:/bin'
+		# Remove potentially dangerous environment variables
+		for var in ['LD_PRELOAD', 'LD_LIBRARY_PATH']:
+			if var in env:
+				del env[var]
+
+		# Set secure umask for file creation
+		os.umask(0o022)  # Files created with 644, directories with 755
+
+		# Log security application
+		logger.info("Security restrictions applied to process")
+
+		return env, sandbox_dir
+	except Exception as e:
+		logger.error("Failed to apply security restrictions: %s", e)
+		raise
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	# Startup code
 	print("Starting terminal service...")
-	
+
 	# Start health check task
 	health_check_task = asyncio.create_task(periodic_health_checks())
 
@@ -124,19 +124,19 @@ async def lifespan(app: FastAPI):
 		print("Security check failed. Shutting down...")
 		yield
 		return
-	
+
 	yield
-	
+
 	# Shutdown code
 	print("Shutting down terminal service...")
-	
+
 	# Cancel health check task
 	health_check_task.cancel()
 	try:
 		await health_check_task
 	except asyncio.CancelledError:
 		pass
-		
+
 	# Terminate all active terminals
 	for session_id, child in active_terminals.items():
 		try:
@@ -144,7 +144,7 @@ async def lifespan(app: FastAPI):
 			print(f"Terminated terminal session {session_id}")
 		except Exception as e:
 			print(f"Error terminating session {session_id}: {e}")
-	
+
 	print("Terminal service shutdown complete")
 
 app = FastAPI(lifespan=lifespan)
@@ -155,7 +155,7 @@ async def periodic_health_checks():
 		"backend": os.environ.get("BACKEND_URL", "https://api.aouichou.me"),
 		"frontend": os.environ.get("FRONTEND_URL", "https://aouichou.me")
 	}
-	
+
 	while True:
 		try:
 			async with aiohttp.ClientSession() as session:
@@ -167,7 +167,7 @@ async def periodic_health_checks():
 						print(f"Failed health check to {name}: {str(e)}")
 		except Exception as e:
 			print(f"Error in health checks: {str(e)}")
-		
+
 		# Wait for 10 minutes before next check
 		await asyncio.sleep(600)  # 600 seconds = 10 minutes
 
@@ -204,7 +204,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	
 	# Initialize variables that might be used in finally block
 	read_task = None
-	
+
 	try:
 		# Validate and sanitize project slug
 		project_slug = sanitize_project_slug(project_slug)
@@ -395,8 +395,14 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				await read_task
 			except asyncio.CancelledError:
 				pass
-
-		\t\t# Cleanup on disconnect\n\t\tif session_id in active_terminals:\n\t\t\ttry:\n\t\t\t\tactive_terminals[session_id].terminate()\n\t\t\t\tdel active_terminals[session_id]\n\t\t\t\tlogger.info(\"Terminated session %s\", session_id)\n\t\t\texcept Exception as cleanup_error:\n\t\t\t\tlogger.error(\"Failed to terminate session %s: %s\", session_id, cleanup_error)
+		# Cleanup on disconnect
+		if session_id in active_terminals:
+			try:
+				active_terminals[session_id].terminate()
+				del active_terminals[session_id]
+				logger.info("Terminated session %s", session_id)
+			except Exception as cleanup_error:
+				logger.error("Failed to terminate session %s: %s", session_id, cleanup_error)
 
 async def read_terminal_output(websocket, child):
 	while True:
@@ -424,82 +430,82 @@ async def read_terminal_output(websocket, child):
 			await asyncio.sleep(0.1)
 
 def validate_command(command):
-    """Validate terminal commands with improved security"""
-    # Strip whitespace for cleaner matching
-    command = command.strip()
-    
-    # Allow empty commands (just pressing enter)
-    if not command:
-        return True
-    
-    # Allowlist approach for basic commands
-    allowed_patterns = [
-        # Basic navigation and file inspection
-        r'^ls(\s+-[altrh]+)*(\s+[\w\./-]+)*$',
-        r'^cat(\s+[\w\./-]+)+$',
-        r'^cd(\s+[\w\./-]+)?$',
-        r'^pwd$',
-        r'^echo\s+.*$',
-        r'^clear$',
-        
-        # Development commands
-        r'^make(\s+[\w-]+)?$',
-        r'^gcc(\s+-[a-zA-Z]+)*(\s+[\w\./-]+)+$',
-        r'^./[\w-]+$',  # Run executables in current directory
-        
-        # Basic file manipulation
-        r'^touch\s+[\w\./-]+$',
-        r'^mkdir(\s+-p)?\s+[\w\./-]+$',
-        
-        # Help commands
-        r'^help$',
-        r'^man\s+[\w-]+$',
-        r'^download\s+[\w\./-]+$',
-    ]
-    
-    # Check if command matches any allowed pattern
-    for pattern in allowed_patterns:
-        if re.match(pattern, command):
-            logger.info("Command allowed by pattern: %s", command)
-            return True
-        
-    # Container escape checks - CRITICAL SECURITY
-    blocked_sequences = [
-        'docker', 'kubectl', 'sudo', 'su ', 'ssh',
-        '--privileged', '--cap-add', 'nsenter', 
-        'unshare', 'mount', 'umount', 'chroot',
-        'pivot_root', 'cgroup', 'setns', 'ptrace',
-        'ld.so', 'proc', '/dev/'
-    ]
-    
-    if any(seq in command for seq in blocked_sequences):
-        logger.warning("Blocked command with suspicious sequence: %s", command)
-        return False
-        
-    # Path traversal protection
-    if any('../' in part for part in command.split()):
-        logger.warning("Blocked command with path traversal: %s", command)
-        return False
-        
-    # Protect against command chaining/injection
-    command_operators = [';', '&&', '||', '`', '$(',  '|', '>', '<']
-    if any(op in command for op in command_operators):
-        logger.warning("Blocked command with operator: %s", command)
-        return False
-        
-    # Additional deny list for extra security
-    dangerous_commands = [
-        'rm -rf', 'chmod 777', ':(){', 'curl | bash',
-        'wget | bash', '> /dev', '> /proc', '> /sys'
-    ]
-    
-    if any(cmd in command for cmd in dangerous_commands):
-        logger.warning("Blocked dangerous command: %s", command)
-        return False
+	"""Validate terminal commands with improved security"""
+	# Strip whitespace for cleaner matching
+	command = command.strip()
+	
+	# Allow empty commands (just pressing enter)
+	if not command:
+		return True
+	
+	# Allowlist approach for basic commands
+	allowed_patterns = [
+		# Basic navigation and file inspection
+		r'^ls(\s+-[altrh]+)*(\s+[\w\./-]+)*$',
+		r'^cat(\s+[\w\./-]+)+$',
+		r'^cd(\s+[\w\./-]+)?$',
+		r'^pwd$',
+		r'^echo\s+.*$',
+		r'^clear$',
+		
+		# Development commands
+		r'^make(\s+[\w-]+)?$',
+		r'^gcc(\s+-[a-zA-Z]+)*(\s+[\w\./-]+)+$',
+		r'^./[\w-]+$',  # Run executables in current directory
+		
+		# Basic file manipulation
+		r'^touch\s+[\w\./-]+$',
+		r'^mkdir(\s+-p)?\s+[\w\./-]+$',
+		
+		# Help commands
+		r'^help$',
+		r'^man\s+[\w-]+$',
+		r'^download\s+[\w\./-]+$',
+	]
+	
+	# Check if command matches any allowed pattern
+	for pattern in allowed_patterns:
+		if re.match(pattern, command):
+			logger.info("Command allowed by pattern: %s", command)
+			return True
+		
+	# Container escape checks - CRITICAL SECURITY
+	blocked_sequences = [
+		'docker', 'kubectl', 'sudo', 'su ', 'ssh',
+		'--privileged', '--cap-add', 'nsenter', 
+		'unshare', 'mount', 'umount', 'chroot',
+		'pivot_root', 'cgroup', 'setns', 'ptrace',
+		'ld.so', 'proc', '/dev/'
+	]
+	
+	if any(seq in command for seq in blocked_sequences):
+		logger.warning("Blocked command with suspicious sequence: %s", command)
+		return False
+		
+	# Path traversal protection
+	if any('../' in part for part in command.split()):
+		logger.warning("Blocked command with path traversal: %s", command)
+		return False
+		
+	# Protect against command chaining/injection
+	command_operators = [';', '&&', '||', '`', '$(',  '|', '>', '<']
+	if any(op in command for op in command_operators):
+		logger.warning("Blocked command with operator: %s", command)
+		return False
+		
+	# Additional deny list for extra security
+	dangerous_commands = [
+		'rm -rf', 'chmod 777', ':(){', 'curl | bash',
+		'wget | bash', '> /dev', '> /proc', '> /sys'
+	]
+	
+	if any(cmd in command for cmd in dangerous_commands):
+		logger.warning("Blocked dangerous command: %s", command)
+		return False
 
-    # If nothing matched, deny by default (security first)
-    logger.warning("Command denied (no matching pattern): %s", command)
-    return False
+	# If nothing matched, deny by default (security first)
+	logger.warning("Command denied (no matching pattern): %s", command)
+	return False
 
 @app.get("/error-stats")
 async def error_statistics():
@@ -687,32 +693,32 @@ async def get_project_image(project_slug: str, image_name: str):
 		raise HTTPException(status_code=500, detail="Internal server error")
 
 def check_terminal_security():
-    """Verify security setup of terminal environment"""
-    logger.info("Verifying terminal security...")
-    
-    # Check if running as non-root
-    if os.geteuid() == 0:
-        logger.error("SECURITY ERROR: Running as root!")
-        return False
-    
-    # Check if in privileged mode by attempting a blocked syscall
-    try:
-        # Try to create a user namespace which should be blocked
-        pid = os.fork()
-        if pid == 0:
-            os.unshare(0x10000000)  # CLONE_NEWUSER
-            os._exit(0)
-        os.waitpid(pid, 0)
-        logger.error("SECURITY ERROR: Container has user namespace privileges!")
-        return False
-    except OSError:
-        # This is expected - we want this to fail
-        logger.info("Security check passed: User namespace creation blocked")
-    
-    # Check filesystem permissions
-    if os.access('/proc/kcore', os.R_OK):
-        logger.error("SECURITY ERROR: Can access sensitive kernel files!")
-        return False
-    
-    logger.info("Security checks passed. Terminal environment is secure")
-    return True
+	"""Verify security setup of terminal environment"""
+	logger.info("Verifying terminal security...")
+	
+	# Check if running as non-root
+	if os.geteuid() == 0:
+		logger.error("SECURITY ERROR: Running as root!")
+		return False
+	
+	# Check if in privileged mode by attempting a blocked syscall
+	try:
+		# Try to create a user namespace which should be blocked
+		pid = os.fork()
+		if pid == 0:
+			os.unshare(0x10000000)  # CLONE_NEWUSER
+			os._exit(0)
+		os.waitpid(pid, 0)
+		logger.error("SECURITY ERROR: Container has user namespace privileges!")
+		return False
+	except OSError:
+		# This is expected - we want this to fail
+		logger.info("Security check passed: User namespace creation blocked")
+	
+	# Check filesystem permissions
+	if os.access('/proc/kcore', os.R_OK):
+		logger.error("SECURITY ERROR: Can access sensitive kernel files!")
+		return False
+	
+	logger.info("Security checks passed. Terminal environment is secure")
+	return True

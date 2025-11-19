@@ -24,24 +24,24 @@ def validate_jwt(token):
 		)
 		# Check if token is for terminal access
 		if payload.get('purpose') != 'terminal_access':
-			logger.warning("Token has wrong purpose: %s", payload.get('purpose'))
+			logger.warning("Token has wrong purpose: %s", payload.get('purpose')) #nosec
 			return False
-			
+
 		# Check if token is expired
 		exp = payload.get('exp')
 		if not exp:
 			logger.warning("Token has no expiration")
 			return False
-			
+
 		return True
 	except jwt.ExpiredSignatureError:
 		logger.warning("Token has expired")
 		return False
 	except jwt.InvalidTokenError as e:
-		logger.warning("Invalid token: %s", str(e))
+		logger.warning("Invalid token: %s", str(e)) #nosec
 		return False
 	except Exception as e:
-		logger.error("Token validation error: %s", str(e))
+		logger.error("Token validation error: %s", str(e)) #nosec
 		return False
 
 class TerminalConsumer(AsyncWebsocketConsumer):
@@ -57,10 +57,10 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			return
 
 		self.project_slug = self.scope['url_route']['kwargs']['project_slug']
-		
+
 		# Accept WebSocket connection from browser
 		await self.accept()
-		
+
 		# Get terminal service URL from environment
 		terminal_base_url = os.environ.get('TERMINAL_SERVICE_URL', 'wss://portfolio-terminal-4t9w.onrender.com')
 		if terminal_base_url.startswith('wss://'):
@@ -165,7 +165,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			except Exception:
 				# Connection is likely already closed
 				pass
-				
+	
 	async def receive(self, text_data):
 		if hasattr(self, 'terminal_ws'):
 			try:
