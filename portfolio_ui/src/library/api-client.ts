@@ -14,18 +14,14 @@ const getApiUrl = () => {
   // Server-side rendering (Node.js)
   if (typeof window === 'undefined') {
     const url = (process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api').replace(/\/$/, '');
-    console.log('[API Client SSR] Using API URL:', url);
     return url;
   }
   // Client-side (browser) - detect localhost
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   if (isLocalhost) {
-    console.log('[API Client Browser] Detected localhost, using local backend');
     return 'http://localhost:8000/api';
   }
   const url = (process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api').replace(/\/$/, '');
-  console.log('[API Client Browser] NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-  console.log('[API Client Browser] Using API URL:', url);
   return url;
 };
 
