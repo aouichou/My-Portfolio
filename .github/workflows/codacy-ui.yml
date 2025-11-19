@@ -1,0 +1,50 @@
+# Codacy Security Scan - Frontend UI Service
+# Analyzes portfolio_ui directory for TypeScript/Next.js code quality and security issues
+
+name: Codacy Scan - UI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'portfolio_ui/**'
+      - '.github/workflows/codacy-ui.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'portfolio_ui/**'
+  schedule:
+    - cron: '30 8 * * 0'  # Weekly on Sunday at 8:30 AM
+
+permissions:
+  contents: read
+
+jobs:
+  codacy-ui-scan:
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    name: UI Service Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Codacy Analysis - UI Service
+        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          verbose: false
+          upload: true
+          max-allowed-issues: 2147483647
+          # Analyze only the UI directory
+          directory: portfolio_ui
+        continue-on-error: true
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+          category: codacy-ui
+        continue-on-error: true
