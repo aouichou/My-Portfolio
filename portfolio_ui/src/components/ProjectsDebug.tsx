@@ -16,7 +16,7 @@ export default function ProjectsDebug() {
       if (projects[0].thumbnail) {
         const img = new Image();
         img.src = projects[0].thumbnail;
-        img.onload = () => void console.log('Direct thumbnail load successful!');l!');
+        img.onload = () => void console.log('Direct thumbnail load successful!');
         img.onerror = () => void console.error('Direct thumbnail load failed!');
       }
     }

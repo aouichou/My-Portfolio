@@ -35,18 +35,24 @@ class CustomS3Storage(S3Boto3Storage):
 		Generate URL with proper hostname format
 		"""
 		try:
-		# Make sure bucket_name doesn't have duplicated parts
-			if hasattr(self, 'bucket_name') and self.bucket_name and '.' in self.bucket_name:
+			# Get bucket_name safely - it's defined in parent S3Boto3Storage class
+			bucket_name_attr = getattr(self, 'bucket_name', None)
+			
+			# Make sure bucket_name doesn't have duplicated parts
+			if bucket_name_attr and '.' in str(bucket_name_attr):
 				# Only keep the first part of the bucket name
-				parts = self.bucket_name.split('.')
+				parts = str(bucket_name_attr).split('.')
 				self.bucket_name = parts[0]
 				logger.info("Normalized bucket name to: %s", self.bucket_name)
-				# Use the standard S3Boto3Storage url method
-				return super().url(name, parameters, expire)
+			
+			# Use the standard S3Boto3Storage url method
+			return super().url(name, parameters, expire)
 		except Exception as e:
 			logger.error("Error generating URL for %s: %s", name, e)
 			# Return a direct S3 URL as fallback
-			return f"https://s3.{self.region_name}.amazonaws.com/{self.bucket_name}/{name}"
+			region = getattr(self, 'region_name', 'eu-west-1')
+			bucket = getattr(self, 'bucket_name', settings.AWS_STORAGE_BUCKET_NAME)
+			return f"https://s3.{region}.amazonaws.com/{bucket}/{name}"
 
 	def _normalize_name(self, name):
 		"""

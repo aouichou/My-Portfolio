@@ -110,7 +110,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         return;
       }
       
-      if (!containerRef.current || !isMountedRef.current) {
+      if (!containerRef.current) {
         setError("Terminal container not ready");
         setIsLoading(false);
         isInitializingRef.current = false;

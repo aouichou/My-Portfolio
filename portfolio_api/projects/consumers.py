@@ -88,7 +88,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			
 			# Send welcome message
 			await self.send(text_data=json.dumps({
-				'output': f"Connecting to terminal for {self.project_slug}...\r\n"
+				'output': "Connecting to terminal for {}...\r\n".format(self.project_slug)
 			}))
 			
 		except asyncio.TimeoutError:
@@ -148,15 +148,16 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			except Exception as notify_exc:
 				# Connection might already be closed
 				logger.error("Failed to notify client about closed terminal connection: %s", str(notify_exc))
-		except Exception as e:
+		except (ConnectionError, RuntimeError, ValueError) as e:
 			logger.error("Error in forward_from_terminal: %s", str(e), exc_info=True)
 			try:
 				await self.send(text_data=json.dumps({
 					'output': f'\r\n\r\nTerminal error: {str(e)}\r\n'
 				}))
-			except Exception 
+			except Exception as notify_exc:
 				# Connection might already be closed
-				pass
+				logger.error("Failed to notify client about terminal error: %s", str(notify_exc))
+				# Connection might already be closed
 		finally:
 			# Close the WebSocket connection when forwarding ends
 			try:

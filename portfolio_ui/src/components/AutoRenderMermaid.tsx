@@ -12,7 +12,7 @@ export default function AutoRenderMermaid() {
       if (window.renderMermaidDiagrams) {
         void window.renderMermaidDiagrams();
       } else {
-        setTimeout(() => void renderAllDiagrams(), 500);
+        void setTimeout(() => void renderAllDiagrams(), 500);
       }
     };
 

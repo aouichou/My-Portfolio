@@ -8,11 +8,12 @@ import { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const project = await getProjectBySlug(params.slug);
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
   return {
     title: project?.title || 'Project Not Found',
     description: project?.description || '',
@@ -24,9 +25,11 @@ export async function generateStaticParams() {
 }
 
 export default async function Page({ params }: Props) {
+  const { slug } = await params;
+  
   // Pre-fetch for initial render
-  const initialProject = await getProjectBySlug(params.slug);
+  const initialProject = await getProjectBySlug(slug);
   
   // Pass the slug to the client component
-  return <ProjectDetail slug={params.slug} initialProject={initialProject} />;
+  return <ProjectDetail slug={slug} initialProject={initialProject} />;
 }

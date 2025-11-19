@@ -89,10 +89,9 @@ class AsyncPTY:
 				except OSError:
 					break
 		except Exception as e:
-			print(f"Error reading from PTY: {e}")
-		
+			print("Error reading from PTY %s", e)
 		return output
-		
+
 	def resize(self, rows, cols):
 		try:
 			winsize = struct.pack("HHHH", rows, cols, 0, 0)
@@ -106,7 +105,7 @@ class AsyncPTY:
 			try:
 				os.kill(self.pid, signal.SIGTERM)
 				os.waitpid(self.pid, 0)
-			except Exception:
+			except (OSError, ProcessLookupError):
 				pass
 			
 		if self.fd:

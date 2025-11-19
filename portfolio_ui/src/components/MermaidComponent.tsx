@@ -55,7 +55,7 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
         
       } catch (error) {
         console.error('Mermaid render error:', error);
-        if (containerRef.current !== null) {
+        if (containerRef.current) {
           containerRef.current.innerHTML = `
             <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded">
               <p class="font-medium text-red-700 dark:text-red-300">Error rendering diagram</p>

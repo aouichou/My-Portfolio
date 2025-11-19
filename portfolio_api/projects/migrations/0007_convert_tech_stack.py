@@ -17,7 +17,7 @@ def convert_tech_stack(apps, schema_editor):
 		elif isinstance(project.tech_stack, str):
 			try:
 				project.tech_stack_array = json.loads(project.tech_stack)
-			except json.JSONDecodeError:
+			except (json.JSONDecodeError, ValueError):
 				project.tech_stack_array = [project.tech_stack]
 		elif isinstance(project.tech_stack, dict):
 			# If it's somehow a dict, use the values or keys

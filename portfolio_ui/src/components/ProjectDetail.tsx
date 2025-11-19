@@ -84,7 +84,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 	useEffect(() => {
 		// Force rendering of diagrams when project data is loaded
 		if (project?.architecture_diagram) {
-			setTimeout(() => {
+			void setTimeout(() => {
 			if (window.renderMermaidDiagrams) {
 				void window.renderMermaidDiagrams();
 			}
