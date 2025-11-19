@@ -62,13 +62,22 @@ jobs:
   deploy-backend:
     needs: [check-changes]
     if: |
-      github.actor != 'dependabot[bot]' && 
       (needs.check-changes.outputs.backend == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Need to read repo for checkout
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
+      - name: Check if Dependabot PR
+        id: check-dependabot
+        run: |
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            echo "is_dependabot=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Dependabot PR detected - skipping actual deployment"
+          else
+            echo "is_dependabot=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Deploy reason
         run: |
@@ -79,6 +88,7 @@ jobs:
           fi
 
       - name: Update Render Environment Variables
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: |
           curl -X PATCH \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
@@ -92,12 +102,14 @@ jobs:
           https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/env-vars
               
       - name: Render Deploy Action
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
         uses: johnbeynon/render-deploy-action@a0588f9aca995a15d69a72cb2bfbf37c12e5b540 # v0.0.8
         with:
           service-id: ${{ secrets.RENDER_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
           
       - name: Run Migrations and Import Data
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: |
           # First deployment to create service
           curl -X POST -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
@@ -111,18 +123,33 @@ jobs:
                -H "Content-Type: application/json" \
                -d '{"clearCache": "do_not_clear"}' \
                https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
+      
+      - name: Dependabot PR Check Passed
+        if: steps.check-dependabot.outputs.is_dependabot == 'true'
+        run: |
+          echo "✅ Dependabot PR validated - deployment skipped intentionally"
+          echo "This PR can be safely merged if all other checks pass"
 
   # Frontend deployment job with condition
   deploy-frontend:
     needs: [check-changes]
     if: |
-      github.actor != 'dependabot[bot]' && 
       (needs.check-changes.outputs.frontend == 'true' || needs.check-changes.outputs.force_deploy == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Need to read repo for checkout
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
+      - name: Check if Dependabot PR
+        id: check-dependabot
+        run: |
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            echo "is_dependabot=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Dependabot PR detected - skipping actual deployment"
+          else
+            echo "is_dependabot=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Deploy reason
         run: |
@@ -133,33 +160,51 @@ jobs:
           fi
       
       - name: Install Heroku CLI
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: curl https://cli-assets.heroku.com/install.sh | sh
       
       # Set Heroku stack to container
       - name: Set Heroku stack to container
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: heroku stack:set container -a portfolio-frontend
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       
       - name: Build, Push and Release a Docker container to Heroku
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
         uses: gonuit/heroku-docker-deploy@9ab97585f979857642d66612a2ae4062b3347d53 # v1.3.3
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "portfolio-frontend"
           email: "a.ouichou@student.42.fr" 
           dockerfile_directory: "./portfolio_ui/"
+      
+      - name: Dependabot PR Check Passed
+        if: steps.check-dependabot.outputs.is_dependabot == 'true'
+        run: |
+          echo "✅ Dependabot PR validated - deployment skipped intentionally"
+          echo "This PR can be safely merged if all other checks pass"
 
   # Terminal service deployment job
   deploy-terminal:
     needs: [check-changes]
     if: |
-      github.actor != 'dependabot[bot]' && 
       (needs.check-changes.outputs.terminal == 'true' || needs.check-changes.outputs.shared == 'true' || needs.check-changes.outputs.force_deploy == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Need to read repo for checkout
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
+      - name: Check if Dependabot PR
+        id: check-dependabot
+        run: |
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            echo "is_dependabot=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Dependabot PR detected - skipping actual deployment"
+          else
+            echo "is_dependabot=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Deploy reason
         run: |
@@ -172,7 +217,14 @@ jobs:
           fi
 
       - name: Render Deploy Action for Terminal Service
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
         uses: johnbeynon/render-deploy-action@a0588f9aca995a15d69a72cb2bfbf37c12e5b540 # v0.0.8
         with:
           service-id: ${{ secrets.RENDER_TERMINAL_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
+      
+      - name: Dependabot PR Check Passed
+        if: steps.check-dependabot.outputs.is_dependabot == 'true'
+        run: |
+          echo "✅ Dependabot PR validated - deployment skipped intentionally"
+          echo "This PR can be safely merged if all other checks pass"
