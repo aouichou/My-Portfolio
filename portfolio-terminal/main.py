@@ -119,11 +119,14 @@ async def lifespan(app: FastAPI):
 	# Start health check task
 	health_check_task = asyncio.create_task(periodic_health_checks())
 
-	# Check terminal security
-	if not check_terminal_security():
+	# Check terminal security (skip in development mode)
+	is_dev = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
+	if not is_dev and not check_terminal_security():
 		print("Security check failed. Shutting down...")
 		yield
 		return
+	elif is_dev:
+		print("Running in development mode - security checks skipped")
 
 	yield
 
