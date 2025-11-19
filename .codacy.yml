@@ -1,0 +1,23 @@
+---
+engines:
+  CSSLint:
+    enabled: true
+    exclude_paths:
+      # Exclude globals.css due to Tailwind-specific syntax
+      - "portfolio_ui/src/app/globals.css"
+  
+  JSHint:
+    enabled: true
+    esversion: 6
+    
+  Prospector:
+    enabled: true
+    exclude_patterns:
+      # Exclude Django migrations from style checks
+      - "**/migrations/*.py"
+
+exclude_paths:
+  - "portfolio_ui/package-lock.json"
+  - "**/node_modules/**"
+  - "**/*.min.js"
+  - "**/*.min.css"

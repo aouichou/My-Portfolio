@@ -24,7 +24,7 @@ def validate_jwt(token):
 		)
 		# Check if token is for terminal access
 		if payload.get('purpose') != 'terminal_access':
-			logger.warning(f"Token has wrong purpose: {payload.get('purpose')}")
+			logger.warning("Token has wrong purpose: %s", payload.get('purpose'))
 			return False
 			
 		# Check if token is expired
@@ -38,10 +38,10 @@ def validate_jwt(token):
 		logger.warning("Token has expired")
 		return False
 	except jwt.InvalidTokenError as e:
-		logger.warning(f"Invalid token: {str(e)}")
+		logger.warning("Invalid token: %s", str(e))
 		return False
 	except Exception as e:
-		logger.error(f"Token validation error: {str(e)}")
+		logger.error("Token validation error: %s", str(e))
 		return False
 
 class TerminalConsumer(AsyncWebsocketConsumer):
@@ -70,7 +70,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			# For development or if base URL doesn't include protocol
 			self.terminal_url = f"wss://{terminal_base_url}/terminal/{self.project_slug}/"
 		
-		logger.info(f"Connecting to terminal service at: {self.terminal_url}")
+		logger.info("Connecting to terminal service at: %s", self.terminal_url)
 		
 		try:
 			# Connect to terminal service with increased timeout for S3 downloads
@@ -99,19 +99,19 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			# Handle connection errors
 			error_msg = f"Error connecting to terminal service: {str(e)}\r\n"
-			logger.error(f"Terminal connection error: {e}")
+			logger.error("Terminal connection error: %s", e)
 			await self.send(text_data=json.dumps({'output': error_msg}))
 			await self.close()
 
 	async def disconnect(self, close_code):
-		logger.info(f"WebSocket disconnecting with code: {close_code}")
+		logger.info("WebSocket disconnecting with code: %s", close_code)
 		# Clean up terminal connection when browser disconnects
 		if hasattr(self, 'terminal_ws'):
 			try:
 				await self.terminal_ws.close()
 				logger.info("Terminal WebSocket connection closed")
 			except Exception as e:
-				logger.error(f"Error closing terminal connection: {e}")
+				logger.error("Error closing terminal connection: %s", e)
 		
 		# Cancel forwarding task if active
 		if hasattr(self, 'forward_task') and not self.forward_task.done():
@@ -130,7 +130,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 						self.terminal_ws.recv(),
 						timeout=300  # 5-minute timeout for receiving messages
 					)
-					logger.debug(f"Forwarding terminal message: {message[:30]}...")
+					logger.debug("Forwarding terminal message: %s...", message[:30])
 					await self.send(text_data=message)
 				except asyncio.TimeoutError:
 					# Send a ping to keep the connection alive
@@ -140,7 +140,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 						'output': '\r\n[Terminal connection is still active...]\r\n'
 					}))
 		except websockets.ConnectionClosed as e:
-			logger.warning(f"Terminal WebSocket closed with code {e.code}: {e.reason}")
+			logger.warning("Terminal WebSocket closed with code %s: %s", e.code, e.reason)
 			try:
 				await self.send(text_data=json.dumps({
 					'output': '\r\n\r\nTerminal connection closed. Refresh to reconnect.\r\n'
@@ -149,7 +149,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 				# Connection might already be closed
 				logger.error("Failed to notify client about closed terminal connection")
 		except Exception as e:
-			logger.error(f"Error in forward_from_terminal: {str(e)}", exc_info=True)
+			logger.error("Error in forward_from_terminal: %s", str(e), exc_info=True)
 			try:
 				await self.send(text_data=json.dumps({
 					'output': f'\r\n\r\nTerminal error: {str(e)}\r\n'

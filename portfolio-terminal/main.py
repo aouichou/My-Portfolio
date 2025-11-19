@@ -104,11 +104,11 @@ def apply_security_restrictions(child_process):
         os.umask(0o022)  # Files created with 644, directories with 755
         
         # Log security application
-        logger.info(f"Security restrictions applied to process")
+        logger.info("Security restrictions applied to process")
         
         return env, sandbox_dir
     except Exception as e:
-        logger.error(f"Failed to apply security restrictions: {e}")
+        logger.error("Failed to apply security restrictions: %s", e)
         raise
 
 @asynccontextmanager
@@ -200,7 +200,7 @@ async def health_check():
 @app.websocket("/terminal/{project_slug}/")
 async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	await websocket.accept()
-	logger.info(f"WebSocket connection accepted for {project_slug}")
+	logger.info("WebSocket connection accepted for %s", project_slug)
 	
 	# Initialize variables that might be used in finally block
 	read_task = None
@@ -215,7 +215,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 
 	# Create unique session ID
 	session_id = str(uuid.uuid4())
-	logger.info(f"Generated session ID: {session_id}")
+	logger.info("Generated session ID: %s", session_id)
 	
 	# Store terminal session in Redis
 	session_info = {
@@ -228,7 +228,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	try:
 		redis_client.setex(f"terminal_session:{session_id}", 3600, json.dumps(session_info))
 	except Exception as e:
-		logger.error(f"Redis error: {e}")
+		logger.error("Redis error: %s", e)
 	
 	try:
 		# Check for project directory and download files if needed
@@ -269,7 +269,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 					'output': "\r\n✅ Project files downloaded successfully!\r\n"
 				})
 		else:
-			logger.info(f"Using existing project directory: {project_dir}, contains: {os.listdir(project_dir)}")
+			logger.info("Using existing project directory: %s, contains: %s", project_dir, os.listdir(project_dir))
 		
 		env = os.environ.copy()
 		env['TERM'] = 'xterm-256color'
@@ -317,7 +317,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				'output': "\r\n⚠️  Prompt detection timed out, but terminal should be ready.\r\n"
 			})
 		except Exception as e:
-			logger.error(f"Error waiting for prompt: {e}")
+			logger.error("Error waiting for prompt: %s", e)
 			await websocket.send_json({
 				'output': f"\r\n⚠️  Prompt detection error: {str(e)}, but terminal may still work.\r\n"
 			})
@@ -342,7 +342,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				if 'resize' in message and isinstance(message['resize'], dict):
 					rows = message['resize'].get('rows', 24)
 					cols = message['resize'].get('cols', 80)
-					logger.info(f"Resizing terminal to {rows}x{cols}")
+					logger.info("Resizing terminal to %sx%s", rows, cols)
 					child.setwinsize(rows, cols)
 				
 				# Handle input with command validation
@@ -373,15 +373,15 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				# Treat as raw input
 				child.write(data)
 			except Exception as e:
-				logger.error(f"Error processing message: {e}")
+				logger.error("Error processing message: %s", e)
 				await websocket.send_json({
 					'output': f"\r\nError: {str(e)}\r\n"
 				})
 				
 	except WebSocketDisconnect:
-		logger.info(f"WebSocket disconnected for session {session_id}")
+		logger.info("WebSocket disconnected for session %s", session_id)
 	except Exception as e:
-		logger.error(f"Terminal session error: {e}")
+		logger.error("Terminal session error: %s", e)
 		try:
 			await websocket.send_json({
 				'output': f"\r\n\r\nTerminal error: {str(e)}\r\n"
@@ -396,14 +396,7 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 			except asyncio.CancelledError:
 				pass
 
-		# Cleanup on disconnect
-		if session_id in active_terminals:
-			try:
-				active_terminals[session_id].terminate()
-				del active_terminals[session_id]
-				logger.info(f"Terminated session {session_id}")
-			except Exception as cleanup_error:
-				logger.error(f"Failed to terminate session {session_id}: {cleanup_error}")
+		\t\t# Cleanup on disconnect\n\t\tif session_id in active_terminals:\n\t\t\ttry:\n\t\t\t\tactive_terminals[session_id].terminate()\n\t\t\t\tdel active_terminals[session_id]\n\t\t\t\tlogger.info(\"Terminated session %s\", session_id)\n\t\t\texcept Exception as cleanup_error:\n\t\t\t\tlogger.error(\"Failed to terminate session %s: %s\", session_id, cleanup_error)
 
 async def read_terminal_output(websocket, child):
 	while True:
@@ -467,7 +460,7 @@ def validate_command(command):
     # Check if command matches any allowed pattern
     for pattern in allowed_patterns:
         if re.match(pattern, command):
-            logger.info(f"Command allowed by pattern: {command}")
+            logger.info("Command allowed by pattern: %s", command)
             return True
         
     # Container escape checks - CRITICAL SECURITY
@@ -480,18 +473,18 @@ def validate_command(command):
     ]
     
     if any(seq in command for seq in blocked_sequences):
-        logger.warning(f"Blocked command with suspicious sequence: {command}")
+        logger.warning("Blocked command with suspicious sequence: %s", command)
         return False
         
     # Path traversal protection
     if any('../' in part for part in command.split()):
-        logger.warning(f"Blocked command with path traversal: {command}")
+        logger.warning("Blocked command with path traversal: %s", command)
         return False
         
     # Protect against command chaining/injection
     command_operators = [';', '&&', '||', '`', '$(',  '|', '>', '<']
     if any(op in command for op in command_operators):
-        logger.warning(f"Blocked command with operator: {command}")
+        logger.warning("Blocked command with operator: %s", command)
         return False
         
     # Additional deny list for extra security
@@ -501,11 +494,11 @@ def validate_command(command):
     ]
     
     if any(cmd in command for cmd in dangerous_commands):
-        logger.warning(f"Blocked dangerous command: {command}")
+        logger.warning("Blocked dangerous command: %s", command)
         return False
 
     # If nothing matched, deny by default (security first)
-    logger.warning(f"Command denied (no matching pattern): {command}")
+    logger.warning("Command denied (no matching pattern): %s", command)
     return False
 
 @app.get("/error-stats")
@@ -690,7 +683,7 @@ async def get_project_image(project_slug: str, image_name: str):
 	except HTTPException:
 		raise
 	except Exception as e:
-		logger.error(f"Error serving image: {e}")
+		logger.error("Error serving image: %s", e)
 		raise HTTPException(status_code=500, detail="Internal server error")
 
 def check_terminal_security():

@@ -31,12 +31,10 @@ class ProjectsConfig(AppConfig):
                         else:
                             http_url = url
                             
-                        response = requests.get(f"{http_url}/healthz", timeout=5)
-                        logger.info(f"Health check to {name}: {response.status_code}")
-                    except Exception as e:
-                        logger.error(f"Failed health check to {name}: {str(e)}")
-            
-            logger.info("Starting service health check scheduler")
+					response = requests.get(f"{http_url}/healthz", timeout=5)
+					logger.info("Health check to %s: %s", name, response.status_code)
+				except Exception as e:
+					logger.error("Failed health check to %s: %s", name, str(e))            logger.info("Starting service health check scheduler")
             scheduler = BackgroundScheduler()
             scheduler.add_job(check_services_health, 'interval', minutes=14)
             scheduler.start()

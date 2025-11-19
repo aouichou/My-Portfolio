@@ -56,7 +56,7 @@ if [ -n "$RENDER" ]; then
   # Render only exposes ONE port, so Daphne handles everything
   export PORT=${PORT:-8000}
   echo "🚀 PRODUCTION MODE: Starting Daphne on port $PORT (HTTP + WebSocket)"
-  exec daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application
+  exec daphne -b 0.0.0.0 -p "$PORT" portfolio_api.asgi:application
 else
   # LOCAL DEVELOPMENT (docker-compose): Run both servers
   # Nginx routes HTTP to Gunicorn:8080 and WebSocket to Daphne:$PORT
@@ -68,14 +68,14 @@ else
   
   # Start Daphne for WebSocket on port 8081
   export PORT=${PORT:-8081}
-  daphne -b 0.0.0.0 -p $PORT portfolio_api.asgi:application &
+  daphne -b 0.0.0.0 -p "$PORT" portfolio_api.asgi:application &
   DAPHNE_PID=$!
   
   # Signal handler for clean shutdown
   handle_exit() {
     echo "Shutting down servers..."
-    kill $GUNICORN_PID 2>/dev/null || true
-    kill $DAPHNE_PID 2>/dev/null || true
+    kill "$GUNICORN_PID" 2>/dev/null || true
+    kill "$DAPHNE_PID" 2>/dev/null || true
     exit 0
   }
   
