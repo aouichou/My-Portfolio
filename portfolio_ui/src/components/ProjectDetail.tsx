@@ -100,13 +100,13 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 			
 			// Show banner when scrolled past 80%
 			setShowBanner(scrollPercentage > 80);
-		};
-		
-		window.addEventListener('scroll', handleScroll);
-		return () => void window.removeEventListener('scroll', handleScroll);
-		}, []);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => { window.removeEventListener('scroll', handleScroll); };
+    }, []); 
 
-  // Loading state
+   // Loading state
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }

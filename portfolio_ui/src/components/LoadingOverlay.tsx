@@ -34,7 +34,7 @@ export default function LoadingOverlay() {
       });
     }, 1000);
     
-    return () => void clearInterval(timer);
+    return () => { clearInterval(timer); };
   }, []);
   
   if (!isVisible) return null;

@@ -86,7 +86,7 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
     // Second attempt after a delay
     const timer = setTimeout(() => void renderDiagram(), 1000);
     
-    return () => void clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [chart]);
 
   return (

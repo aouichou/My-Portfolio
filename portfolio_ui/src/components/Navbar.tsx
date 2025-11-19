@@ -22,7 +22,7 @@ export default function Navbar() {
     };
     
     window.addEventListener('scroll', handleScroll);
-    return () => void window.removeEventListener('scroll', handleScroll);
+    return () => { window.removeEventListener('scroll', handleScroll); };
   }, []);
   
   const isActive = (path: string) => {

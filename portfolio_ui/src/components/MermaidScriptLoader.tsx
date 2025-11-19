@@ -64,7 +64,7 @@ export function MermaidScriptLoader() {
       
       observer.observe(document.documentElement, { attributes: true });
       
-      return () => void observer.disconnect();
+      return () => { observer.disconnect(); };
       
     } catch (error) {
       console.error('MermaidScriptLoader: Failed to initialize mermaid', error);

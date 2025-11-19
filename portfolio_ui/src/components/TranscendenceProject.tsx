@@ -66,7 +66,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
     const interval = setInterval(() => {
       setCurrentGif((prev) => (prev + 1) % GIF_PATHS.length);
     }, 10000);
-    return () => void clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, []);
 
   // Handle opening the lightbox

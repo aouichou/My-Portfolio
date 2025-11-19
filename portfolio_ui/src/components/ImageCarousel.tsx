@@ -18,7 +18,7 @@ export default function ImageCarousel({ images }: { images: Array<{ image: strin
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => void window.removeEventListener('keydown', handleKeyDown);
+    return () => { window.removeEventListener('keydown', handleKeyDown); };
   }, [images.length]);
 
   return (

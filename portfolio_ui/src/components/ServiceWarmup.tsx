@@ -35,7 +35,7 @@ export default function ServiceWarmup() {
     // Then run periodically
     const interval = setInterval(() => void warmupServices(), 8 * 60 * 1000); // 8 minutes
     
-    return () => void clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, []);
   
   return null; // Invisible component

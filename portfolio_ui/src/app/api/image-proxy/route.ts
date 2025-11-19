@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     
     // Direct fetch with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => void controller.abort(), 5000);
+    const timeoutId = setTimeout(() => { controller.abort(); }, 5000);
     
     const response = await fetch(url, { 
       signal: controller.signal 

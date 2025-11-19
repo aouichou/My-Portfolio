@@ -259,7 +259,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           // Input handling
           term.onData((data) => {
             if (socket.readyState === WebSocket.OPEN) {
-              void socket.send(JSON.stringify({ 
+              socket.send(JSON.stringify({ 
                 input: data
               }));
             }
@@ -343,7 +343,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
             <h3 className="text-xl font-bold mb-2">Terminal Error</h3>
             <p className="mb-4">{error}</p>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={() => { window.location.reload(); }}
               className="px-6 py-2 bg-white text-red-900 rounded hover:bg-gray-200 transition-colors"
             >
               Reload Terminal
