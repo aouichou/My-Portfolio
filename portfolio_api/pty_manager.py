@@ -2,12 +2,15 @@
 
 import asyncio
 import fcntl
+import logging
 import os
 import pty
 import select
 import signal
 import struct
 from termios import TIOCSWINSZ
+
+logger = logging.getLogger(__name__)
 
 
 class AsyncPTY:
@@ -92,8 +95,8 @@ class AsyncPTY:
 					attempts = 0
 				except OSError:
 					break
-		except Exception:
-			print("Error reading from PTY")
+		except Exception as e:
+			logger.debug("Error reading from PTY: %s", type(e).__name__)
 		return output
 
 	def resize(self, rows, cols):
