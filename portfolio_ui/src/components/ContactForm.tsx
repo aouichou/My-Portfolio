@@ -1,10 +1,10 @@
 // src/components/ContactForm.tsx
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { api } from '../library/api-client';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { api } from '../library/api-client';
 
 // Email validation regex - simplified safe version
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,6 +66,11 @@ export default function ContactForm() {
           toast.error('Invalid Email', {
             description: axiosError.response.data.email[0],
           });
+        } else {
+          toast.error('Error', {
+            description: "Failed to send message. Please try again later.",
+          });
+        }
       } else {
         toast.error('Error', {
           description: "Failed to send message. Please try again later.",
@@ -204,5 +209,5 @@ export default function ContactForm() {
       </motion.div>
     </div>
   </section>
-);
+  );
 }
