@@ -389,8 +389,8 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 			await websocket.send_json({
 				'output': f"\r\n\r\nTerminal error: {str(e)}\r\n"
 			})
-		except Exception:
-			pass
+		except RuntimeError as send_error:
+			logger.debug("Failed to send error message: %s", send_error)
 	finally:
 		if read_task and not read_task.done():
 			read_task.cancel()

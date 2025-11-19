@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y zsh curl git \
 	&& cp -R /root/.oh-my-zsh /home/coder/ \
 	&& cp /root/.zshrc /home/coder/ \
 	&& sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="agnoster"/' /home/coder/.zshrc \
+	&& rm -rf /var/lib/apt/lists/* \
 	&& chmod -R 755 /home/coder/.oh-my-zsh \
 	&& chown -R coder:coder /home/coder/.oh-my-zsh /home/coder/.zshrc
 

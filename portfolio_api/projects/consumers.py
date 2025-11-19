@@ -163,9 +163,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			try:
 				# Replace the is_closed check with a direct try/except
 				await self.close()
-			except Exception:
+			except RuntimeError:
 				# Connection is likely already closed
-				pass
+				logger.debug("WebSocket connection already closed")
 	
 	async def receive(self, text_data):
 		if hasattr(self, 'terminal_ws'):

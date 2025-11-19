@@ -138,7 +138,7 @@ export default function Navbar() {
                     ? 'bg-purple-600/10 text-purple-600 dark:text-purple-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
                 } transition-colors`}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => { setMobileMenuOpen(false); }}
               >
                 Portfolio Architecture
               </Link>

@@ -34,7 +34,8 @@ class AsyncPTY:
 				os.chdir(self.cwd)
 				# Use hardcoded shell path instead of dynamic command
 				shell_path = '/bin/bash'  # Hardcoded secure shell path
-				os.execve(shell_path, [shell_path], self.env)
+				# Use os.execv instead of os.execve for shell execution
+				os.execv(shell_path, [shell_path, '-l'])  # -l for login shell
 			except Exception as e:
 				print(f"Error executing command: {e}")
 				os._exit(1)
@@ -113,8 +114,8 @@ class AsyncPTY:
 		if self.fd:
 			try:
 				os.close(self.fd)
-			except Exception:
-				pass
+			except OSError as e:
+				print(f"Error closing file descriptor: {e}")
 
 	async def disconnect(self, close_code):
 		print(f"WebSocket disconnecting with code: {close_code}")

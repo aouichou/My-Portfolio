@@ -122,7 +122,7 @@ class Command(BaseCommand):
 					getattr(obj, field_name).save(os.path.basename(image_path), ContentFile(img_file.read()), save=False)
 			elif image_path.startswith(('http://', 'https://')):
 				# Remote URL
-				response = requests.get(image_path)
+				response = requests.get(image_path, timeout=30)
 				if response.status_code == 200:
 					getattr(obj, field_name).save(os.path.basename(image_path), ContentFile(response.content), save=False)
 			elif s3_client:
