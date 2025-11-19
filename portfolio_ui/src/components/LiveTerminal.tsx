@@ -159,18 +159,28 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         term.open(containerRef.current);
         
         // Connect to secure WebSocket with token authentication
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        let host = window.location.host;
+        // Detect localhost and use terminal service URL
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         
-        if (host === 'aouichou.me' || host === 'www.aouichou.me') {
-          host = 'api.aouichou.me';
+        let wsUrl: string;
+        if (isLocalhost) {
+          // Use environment variable for local development (points to terminal service on port 8001)
+          const terminalWsUrl = process.env.NEXT_PUBLIC_TERMINAL_WS_URL || 'ws://localhost:8001';
+          wsUrl = `${terminalWsUrl}/terminal/${slug}/?token=${authToken}`;
+        } else {
+          // Production: use same host with wss protocol
+          const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          let host = window.location.host;
+          
+          if (host === 'aouichou.me' || host === 'www.aouichou.me') {
+            host = 'api.aouichou.me';
+          }
+          
+          wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/?token=${authToken}`;
         }
         
-        const wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/?token=${authToken}`;
-        
         console.log('🔌 WebSocket Configuration:');
-        console.log('  - Protocol:', wsProtocol);
-        console.log('  - Host:', host);
+        console.log('  - Environment:', isLocalhost ? 'Development (localhost)' : 'Production');
         console.log('  - Slug:', slug);
         console.log('  - Full URL:', wsUrl);
         console.log('  - Token present:', !!authToken);

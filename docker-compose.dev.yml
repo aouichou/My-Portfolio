@@ -115,6 +115,7 @@ services:
     volumes:
       - ./portfolio-terminal:/app
       - terminal_projects:/home/coder/projects
+      - ./portfolio_api/media:/backend-media:ro
     networks:
       - dev-network
     depends_on:

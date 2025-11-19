@@ -519,8 +519,29 @@ async def error_statistics():
 	}
 
 def download_project_files(project_slug, project_dir):
-	"""Download project files from S3 if they exist"""
+	"""Download project files from S3 if they exist, or copy from local backend in DEBUG mode"""
 	try:
+		# Check if running in DEBUG mode (local development)
+		is_dev = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
+		
+		if is_dev:
+			# Local development: copy from backend media directory
+			local_zip_path = f'/backend-media/project-files/{project_slug}.zip'
+			if os.path.exists(local_zip_path):
+				print(f"Using local project files: {local_zip_path}")
+				try:
+					with zipfile.ZipFile(local_zip_path, 'r') as zip_ref:
+						zip_ref.extractall(project_dir)
+					print(f"✅ Extracted project files to {project_dir}")
+					return True
+				except Exception as e:
+					print(f"Failed to extract local zip: {e}")
+					return False
+			else:
+				print(f"Local project file not found: {local_zip_path}")
+				return False
+		
+		# Production: download from S3
 		# Initialize S3 client with environment variables
 		s3 = boto3.client(
 			's3',
