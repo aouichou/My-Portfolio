@@ -3,6 +3,7 @@
 'use client';
 
 import { useProjectBySlug } from '@/library/queries';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 // import {Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/tabs';
 import ClientImage from '@/components/ClientImage';
@@ -48,7 +49,23 @@ const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) =
   }
   
   if (type === 'SVG') {
-    return <div dangerouslySetInnerHTML={{ __html: diagram }} />;
+    // Use DOMParser to safely parse SVG instead of dangerouslySetInnerHTML
+    const SvgComponent = () => {
+      const divRef = React.useRef<HTMLDivElement>(null);
+      React.useEffect(() => {
+        if (divRef.current && diagram) {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(diagram, 'image/svg+xml');
+          const svgElement = doc.documentElement;
+          if (svgElement.tagName === 'svg') {
+            divRef.current.textContent = '';
+            divRef.current.appendChild(svgElement);
+          }
+        }
+      }, []);
+      return <div ref={divRef} />;
+    };
+    return <SvgComponent />;
   }
 
   if (type === 'ASCII') {
@@ -238,7 +255,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
         <div className="mt-12">
           <h4 className="text-xl font-semibold mb-6">Development Timeline</h4>
           <div className="relative pl-6 border-l-2 border-accent">
-            {project.development_steps.map((step, index) => (
+            {project.development_steps.map((step: { title: string; description: string }, index: number) => (
               <MotionDiv
                 key={index}
                 className="mb-8 pl-6 relative"
@@ -345,11 +362,13 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 						if (typeof realSteps === 'object') {
 						  return Object.entries(realSteps).map(([step, instruction]) => (
 							<li key={step} className="text-lg">
-							  <span className="font-medium">{step}:</span>{" "}
-							  {typeof instruction === 'string' 
-                                ? <span dangerouslySetInnerHTML={{ 
-                                    __html: instruction.replace(/`([^`]+)`/g, '<code>$1</code>') 
-                                }} />
+						  <span className="font-medium">{step}:</span>{" "}
+						  {typeof instruction === 'string' 
+                                ? instruction.split(/(`[^`]+`)/).map((part, i) => 
+                                    part.startsWith('`') && part.endsWith('`') 
+                                      ? <code key={i}>{part.slice(1, -1)}</code>
+                                      : <span key={i}>{part}</span>
+                                  )
                                 : String(instruction)}
 							</li>
 						  ));

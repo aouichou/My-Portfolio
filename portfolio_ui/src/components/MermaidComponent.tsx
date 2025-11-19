@@ -55,27 +55,45 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
         
       } catch (error) {
         console.error('Mermaid render error:', error);
+        // Use DOM manipulation instead of innerHTML to prevent XSS
         if (containerRef.current) {
-          containerRef.current.innerHTML = `
-            <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded">
-              <p class="font-medium text-red-700 dark:text-red-300">Error rendering diagram</p>
-              <pre class="mt-2 text-xs bg-white dark:bg-black/30 p-2 rounded overflow-auto">${
-                error instanceof Error ? error.message : String(error)
-              }</pre>
-            </div>
-            <div class="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded">
-              <p class="text-sm font-medium">Diagram source:</p>
-              <pre class="mt-2 text-xs bg-white dark:bg-black/30 p-2 rounded overflow-auto">${
-                chart.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-              }</pre>
-            </div>
-          `;
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded';
+          
+          const errorTitle = document.createElement('p');
+          errorTitle.className = 'font-medium text-red-700 dark:text-red-300';
+          errorTitle.textContent = 'Error rendering diagram';
+          
+          const errorPre = document.createElement('pre');
+          errorPre.className = 'mt-2 text-xs bg-white dark:bg-black/30 p-2 rounded overflow-auto';
+          errorPre.textContent = error instanceof Error ? error.message : String(error);
+          
+          errorDiv.appendChild(errorTitle);
+          errorDiv.appendChild(errorPre);
+          
+          const sourceDiv = document.createElement('div');
+          sourceDiv.className = 'mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded';
+          
+          const sourceTitle = document.createElement('p');
+          sourceTitle.className = 'text-sm font-medium';
+          sourceTitle.textContent = 'Diagram source:';
+          
+          const sourcePre = document.createElement('pre');
+          sourcePre.className = 'mt-2 text-xs bg-white dark:bg-black/30 p-2 rounded overflow-auto';
+          sourcePre.textContent = chart;
+          
+          sourceDiv.appendChild(sourceTitle);
+          sourceDiv.appendChild(sourcePre);
+          
+          containerRef.current.textContent = '';
+          containerRef.current.appendChild(errorDiv);
+          containerRef.current.appendChild(sourceDiv);
         }
       }
 	} catch (error) {
 		console.error('Mermaid initialization error:', error);
 		if (containerRef.current) {
-					  containerRef.current.innerHTML = ``;
+					  containerRef.current.textContent = '';
 		}
 	} 	
     };

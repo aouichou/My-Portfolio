@@ -2,11 +2,11 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
+import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
+import { useEffect, useRef, useState } from 'react';
 
 interface WasmTerminalProps {
   projectSlug: string;
@@ -107,11 +107,11 @@ export default function WasmTerminal({
       return;
     }
     
-    if (commands[trimmedCmd]) {
-      const output = typeof commands[trimmedCmd] === 'function' 
-        ? (commands[trimmedCmd] as Function)() 
-        : commands[trimmedCmd];
-      term.writeln(output);
+    if (trimmedCmd in commands) {
+      const command = commands[trimmedCmd as keyof typeof commands];
+      const output = typeof command === 'function' ? command() : command;
+      const outputStr = output == null ? '' : String(output);
+      term.writeln(outputStr);
     } else if (trimmedCmd) {
       term.writeln(`Command not found: ${trimmedCmd}. Type 'help' for available commands.`);
     }

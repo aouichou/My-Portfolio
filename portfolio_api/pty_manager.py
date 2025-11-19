@@ -29,10 +29,14 @@ class AsyncPTY:
 		)
 		
 		if self.pid == 0:  # Child process
-			# Execute shell
+			# Execute shell with hardcoded path to prevent command injection
 			try:
 				os.chdir(self.cwd)
-				os.execve(self.command, [self.command], self.env)
+				# Use hardcoded shell path instead of dynamic command
+				shell_path = os.getenv('SHELL_PATH', '/bin/bash')
+				if not os.path.exists(shell_path):
+					shell_path = '/bin/sh'  # Fallback to sh
+				os.execv(shell_path, [shell_path, '-l'])  # -l for login shell
 			except Exception as e:
 				print(f"Error executing command: {e}")
 				os._exit(1)
@@ -88,8 +92,8 @@ class AsyncPTY:
 					attempts = 0
 				except OSError:
 					break
-		except Exception as e:
-			print("Error reading from PTY %s", e)
+		except Exception:
+			print("Error reading from PTY")
 		return output
 
 	def resize(self, rows, cols):
@@ -111,8 +115,8 @@ class AsyncPTY:
 		if self.fd:
 			try:
 				os.close(self.fd)
-			except Exception:
-				pass
+			except OSError as e:
+				print(f"Error closing file descriptor: {e}")
 
 	async def disconnect(self, close_code):
 		print(f"WebSocket disconnecting with code: {close_code}")

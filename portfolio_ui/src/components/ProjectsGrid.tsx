@@ -2,13 +2,12 @@
 
 'use client';
 
+import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useAllProjects, useFeaturedProjects } from '../library/queries';
+import { Project } from '../library/types';
 import ClientImage from './ClientImage';
 import LoadingSkeleton from './LoadingSkeleton';
-import { Project } from '../library/types';
-import { useFeaturedProjects, useAllProjects } from '../library/queries';
-import { motion } from 'framer-motion';
-import { getAllProjectsUnfiltered } from '@/library/api-client';
 
 export default function ProjectsGrid({ showAll = false }) {
 
@@ -94,11 +93,11 @@ export default function ProjectsGrid({ showAll = false }) {
 					  <button
 						onClick={(e) => {
 						  e.preventDefault();
-						  e.stopPropagation();
-						  try {
-							if (project.has_interactive_demo) {
-							  window.location.href = `/demo/${project.slug}`;
-							} else if (project.live_url && project.slug === 'ft_transcendence') {
+					  e.stopPropagation();
+					  try {
+						if (project.has_interactive_demo) {
+						  window.location.assign(`/demo/${project.slug}`);
+						} else if (project.live_url && project.slug === 'ft_transcendence') {
 							  window.open(project.live_url, '_blank', 'noopener,noreferrer');
 							}
 						  } catch (error) {

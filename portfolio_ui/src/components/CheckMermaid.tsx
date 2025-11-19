@@ -2,8 +2,8 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
+import { useEffect, useRef, useState } from 'react';
 
 export default function CheckMermaid() {
   const [status, setStatus] = useState('Checking mermaid status...');
@@ -13,7 +13,7 @@ export default function CheckMermaid() {
   useEffect(() => {
     // Check mermaid status
     const mermaidInfo = {
-		version: (mermaid as any).version || 'unknown',
+		version: (mermaid as { version?: string }).version || 'unknown',
       initialized: Boolean(mermaid.parse),
     };
 

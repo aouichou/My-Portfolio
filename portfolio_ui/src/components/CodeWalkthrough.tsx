@@ -87,14 +87,41 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
 				const leadingSpaces = line.match(/^\s*/)?.[0]?.length || 0;
 				const indentClass = leadingSpaces > 0 ? `pl-${Math.min(leadingSpaces * 4, 16)}` : '';
 				
-				return (
-				  <p key={i} className={`mb-2 ${indentClass}`} dangerouslySetInnerHTML={{ 
-					__html: line.trim()
-					  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-					  .replace(/\*([^\*]+)\*/g, '<em>$1</em>') // Italics
-					  .replace(/^-\s+(.*)/g, '<li>$1</li>') // List items
-				  }} />
-				);
+				// Parse markdown-like formatting safely without dangerouslySetInnerHTML
+				const parseLine = (text: string) => {
+				  const parts: React.ReactNode[] = [];
+				  let remaining = text.trim();
+				  let key = 0;
+				  
+				  // Handle list items
+				  const isListItem = remaining.startsWith('- ');
+				  if (isListItem) {
+					remaining = remaining.slice(2);
+				  }
+				  
+				  // Parse bold and italic
+				  while (remaining.length > 0) {
+					const boldMatch = remaining.match(/^(.*?)\*\*(.*?)\*\*/);
+					const italicMatch = remaining.match(/^(.*?)\*([^\*]+?)\*/);
+					
+					if (boldMatch && (!italicMatch || boldMatch.index! <= italicMatch.index!)) {
+					  if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
+					  parts.push(<strong key={key++}>{boldMatch[2]}</strong>);
+					  remaining = remaining.slice(boldMatch[0].length);
+					} else if (italicMatch) {
+					  if (italicMatch[1]) parts.push(<span key={key++}>{italicMatch[1]}</span>);
+					  parts.push(<em key={key++}>{italicMatch[2]}</em>);
+					  remaining = remaining.slice(italicMatch[0].length);
+					} else {
+					  parts.push(<span key={key++}>{remaining}</span>);
+					  break;
+					}
+				  }
+				  
+				  return isListItem ? <li className={`mb-2 ${indentClass}`}>{parts}</li> : <p className={`mb-2 ${indentClass}`}>{parts}</p>;
+				};
+				
+				return parseLine(line);
 			  })}
 			</div>
 		  </div>

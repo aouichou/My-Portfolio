@@ -2,8 +2,8 @@
 
 'use client';
 
-import { useEffect } from 'react';
 import * as Sentry from '@sentry/react';
+import { useEffect } from 'react';
 
 interface ErrorBoundaryProps {
   error: Error & { digest?: string; status?: number };
@@ -51,7 +51,7 @@ export default function ErrorBoundary({
       
       <div className="flex gap-4">
         <button
-          onClick={() => window.location.href = '/'}
+          onClick={() => { window.location.replace('/'); }}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
         >
           Go Home
