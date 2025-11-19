@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { api } from '../library/api-client';
 
-// Email validation regex - simplified safe version
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Email validation regex - improved version
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
