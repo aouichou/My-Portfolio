@@ -7,6 +7,27 @@
 [![WebSocket Status](https://img.shields.io/badge/WebSockets-active-4BC51D?style=for-the-badge&logo=websocket)](https://api.aouichou.me/ws)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/My-Portfolio/render+heriku.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
 
+## 🚀 Quick Start
+
+### Local Development
+
+```bash
+# Clone repository
+git clone https://github.com/aouichou/My-Portfolio.git
+cd My-Portfolio
+
+# Run setup script (first time)
+./scripts/dev-setup.sh
+
+# Start development environment
+docker-compose -f docker-compose.dev.yml up
+
+# Access services
+# Frontend:  http://localhost:3000
+# Backend:   http://localhost:8000/admin
+# Terminal:  ws://localhost:8001
+```
+
 ## 🖥️ Interactive Terminal Demo
 
 <p align="center">

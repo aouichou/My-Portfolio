@@ -1,0 +1,39 @@
+# Development Dockerfile for Backend API
+# Optimized for hot-reload and debugging
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    libpq-dev \
+    gcc \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install development tools
+RUN pip install --no-cache-dir \
+    ipdb \
+    django-debug-toolbar \
+    django-extensions \
+    werkzeug
+
+# Copy application code (will be overridden by volume mount)
+COPY . .
+
+# Create media directory
+RUN mkdir -p /app/media /app/staticfiles
+
+# Development server runs on port 8000
+EXPOSE 8000
+
+# Don't collect static files in dev (done via volume)
+# Use runserver for hot-reload
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

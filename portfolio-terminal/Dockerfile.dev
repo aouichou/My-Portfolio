@@ -1,0 +1,40 @@
+# Development Dockerfile for Terminal Service
+# Optimized for hot-reload with FastAPI
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc g++ make \
+    git curl wget \
+    bash \
+    vim \
+    redis-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -s /bin/bash coder && \
+    mkdir -p /home/coder/projects /home/coder/sandboxes && \
+    chown -R coder:coder /home/coder
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code (will be overridden by volume mount)
+COPY . .
+
+# Set ownership
+RUN chown -R coder:coder /app
+
+# Switch to non-root user
+USER coder
+
+# Expose FastAPI port
+EXPOSE 8000
+
+# Start with auto-reload for development
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -1,0 +1,155 @@
+# Local Development Docker Compose Configuration
+# Usage: docker-compose -f docker-compose.dev.yml up
+
+services:
+  # PostgreSQL Database (local)
+  db:
+    image: postgres:14-alpine
+    container_name: portfolio-db-dev
+    environment:
+      POSTGRES_DB: portfolio_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev_password_change_me
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis (for terminal sessions and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: portfolio-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Backend API (Django)
+  backend:
+    build:
+      context: ./portfolio_api
+      dockerfile: Dockerfile.dev
+    container_name: portfolio-backend-dev
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=portfolio_api.settings
+      - DATABASE_URL=postgresql://postgres:dev_password_change_me@db:5432/portfolio_dev
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - TERMINAL_SERVICE_URL=ws://terminal:8000
+      - FRONTEND_URL=http://localhost:3000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./portfolio_api:/app
+      - ./portfolio_api/media:/app/media
+      - backend_static:/app/staticfiles
+    networks:
+      - dev-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  # Frontend UI (Next.js)
+  frontend:
+    build:
+      context: ./portfolio_ui
+      dockerfile: Dockerfile.dev
+    container_name: portfolio-frontend-dev
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - NEXT_PUBLIC_TERMINAL_WS_URL=ws://localhost:8001
+      - NEXT_PUBLIC_MEDIA_URL=http://localhost:8000/media
+      - WATCHPACK_POLLING=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./portfolio_ui:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - dev-network
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+  # Terminal Service (FastAPI)
+  terminal:
+    build:
+      context: ./portfolio-terminal
+      dockerfile: Dockerfile.dev
+    container_name: portfolio-terminal-dev
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+      - S3_BUCKET_URL=http://backend:8000/media
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./portfolio-terminal:/app
+      - terminal_projects:/home/coder/projects
+    networks:
+      - dev-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+  # Nginx (optional - for testing production-like routing)
+  # Uncomment if you want to test with nginx locally
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: portfolio-nginx-dev
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+  #     - backend_static:/var/www/static:ro
+  #     - ./portfolio_api/media:/var/www/media:ro
+  #   networks:
+  #     - dev-network
+  #   depends_on:
+  #     - frontend
+  #     - backend
+
+networks:
+  dev-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  backend_static:
+    driver: local
+  terminal_projects:
+    driver: local

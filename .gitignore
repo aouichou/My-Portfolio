@@ -98,6 +98,11 @@ portfolio_api/.env.backup
 .github/scripts/.env
 **/.env
 
+# Development environment files
+.env.dev
+backups/
+*.sql
+
 # Documentation
 docs/*
 .github/instructions/*
