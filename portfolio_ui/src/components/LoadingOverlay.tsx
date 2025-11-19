@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function LoadingOverlay() {
   const [isVisible, setIsVisible] = useState(true);
@@ -10,7 +10,9 @@ export default function LoadingOverlay() {
   
   useEffect(() => {
     // Simple check for backend
-    fetch('https://api.aouichou.me/healthz')
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocalhost ? 'http://localhost:8000' : 'https://api.aouichou.me';
+    fetch(`${apiUrl}/healthz`)
       .then(response => {
         if (response.ok) {
           setIsVisible(false);

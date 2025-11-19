@@ -2,6 +2,8 @@
 
 import logging
 
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from storages.backends.s3boto3 import S3Boto3Storage
 
 logger = logging.getLogger(__name__)
@@ -52,3 +54,22 @@ class CustomS3Storage(S3Boto3Storage):
 		"""
 		name = super()._normalize_name(name)
 		return name.replace('//', '/')
+
+
+def get_storage():
+	"""
+	Returns appropriate storage backend based on DEBUG setting.
+	Use local FileSystemStorage in DEBUG mode, S3 in production.
+	"""
+	if settings.DEBUG:
+		return FileSystemStorage()
+	return CustomS3Storage()
+
+
+# Lazy storage instantiation - will be called when field is accessed
+class LazyStorage:
+	def __call__(self):
+		return get_storage()
+
+
+s3_storage = LazyStorage()

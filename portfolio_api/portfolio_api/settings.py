@@ -19,7 +19,7 @@ BUILD_SECRET = 'django-insecure-build-key-123'  # nosec
 SECRET_KEY = os.getenv('SECRET_KEY', BUILD_SECRET)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 # Enable proxy header handling
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -27,7 +27,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 
-ALLOWED_HOSTS = [
+# ALLOWED_HOSTS: Use environment variable in development, hardcoded list in production
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else [
 	'api.aouichou.me',
 	'aouichou.me',
 	'www.aouichou.me',
@@ -39,6 +40,26 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
 MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 MEDIA_ROOT = '/app/media'
+
+# File storage configuration - use local storage in DEBUG mode, S3 in production
+if DEBUG:
+	STORAGES = {
+		"default": {
+			"BACKEND": "django.core.files.storage.FileSystemStorage",
+		},
+		"staticfiles": {
+			"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+		},
+	}
+else:
+	STORAGES = {
+		"default": {
+			"BACKEND": "projects.storage.CustomS3Storage",
+		},
+		"staticfiles": {
+			"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+		},
+	}
 
 CACHES = {
 	'default': {
@@ -268,7 +289,10 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_USE_SSL = True
 AWS_S3_VERIFY = True 
-MEDIA_URL = f'https://s3.eu-west-1.amazonaws.com/{os.getenv("BUCKETEER_BUCKET_NAME")}/'
+
+# Override MEDIA_URL for production S3 storage only
+if not DEBUG:
+	MEDIA_URL = f'https://s3.eu-west-1.amazonaws.com/{os.getenv("BUCKETEER_BUCKET_NAME")}/'
 
 
 # Channel layers for WebSocket

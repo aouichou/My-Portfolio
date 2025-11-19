@@ -51,7 +51,7 @@ services:
       - DATABASE_URL=postgresql://postgres:dev_password_change_me@db:5432/portfolio_dev
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=dev-secret-key-change-in-production
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,0.0.0.0,localhost:8000,127.0.0.1:8000
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
       - TERMINAL_SERVICE_URL=ws://terminal:8000
       - FRONTEND_URL=http://localhost:3000
@@ -83,6 +83,7 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api
       - NEXT_PUBLIC_TERMINAL_WS_URL=ws://localhost:8001
       - NEXT_PUBLIC_MEDIA_URL=http://localhost:8000/media
+      - SERVER_API_URL=http://backend:8000/api
       - WATCHPACK_POLLING=true
     ports:
       - "3000:3000"

@@ -4,9 +4,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import ThemeToggle from './ThemeToggle';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import HomeButton from './HomeButton';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -40,8 +40,8 @@ export default function Navbar() {
         <div className="flex justify-between items-center">
           {/* Logo + Home button */}
           <div className="flex items-center space-x-3">
-            <Link href="/" className="flex items-center space-x-3">
-              <HomeButton />
+            <HomeButton />
+            <Link href="/" className="flex items-center">
               <span className={`font-bold text-xl ${
                 scrolled || !isHomepage 
                   ? 'text-gray-900 dark:text-white' 

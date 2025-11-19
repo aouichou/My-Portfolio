@@ -1,13 +1,14 @@
 # portfolio_api/projects/models.py
 
+from django.core.exceptions import ValidationError
+from django.core.validators import (
+	FileExtensionValidator,
+	MaxValueValidator,
+	MinValueValidator,
+)
 from django.db import models
 from django.utils.text import slugify
-from django.core.validators import FileExtensionValidator
-from django.core.exceptions import ValidationError
-from .storage import CustomS3Storage
-from django.core.validators import MinValueValidator, MaxValueValidator
 
-s3_storage = CustomS3Storage()
 
 class Project(models.Model):
 	DIAGRAM_CHOICES = [
@@ -21,7 +22,6 @@ class Project(models.Model):
 	description = models.TextField()
 	thumbnail = models.ImageField(
 		upload_to='projects/',
-		storage=s3_storage,
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])],
 		blank=True, 
 		null=True,
@@ -124,7 +124,6 @@ class GalleryImage(models.Model):
 	)
 	image = models.ImageField(
 		upload_to='galleries/%Y/%m/%d/',
-		storage=s3_storage,
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])]
 	)
 	caption = models.CharField(max_length=200, blank=True)

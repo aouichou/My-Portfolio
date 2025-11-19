@@ -1,8 +1,11 @@
 // portfolio_ui/src/app/projects/[slug]/page.tsx
 
+import { ProjectDetail } from '@/components/ProjectDetail';
 import { getProjectBySlug } from '@/library/api-client';
 import { Metadata } from 'next';
-import { ProjectDetail } from '@/components/ProjectDetail';
+
+// Force dynamic rendering to avoid build-time API calls
+export const dynamic = 'force-dynamic';
 
 type Props = {
   params: { slug: string };

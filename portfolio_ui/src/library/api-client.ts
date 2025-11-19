@@ -1,17 +1,38 @@
 // src/lib/api-client.ts
 
-import axios from "axios"
-import { Project } from "./types"
+import axios from "axios";
 import { getMediaUrl, S3_BUCKET_URL } from './s3-config';
+import { Project } from "./types";
 
 // Re-export from s3-config
 export { getMediaUrl, S3_BUCKET_URL };
 
-// Single source of truth for API URL with NO trailing slash
-export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 
-                      'https://api.aouichou.me/api'; // Use api.aouichou.me instead of portfolio-backend-dytv.onrender.com
+// Determine API URL based on environment
+// For server-side: use SERVER_API_URL (Docker internal) or NEXT_PUBLIC_API_URL
+// For client-side: use NEXT_PUBLIC_API_URL (accessible from browser)
+const getApiUrl = () => {
+  // Server-side rendering (Node.js)
+  if (typeof window === 'undefined') {
+    const url = (process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api').replace(/\/$/, '');
+    console.log('[API Client SSR] Using API URL:', url);
+    return url;
+  }
+  // Client-side (browser) - detect localhost
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  if (isLocalhost) {
+    console.log('[API Client Browser] Detected localhost, using local backend');
+    return 'http://localhost:8000/api';
+  }
+  const url = (process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api').replace(/\/$/, '');
+  console.log('[API Client Browser] NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+  console.log('[API Client Browser] Using API URL:', url);
+  return url;
+};
 
-					  // Create axios instance
+// Single source of truth for API URL with NO trailing slash
+export const API_URL = getApiUrl();
+
+// Create axios instance
 export const api = axios.create({ 
   baseURL: API_URL,
   headers: {
