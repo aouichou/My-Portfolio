@@ -1,9 +1,12 @@
 # portfolio_api/projects/admin.py
 
-from django.contrib import admin
-from .models import Project, Gallery, GalleryImage, ContactSubmission
 from django import forms
-from .storage import CustomS3Storage
+from django.contrib import admin
+from django.core.files.storage import default_storage
+
+from .models import ContactSubmission, Gallery, GalleryImage, Project
+
+
 class GalleryImageInline(admin.TabularInline):
 	model = GalleryImage
 	extra = 3
@@ -79,19 +82,18 @@ class ProjectAdminForm(forms.ModelForm):
 
 			if instance.demo_files_path:
 				try:
-					s3_storage = CustomS3Storage()
-					s3_storage.delete(instance.demo_files_path)
+					# Use default_storage which respects DEBUG setting
+					default_storage.delete(instance.demo_files_path)
 					print(f"Deleted existing file: {instance.demo_files_path}")
 				except Exception as e:
 					print(f"Error deleting existing file: {e}")
 	
 			file_path = f'project-files/{instance.slug}.zip'
 			
-			# Save the file to S3
-			s3_storage = CustomS3Storage()
-			s3_path = s3_storage.save(file_path, demo_files)
+			# Save the file using default_storage (local in dev, S3 in prod)
+			s3_path = default_storage.save(file_path, demo_files)
 			
-			# Store the S3 path
+			# Store the path
 			instance.demo_files_path = s3_path
 		
 		if commit:

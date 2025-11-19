@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function LoadingOverlay() {
   const [isVisible, setIsVisible] = useState(true);
@@ -10,7 +10,9 @@ export default function LoadingOverlay() {
   
   useEffect(() => {
     // Simple check for backend
-    fetch('https://api.aouichou.me/healthz')
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocalhost ? 'http://localhost:8000' : 'https://api.aouichou.me';
+    fetch(`${apiUrl}/healthz`)
       .then(response => {
         if (response.ok) {
           setIsVisible(false);
@@ -32,7 +34,7 @@ export default function LoadingOverlay() {
       });
     }, 1000);
     
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); };
   }, []);
   
   if (!isVisible) return null;
@@ -47,7 +49,7 @@ export default function LoadingOverlay() {
           Auto-continuing in {countdown} seconds
         </p>
         <button 
-          onClick={() => setIsVisible(false)}
+          onClick={() => { setIsVisible(false); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
         >
           Continue Now

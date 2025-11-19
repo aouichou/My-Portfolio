@@ -1,5 +1,8 @@
 name: Heroku + Render Deploy
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 # Set minimal permissions at workflow level (least privilege principle)
 permissions:

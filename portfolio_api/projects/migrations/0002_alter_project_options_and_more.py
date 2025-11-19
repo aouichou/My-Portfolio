@@ -6,31 +6,31 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('projects', '0001_initial'),
-    ]
+	dependencies = [
+		('projects', '0001_initial'),
+	]
 
-    operations = [
-        migrations.AlterModelOptions(
-            name='project',
-            options={'ordering': ['-is_featured', 'title']},
-        ),
-        migrations.RenameIndex(
-            model_name='galleryimage',
-            new_name='image_order_idx',
-            old_name='projects_ga_gallery_348ef2_idx',
-        ),
-        migrations.AlterField(
-            model_name='galleryimage',
-            name='image',
-            field=models.ImageField(upload_to='galleries/%Y/%m/%d/', validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])]),
-        ),
-        migrations.AddIndex(
-            model_name='gallery',
-            index=models.Index(fields=['project', 'order'], name='gallery_order_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='project',
-            index=models.Index(fields=['slug'], name='project_slug_idx'),
-        ),
-    ]
+	operations = [
+		migrations.AlterModelOptions(
+			name='project',
+			options={'ordering': ['-is_featured', 'title']},
+		),
+		migrations.RenameIndex(
+			model_name='galleryimage',
+			new_name='image_order_idx',
+			old_name='projects_ga_gallery_348ef2_idx',
+		),
+		migrations.AlterField(
+			model_name='galleryimage',
+			name='image',
+			field=models.ImageField(upload_to='galleries/%Y/%m/%d/', validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])]),
+		),
+		migrations.AddIndex(
+			model_name='gallery',
+			index=models.Index(fields=['project', 'order'], name='gallery_order_idx'),
+		),
+		migrations.AddIndex(
+			model_name='project',
+			index=models.Index(fields=['slug'], name='project_slug_idx'),
+		),
+	]

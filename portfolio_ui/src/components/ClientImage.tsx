@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import { getMediaUrl } from '@/library/s3-config';
+import { useEffect, useState } from 'react';
 
 type ClientImageProps = {
   src?: string;
@@ -11,7 +11,16 @@ type ClientImageProps = {
   className?: string;
   width?: number;
   height?: number;
-  [key: string]: any;
+  // Next.js Image props that should NOT be passed to native img
+  fill?: boolean;
+  fallbackSrc?: string;
+  unoptimized?: boolean;
+  priority?: boolean;
+  loading?: 'lazy' | 'eager';
+  // Allow other valid img attributes
+  onClick?: () => void;
+  onLoad?: () => void;
+  style?: React.CSSProperties;
 };
 
 export default function ClientImage({ 
@@ -20,7 +29,14 @@ export default function ClientImage({
   className, 
   width, 
   height,
-  ...props 
+  fill,
+  fallbackSrc,
+  unoptimized,
+  priority,
+  loading,
+  onClick,
+  onLoad,
+  style,
 }: ClientImageProps) {
   // Process the source URL
   const processedSrc = src ? getMediaUrl(src) : '/fallback-image.jpg';
@@ -38,17 +54,21 @@ export default function ClientImage({
       // Try one more time with a small delay
       setTimeout(() => {
         setAttempts(prev => prev + 1);
-        // Try a different approach on second attempt
-        if (attempts === 0 && src) {
-          const directUrl = src.startsWith('http') 
-            ? src 
-            : `https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src.replace(/^\//, '')}`;
-          setImgSrc(directUrl);
+        // Try fallbackSrc if provided, otherwise try direct S3 URL
+        if (attempts === 0) {
+          if (fallbackSrc) {
+            setImgSrc(fallbackSrc);
+          } else if (src) {
+            const directUrl = src.startsWith('http') 
+              ? src 
+              : `https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src.replace(/^\//, '')}`;
+            setImgSrc(directUrl);
+          }
         }
       }, 1000);
     } else {
       // After final attempt, use fallback
-      setImgSrc('/fallback-image.jpg');
+      setImgSrc(fallbackSrc || '/fallback-image.jpg');
       setIsLoading(false);
     }
   };
@@ -97,7 +117,10 @@ export default function ClientImage({
         width={width}
         height={height}
         onError={handleError}
-        {...props}
+        onClick={onClick}
+        onLoad={onLoad}
+        style={style}
+        loading={loading}
       />
     </>
   );

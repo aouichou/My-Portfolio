@@ -1,7 +1,10 @@
 // portfolio_ui/src/app/projects/ft_transcendence/page.tsx
 
-import { getProjectBySlug } from '@/library/api-client';
 import { TranscendenceProject } from '@/components/TranscendenceProject';
+import { getProjectBySlug } from '@/library/api-client';
+
+// Force dynamic rendering to avoid build-time API calls
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
   const project = await getProjectBySlug('ft_transcendence');

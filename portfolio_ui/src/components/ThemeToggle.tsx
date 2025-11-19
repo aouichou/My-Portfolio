@@ -2,16 +2,16 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Avoid hydration mismatch
-  useEffect(() => setMounted(true), []);
+  useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
 
   const isDark = theme === 'dark';

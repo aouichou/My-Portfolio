@@ -2,8 +2,8 @@
 
 'use client';
 
-import React, { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
+import { useEffect, useRef } from 'react';
 
 interface MermaidProps {
   chart: string;
@@ -81,12 +81,12 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
     };
     
     // First render attempt
-    renderDiagram();
+    void renderDiagram();
     
     // Second attempt after a delay
-    const timer = setTimeout(renderDiagram, 1000);
+    const timer = setTimeout(() => void renderDiagram(), 1000);
     
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [chart]);
 
   return (

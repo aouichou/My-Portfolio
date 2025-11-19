@@ -102,7 +102,7 @@ export default function ContactForm() {
             Let's Connect
           </h2>
           <form
-            onSubmit={handleSubmit}
+            onSubmit={(e) => { e.preventDefault(); void handleSubmit(e); }}
             className="max-w-lg mx-auto space-y-6"
           >
             <div>

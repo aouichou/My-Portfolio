@@ -4,9 +4,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import ThemeToggle from './ThemeToggle';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import HomeButton from './HomeButton';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -22,7 +22,7 @@ export default function Navbar() {
     };
     
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => { window.removeEventListener('scroll', handleScroll); };
   }, []);
   
   const isActive = (path: string) => {
@@ -40,8 +40,8 @@ export default function Navbar() {
         <div className="flex justify-between items-center">
           {/* Logo + Home button */}
           <div className="flex items-center space-x-3">
-            <Link href="/" className="flex items-center space-x-3">
-              <HomeButton />
+            <HomeButton />
+            <Link href="/" className="flex items-center">
               <span className={`font-bold text-xl ${
                 scrolled || !isHomepage 
                   ? 'text-gray-900 dark:text-white' 
@@ -94,7 +94,7 @@ export default function Navbar() {
           <div className="flex items-center md:hidden">
             <ThemeToggle />
             <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => { setMobileMenuOpen(!mobileMenuOpen); }}
               className={`ml-2 p-2 rounded-md ${
                 scrolled || !isHomepage 
                   ? 'text-gray-700 dark:text-gray-300' 
@@ -126,7 +126,7 @@ export default function Navbar() {
                     ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                 } transition-colors`}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => { setMobileMenuOpen(false); }}
               >
                 Projects
               </Link>

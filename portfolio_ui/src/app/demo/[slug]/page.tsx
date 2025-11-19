@@ -41,6 +41,42 @@ export default function ProjectDemoPage() {
 		};
 	  }, []);
 
+	// Extract commands from readme - MUST be before early return to avoid hook ordering issues
+	const commandsFromReadme = React.useMemo(() => {
+		if (!project?.readme) return [];
+		
+		const commandRegex = /`([^`]+)`/g;
+		const commands = [];
+		let match;
+		
+		// Use exec in a loop instead of matchAll for better compatibility
+		while ((match = commandRegex.exec(project.readme)) !== null) {
+			if (match[1] && !match[1].includes('\n') && match[1].length < 30) {
+			commands.push(match[1]);
+			}
+		}
+		
+		// Also look for code blocks (```sh commands ```)
+		const codeBlockRegex = /```sh\s*([\s\S]*?)\s*```/g;
+		while ((match = codeBlockRegex.exec(project.readme)) !== null) {
+			if (match[1]) {
+			// Split by lines and filter for command-like entries
+			const lines = match[1].split('\n')
+				.map(line => line.trim())
+				.filter(line => 
+				line.startsWith('./') || 
+				line.startsWith('make') ||
+				line.startsWith('git') ||
+				line.startsWith('cd')
+				);
+			
+			commands.push(...lines);
+			}
+		}
+		
+		return commands.slice(0, 8); // Limit to 8 commands
+	}, [project?.readme]);
+
   if (isLoading || !project) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -52,41 +88,6 @@ export default function ProjectDemoPage() {
       </div>
     );
   }
-
-    const commandsFromReadme = React.useMemo(() => {
-    if (!project?.readme) return [];
-    
-    const commandRegex = /`([^`]+)`/g;
-    const commands = [];
-    let match;
-    
-    // Use exec in a loop instead of matchAll for better compatibility
-    while ((match = commandRegex.exec(project.readme)) !== null) {
-        if (match[1] && !match[1].includes('\n') && match[1].length < 30) {
-        commands.push(match[1]);
-        }
-    }
-    
-    // Also look for code blocks (```sh commands ```)
-    const codeBlockRegex = /```sh\s*([\s\S]*?)\s*```/g;
-    while ((match = codeBlockRegex.exec(project.readme)) !== null) {
-        if (match[1]) {
-        // Split by lines and filter for command-like entries
-        const lines = match[1].split('\n')
-            .map(line => line.trim())
-            .filter(line => 
-            line.startsWith('./') || 
-            line.startsWith('make') ||
-            line.startsWith('git') ||
-            line.startsWith('cd')
-            );
-        
-        commands.push(...lines);
-        }
-    }
-    
-    return commands.slice(0, 8); // Limit to 8 commands
-    }, [project?.readme]);
   
   return (
     <div className="flex flex-col h-screen">
