@@ -5,23 +5,22 @@
 import { useProjectBySlug } from '@/library/queries';
 import ReactMarkdown from 'react-markdown';
 // import {Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/tabs';
-import ImageCarousel from '@/components/ImageCarousel';
 import ClientImage from '@/components/ClientImage';
-import { Gallery, GalleryImage, Project } from '@/library/types';
-import * as React from 'react';
-import { MotionDiv, MotionH1, MotionSection } from '@/components/Motion';
-import { useState } from 'react';
-import { GithubContributions } from '@/components/GithubContributions';
 import { CodeWindow } from '@/components/CodeWindow';
+import { GithubContributions } from '@/components/GithubContributions';
+import ImageCarousel from '@/components/ImageCarousel';
+import { MotionDiv, MotionH1 } from '@/components/Motion';
 import { Progress } from '@/components/ui/progress';
+import { Gallery, GalleryImage, Project } from '@/library/types';
+import { useState } from 'react';
 // import { Lightbox } from '@/components/Lightbox';
 import { Badge } from '@/components/ui/badge';
 // import { Separator } from '@/components/ui/separator';
+import CodeWalkthrough from '@/components/CodeWalkthrough';
 import { Icons } from '@/components/Icons';
 import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
 import Link from 'next/link';
-import CodeWalkthrough from '@/components/CodeWalkthrough';
 import { useEffect } from 'react';
 
 interface ProjectDetailProps {
@@ -104,7 +103,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 		};
 		
 		window.addEventListener('scroll', handleScroll);
-		return () => window.removeEventListener('scroll', handleScroll);
+		return () => void window.removeEventListener('scroll', handleScroll);
 		}, []);
 
   // Loading state

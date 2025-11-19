@@ -34,7 +34,7 @@ export default function LoadingOverlay() {
       });
     }, 1000);
     
-    return () => clearInterval(timer);
+    return () => void clearInterval(timer);
   }, []);
   
   if (!isVisible) return null;
@@ -49,7 +49,7 @@ export default function LoadingOverlay() {
           Auto-continuing in {countdown} seconds
         </p>
         <button 
-          onClick={() => setIsVisible(false)}
+          onClick={() => { setIsVisible(false); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
         >
           Continue Now

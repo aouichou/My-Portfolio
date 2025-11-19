@@ -37,7 +37,7 @@ export default function PortfolioPage() {
 			observer.observe(section);
 			});
 			
-			return () => observer.disconnect();
+			return () => void observer.disconnect();
 		}, []);
 
   return (
@@ -93,7 +93,7 @@ export default function PortfolioPage() {
             {['overview', 'architecture', 'cloud', 'terminal', 'devops', 'security'].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => { setActiveTab(tab); }}
                 className={`px-4 py-2 whitespace-nowrap ${
                   activeTab === tab
                     ? 'text-blue-600 border-b-2 border-blue-600'

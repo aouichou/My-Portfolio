@@ -2,8 +2,8 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
+import { useEffect, useRef } from 'react';
 
 // Keep track of initialization globally
 let globalMermaidInitialized = false;
@@ -64,7 +64,7 @@ export function MermaidScriptLoader() {
       
       observer.observe(document.documentElement, { attributes: true });
       
-      return () => observer.disconnect();
+      return () => void observer.disconnect();
       
     } catch (error) {
       console.error('MermaidScriptLoader: Failed to initialize mermaid', error);

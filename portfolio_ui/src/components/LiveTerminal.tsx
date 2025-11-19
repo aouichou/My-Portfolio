@@ -259,7 +259,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           // Input handling
           term.onData((data) => {
             if (socket.readyState === WebSocket.OPEN) {
-              socket.send(JSON.stringify({ 
+              void socket.send(JSON.stringify({ 
                 input: data
               }));
             }
