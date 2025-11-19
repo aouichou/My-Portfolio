@@ -24,7 +24,7 @@ def validate_jwt(token):
 		)
 		# Check if token is for terminal access
 		if payload.get('purpose') != 'terminal_access':
-			logger.warning("Token has wrong purpose: %s", payload.get('purpose')) #nosec
+			logger.warning("Token has wrong purpose: %s", payload.get('purpose'))  # codacy-ignore
 			return False
 
 		# Check if token is expired
@@ -92,7 +92,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			}))
 			
 		except asyncio.TimeoutError:
-			error_msg = f"Connection to terminal service timed out after 180 seconds. Server may be downloading project files.\r\n"
+			error_msg = "Connection to terminal service timed out after 180 seconds. Server may be downloading project files.\r\n"
 			logger.error(error_msg)
 			await self.send(text_data=json.dumps({'output': error_msg}))
 			await self.close()
@@ -145,16 +145,16 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 				await self.send(text_data=json.dumps({
 					'output': '\r\n\r\nTerminal connection closed. Refresh to reconnect.\r\n'
 				}))
-			except:
+			except Exception as notify_exc:
 				# Connection might already be closed
-				logger.error("Failed to notify client about closed terminal connection")
+				logger.error("Failed to notify client about closed terminal connection: %s", str(notify_exc))
 		except Exception as e:
 			logger.error("Error in forward_from_terminal: %s", str(e), exc_info=True)
 			try:
 				await self.send(text_data=json.dumps({
 					'output': f'\r\n\r\nTerminal error: {str(e)}\r\n'
 				}))
-			except:
+			except Exception 
 				# Connection might already be closed
 				pass
 		finally:

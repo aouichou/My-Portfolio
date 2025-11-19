@@ -60,7 +60,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         }
       }
     }
-    getToken();
+    void getToken();
     
     return () => {
       isMountedRef.current = false;
@@ -110,11 +110,9 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         return;
       }
       
-      if (!containerRef.current) {
-        if (isMountedRef.current) {
-          setError("Terminal container not ready");
-          setIsLoading(false);
-        }
+      if (!containerRef.current || !isMountedRef.current) {
+        setError("Terminal container not ready");
+        setIsLoading(false);
         isInitializingRef.current = false;
         return;
       }

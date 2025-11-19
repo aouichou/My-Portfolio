@@ -56,7 +56,7 @@ export function MermaidScriptLoader() {
             });
             
             if (window.renderMermaidDiagrams) {
-              setTimeout(window.renderMermaidDiagrams, 100);
+              setTimeout(() => void window.renderMermaidDiagrams?.(), 100);
             }
           }
         });

@@ -27,10 +27,10 @@ export default function ServiceWarmup() {
     };
     
     // Run immediately on page load
-    warmupServices();
+    void warmupServices();
     
     // Then run periodically
-    const interval = setInterval(warmupServices, 8 * 60 * 1000); // 8 minutes
+    const interval = setInterval(() => void warmupServices(), 8 * 60 * 1000); // 8 minutes
     
     return () => clearInterval(interval);
   }, []);

@@ -3,7 +3,6 @@
 import json
 import os
 import requests
-from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
 from projects.models import Project, Gallery, GalleryImage
@@ -128,7 +127,7 @@ class Command(BaseCommand):
 				try:
 					s3_client.head_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=image_path)
 					setattr(obj, field_name, image_path)  # Image already exists in S3
-				except:
+				except Exception:
 					self.stderr.write(f"Image not found in S3: {image_path}")
 		except Exception as e:
 			self.stderr.write(f"Error processing image {image_path}: {e}")

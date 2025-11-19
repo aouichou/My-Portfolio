@@ -26,7 +26,7 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
   
   // Ensure steps is an array with valid items
   const validSteps = Array.isArray(steps) ? steps.filter(s => 
-    s && typeof s === 'object' && 'code' in s && typeof s.code === 'string'
+    typeof s === 'object' && s !== null && 'code' in s && typeof s.code === 'string'
   ) as CodeSnippet[] : [];
   
   if (validSteps.length === 0) {

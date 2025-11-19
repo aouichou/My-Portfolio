@@ -79,7 +79,7 @@ export default function ProjectsGrid({ showAll = false }) {
 					{project.title}
 				  </h3>
 				  <div className="flex flex-wrap gap-2 mb-4">
-					{project.tech_stack?.map((tech: string) => (
+					{project.tech_stack.map((tech: string) => (
 					  <span key={tech} className="badge-tech">
 						{tech}
 					  </span>

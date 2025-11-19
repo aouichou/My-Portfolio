@@ -1,14 +1,14 @@
 # portfolio_api/pty_manager.py
 
+import asyncio
+import fcntl
 import os
 import pty
 import select
-import subprocess
-import termios
-import fcntl
-import struct
 import signal
-import asyncio
+import struct
+from termios import TIOCSWINSZ
+
 
 class AsyncPTY:
 	def __init__(self, command, cwd=None, env=None, timeout=15):
@@ -96,7 +96,8 @@ class AsyncPTY:
 	def resize(self, rows, cols):
 		try:
 			winsize = struct.pack("HHHH", rows, cols, 0, 0)
-			fcntl.ioctl(self.fd, termios.TIOCSWINSZ, winsize)
+			if self.fd is not None:
+				fcntl.ioctl(int(self.fd), TIOCSWINSZ, winsize)
 		except Exception as e:
 			print(f"Error resizing terminal: {e}")
 	
@@ -105,13 +106,13 @@ class AsyncPTY:
 			try:
 				os.kill(self.pid, signal.SIGTERM)
 				os.waitpid(self.pid, 0)
-			except:
+			except Exception:
 				pass
 			
 		if self.fd:
 			try:
 				os.close(self.fd)
-			except:
+			except Exception:
 				pass
 
 	async def disconnect(self, close_code):

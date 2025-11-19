@@ -51,28 +51,28 @@ class ProjectDetail(generics.RetrieveAPIView):
 		
 		# Detailed logging for the ft_transcendence project specifically
 		if instance.slug == 'ft_transcendence':
-			logger.info(f"============ FT_TRANSCENDENCE PROJECT DATA ============")
-			logger.info(f"Title: {instance.title}")
-			logger.info(f"Slug: {instance.slug}")
-			logger.info(f"Thumbnail: {instance.thumbnail}")
-			
+			logger.info("============ FT_TRANSCENDENCE PROJECT DATA ============")
+			logger.info("Title: %s", instance.title)
+			logger.info("Slug: %s", instance.slug)
+			logger.info("Thumbnail: %s", instance.thumbnail)
+
 			# Log galleries and their images
 			galleries = instance.galleries.all().prefetch_related('images')
-			logger.info(f"Number of galleries: {galleries.count()}")
-			
+			logger.info("Number of galleries: %d", galleries.count())
+
 			for i, gallery in enumerate(galleries):
-				logger.info(f"Gallery {i+1}: {gallery.name}")
-				logger.info(f"Gallery images count: {gallery.images.count()}")
-				
+				logger.info("Gallery %d: %s", i+1, gallery.name)
+				logger.info("Gallery images count: %d", gallery.images.count())
+
 				for j, image in enumerate(gallery.images.all()):
-					logger.info(f"  Image {j+1}: {image.image}")
-					logger.info(f"  Image URL: {image.image.url}")
-					logger.info(f"  Image path: {image.image.name}")
-			
-			# Log live URL which should contain a valid link        
-			logger.info(f"Live URL: {instance.live_url}")
-			logger.info(f"Has interactive demo: {instance.has_interactive_demo}")
-			logger.info(f"============ END PROJECT DATA ============")
+					logger.info("  Image %d: %s", j+1, image.image)
+					logger.info("  Image URL: %s", image.image.url)
+					logger.info("  Image path: %s", image.image.name)
+
+			# Log live URL which should contain a valid link
+			logger.info("Live URL: %s", instance.live_url)
+			logger.info("Has interactive demo: %s", instance.has_interactive_demo)
+			logger.info("============ END PROJECT DATA ============")
 		
 		serializer = self.get_serializer(instance)
 		return Response(serializer.data)
@@ -181,7 +181,7 @@ Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S'
 			# This prevents the server from hanging if SMTP is slow or unresponsive
 			def send_email_async():
 				try:
-					logger.info(f"Starting email send for submission from {submission.name}")
+					logger.info("Starting email send for submission from %s", submission.name)
 					send_mail(
 						subject=subject,
 						message=message_body,
@@ -189,10 +189,10 @@ Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S'
 						recipient_list=[settings.ADMIN_EMAIL],
 						fail_silently=False,
 					)
-					logger.info(f"✅ Email sent successfully for submission from {submission.name}")
+					logger.info("✅ Email sent successfully for submission from %s", submission.name)
 				except Exception as e:
-					logger.error(f"❌ Email sending failed: {e}", exc_info=True)
-			
+					logger.error("❌ Email sending failed: %s", e, exc_info=True)
+
 			# Start email sending in background thread
 			# daemon=False to ensure thread completes before process ends
 			email_thread = threading.Thread(target=send_email_async, daemon=False, name="EmailSenderThread")
@@ -229,7 +229,6 @@ def trigger_import(request):
 	try:
 		call_command('import_projects', 'projects.json')
 		return Response({'status': 'Import started'})
-
 	except Exception as e:
 		# Log the actual error for debugging
 		logger.error(f"Project import failed: {str(e)}")
@@ -316,33 +315,33 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow anonymous access for demo terminal
 def generate_terminal_token(request):
-	"""Generate a JWT token for terminal access"""
-	
-	# Set expiration time (5 minutes)
-	expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-	
-	# Create payload for both authenticated and anonymous users
-	if request.user.is_authenticated:
-		payload = {
-			'user_id': request.user.id,
-			'username': request.user.username,
-			'purpose': 'terminal_access',
-			'exp': expiration
-		}
-	else:
-		# Anonymous user - generate a guest token
-		payload = {
-			'user_id': None,
-			'username': 'guest',
-			'purpose': 'terminal_access',
-			'exp': expiration
-		}
-	
-	# Create token
-	token = jwt.encode(
-		payload,
-		settings.SECRET_KEY,
-		algorithm="HS256"
-	)
-	
-	return Response({'token': token})
+    """Generate a JWT token for terminal access"""
+    
+    # Set expiration time (5 minutes)
+    expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    
+    # Create payload for both authenticated and anonymous users
+    if request.user.is_authenticated:
+        payload = {
+            'user_id': request.user.id,
+            'username': request.user.username,
+            'purpose': 'terminal_access',
+            'exp': expiration
+        }
+    else:
+        # Anonymous user - generate a guest token
+        payload = {
+            'user_id': None,
+            'username': 'guest',
+            'purpose': 'terminal_access',
+            'exp': expiration
+        }
+    
+    # Create token
+    token = jwt.encode(
+        payload,
+        settings.SECRET_KEY,
+        algorithm="HS256"
+    )
+    
+    return Response({'token': token})

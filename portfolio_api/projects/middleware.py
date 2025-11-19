@@ -3,7 +3,6 @@
 from django.utils.deprecation import MiddlewareMixin
 from django.http import HttpResponseForbidden
 from django.core.cache import cache
-from django.utils import timezone
 
 class TerminalSecurityMiddleware:
 	def __init__(self, get_response):

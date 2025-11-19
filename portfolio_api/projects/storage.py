@@ -33,14 +33,14 @@ class CustomS3Storage(S3Boto3Storage):
 		Generate URL with proper hostname format
 		"""
 		try:
-			# Make sure bucket_name doesn't have duplicated parts
-			if '.' in self.bucket_name:
+		# Make sure bucket_name doesn't have duplicated parts
+			if hasattr(self, 'bucket_name') and self.bucket_name and '.' in self.bucket_name:
 				# Only keep the first part of the bucket name
 				parts = self.bucket_name.split('.')
 				self.bucket_name = parts[0]
 				logger.info("Normalized bucket name to: %s", self.bucket_name)
-			# Use the standard S3Boto3Storage url method
-			return super().url(name, parameters, expire)
+				# Use the standard S3Boto3Storage url method
+				return super().url(name, parameters, expire)
 		except Exception as e:
 			logger.error("Error generating URL for %s: %s", name, e)
 			# Return a direct S3 URL as fallback

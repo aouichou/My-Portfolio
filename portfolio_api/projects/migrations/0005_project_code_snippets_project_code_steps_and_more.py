@@ -5,29 +5,29 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('projects', '0004_project_demo_commands_project_demo_files_path_and_more'),
-    ]
+	dependencies = [
+		('projects', '0004_project_demo_commands_project_demo_files_path_and_more'),
+	]
 
-    operations = [
-        migrations.AddField(
-            model_name='project',
-            name='code_snippets',
-            field=models.JSONField(default=list, help_text='List of code snippets'),
-        ),
-        migrations.AddField(
-            model_name='project',
-            name='code_steps',
-            field=models.JSONField(default=list, help_text='List of steps to run the code'),
-        ),
-        migrations.AlterField(
-            model_name='project',
-            name='demo_files_path',
-            field=models.CharField(blank=True, help_text='Path to demo files in S3', max_length=255, null=True),
-        ),
-        migrations.AlterField(
-            model_name='project',
-            name='has_interactive_demo',
-            field=models.BooleanField(default=False, help_text='Enable terminal demo for this project'),
-        ),
-    ]
+	operations = [
+		migrations.AddField(
+			model_name='project',
+			name='code_snippets',
+			field=models.JSONField(default=list, help_text='List of code snippets'),
+		),
+		migrations.AddField(
+			model_name='project',
+			name='code_steps',
+			field=models.JSONField(default=list, help_text='List of steps to run the code'),
+		),
+		migrations.AlterField(
+			model_name='project',
+			name='demo_files_path',
+			field=models.CharField(blank=True, help_text='Path to demo files in S3', max_length=255, null=True),
+		),
+		migrations.AlterField(
+			model_name='project',
+			name='has_interactive_demo',
+			field=models.BooleanField(default=False, help_text='Enable terminal demo for this project'),
+		),
+	]

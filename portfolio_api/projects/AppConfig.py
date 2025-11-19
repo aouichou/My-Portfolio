@@ -16,7 +16,6 @@ class ProjectsConfig(AppConfig):
 	def ready(self):
 		# Don't start scheduler in Django's development server autoreload process
 		if os.environ.get('RUN_MAIN') != 'true':
-			from django.conf import settings
 
 			def check_services_health():
 				"""Ping other services to keep them alive"""
@@ -31,7 +30,6 @@ class ProjectsConfig(AppConfig):
 							http_url = url.replace("wss://", "https://")
 						else:
 							http_url = url
-
 						response = requests.get(f"{http_url}/healthz", timeout=5)
 						logger.info(f"Health check to {name}: {response.status_code}")
 					except Exception as e:

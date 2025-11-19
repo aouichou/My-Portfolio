@@ -80,7 +80,7 @@ def apply_security_restrictions(child_process):
 		# Create a sandbox directory with restricted permissions
 		sandbox_dir = f"/home/coder/sandboxes/{uuid.uuid4()}"
 		os.makedirs(sandbox_dir, exist_ok=True)
-		os.chmod(sandbox_dir, 0o755)  # rwx for owner, rx for others
+		os.chmod(sandbox_dir, 0o644)  # rwx for owner, rx for others
 
 		# Set resource limits
 		import resource

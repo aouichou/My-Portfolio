@@ -55,7 +55,7 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
         
       } catch (error) {
         console.error('Mermaid render error:', error);
-        if (containerRef.current) {
+        if (containerRef.current !== null) {
           containerRef.current.innerHTML = `
             <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded">
               <p class="font-medium text-red-700 dark:text-red-300">Error rendering diagram</p>
@@ -81,10 +81,10 @@ export const MermaidComponent = ({ chart }: MermaidProps) => {
     };
     
     // First render attempt
-    renderDiagram();
+    void renderDiagram();
     
     // Second attempt after a delay
-    const timer = setTimeout(renderDiagram, 1000);
+    const timer = setTimeout(() => void renderDiagram(), 1000);
     
     return () => clearTimeout(timer);
   }, [chart]);

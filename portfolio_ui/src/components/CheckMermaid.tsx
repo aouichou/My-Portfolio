@@ -43,7 +43,7 @@ export default function CheckMermaid() {
       }
     };
     
-    setTimeout(renderTestDiagram, 500);
+    setTimeout(() => void renderTestDiagram(), 500);
   }, []);
 
   return (
@@ -61,7 +61,7 @@ export default function CheckMermaid() {
       </div>
       
       <button 
-        onClick={() => window.renderMermaidDiagrams?.()}
+        onClick={() => void window.renderMermaidDiagrams?.()}
         className="mt-4 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
         Force Render All Diagrams

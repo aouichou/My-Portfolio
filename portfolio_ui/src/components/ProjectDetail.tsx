@@ -87,7 +87,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 		if (project?.architecture_diagram) {
 			setTimeout(() => {
 			if (window.renderMermaidDiagrams) {
-				window.renderMermaidDiagrams();
+				void window.renderMermaidDiagrams();
 			}
 			}, 1000);
 		}
