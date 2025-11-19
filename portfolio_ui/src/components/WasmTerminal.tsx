@@ -110,7 +110,8 @@ export default function WasmTerminal({
     if (trimmedCmd in commands) {
       const command = commands[trimmedCmd as keyof typeof commands];
       const output = typeof command === 'function' ? command() : command;
-      term.writeln(String(output));
+      const outputStr = output == null ? '' : String(output);
+      term.writeln(outputStr);
     } else if (trimmedCmd) {
       term.writeln(`Command not found: ${trimmedCmd}. Type 'help' for available commands.`);
     }
