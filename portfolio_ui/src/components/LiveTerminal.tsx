@@ -90,13 +90,11 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   useEffect(() => {
     // Don't initialize until we have an auth token
     if (!authToken) {
-      console.log('Waiting for auth token...');
       return;
     }
 
     // Prevent double initialization (React strict mode can cause this)
     if (isInitializingRef.current) {
-      console.log('Already initializing, skipping...');
       return;
     }
     
@@ -106,7 +104,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     const initTimer = setTimeout(() => {
       // Check if component is still mounted
       if (!isMountedRef.current) {
-        console.log('Component unmounted before initialization');
         return;
       }
       
@@ -118,8 +115,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       }
       
       try {
-        console.log('Initializing terminal with token:', authToken.substring(0, 20) + '...');
-        
         // Initialize terminal with security settings
         const term = new Terminal({
           cursorStyle: 'block',
@@ -179,12 +174,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           wsUrl = `${wsProtocol}//${host}/ws/terminal/${slug}/?token=${authToken}`;
         }
         
-        console.log('🔌 WebSocket Configuration:');
-        console.log('  - Environment:', isLocalhost ? 'Development (localhost)' : 'Production');
-        console.log('  - Slug:', slug);
-        console.log('  - Full URL:', wsUrl);
-        console.log('  - Token present:', !!authToken);
-        
         try {
           term.write('Connecting to secure terminal...\r\n');
           const socket = new WebSocket(wsUrl);
@@ -193,8 +182,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           // Connection timeout - increased to 15 seconds for Render cold starts
           const connectionTimeout = setTimeout(() => {
             if (socket.readyState === WebSocket.CONNECTING) {
-              console.error('❌ WebSocket connection timeout after 15s');
-              console.error('  - ReadyState:', socket.readyState);
               socket.close();
               setError('Connection timed out - server may be starting up. Please try again.');
               setIsLoading(false);
@@ -203,7 +190,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           
           // Socket event handlers
           socket.onopen = () => {
-            console.log('✅ WebSocket connected successfully');
             clearTimeout(connectionTimeout);
             setConnected(true);
             setIsLoading(false);
@@ -212,10 +198,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           };
           
           socket.onclose = (event) => {
-            console.log('🔌 WebSocket closed');
-            console.log('  - Code:', event.code);
-            console.log('  - Reason:', event.reason);
-            console.log('  - Clean:', event.wasClean);
             clearTimeout(connectionTimeout);
             setConnected(false);
             term.write('\r\nConnection closed. Please refresh to reconnect.\r\n');
