@@ -109,3 +109,6 @@ backups/
 docs/*
 .github/instructions/*
 .github/scripts/*
+portfolio_api/media/galleries/*
+portfolio_api/media/project-files/
+portfolio_api/media/projects/demo1_BgP1X6p.gif
