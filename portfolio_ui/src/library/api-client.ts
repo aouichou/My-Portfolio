@@ -51,12 +51,49 @@ export async function getProjectBySlug(slug: string): Promise<Project> {
   }
 }
 
-export async function getProjects() {
+export async function getProjects(projectType?: 'school' | 'internship') {
   try {
-	const response = await api.get('/projects/');
+	const params = projectType ? { project_type: projectType } : {};
+	const response = await api.get('/projects/', { params });
 	return response.data;
   } catch (error) {
 	console.error('Error fetching projects:', error);
+	return [];
+  }
+}
+
+export async function getFeaturedProjects(limit?: { school?: number; internship?: number }) {
+  try {
+	// Fetch featured school projects
+	const schoolPromise = api.get('/projects/', { 
+	  params: { project_type: 'school', is_featured: true } 
+	});
+	
+	// Fetch featured internship projects
+	const internshipPromise = api.get('/projects/', { 
+	  params: { project_type: 'internship', is_featured: true } 
+	});
+	
+	const [schoolResponse, internshipResponse] = await Promise.all([
+	  schoolPromise,
+	  internshipPromise
+	]);
+	
+	const schoolProjects = schoolResponse.data.slice(0, limit?.school ?? 3);
+	const internshipProjects = internshipResponse.data.slice(0, limit?.internship ?? 3);
+	
+	// Interleave projects: school, internship, school, internship, etc.
+	const result: Project[] = [];
+	const maxLength = Math.max(schoolProjects.length, internshipProjects.length);
+	
+	for (let i = 0; i < maxLength; i++) {
+	  if (schoolProjects[i]) result.push(schoolProjects[i]);
+	  if (internshipProjects[i]) result.push(internshipProjects[i]);
+	}
+	
+	return result;
+  } catch (error) {
+	console.error('Error fetching featured projects:', error);
 	return [];
   }
 }

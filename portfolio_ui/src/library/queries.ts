@@ -1,10 +1,9 @@
 // src/lib/queries.ts
 
 import { useQuery } from '@tanstack/react-query';
-import { getProjects, getProjectBySlug as apiGetProjectBySlug } from './api-client';
-import { normalizeProject } from './utils';
+import api, { getProjectBySlug as apiGetProjectBySlug, getFeaturedProjects } from './api-client';
 import { Project } from './types';
-import api from './api-client';
+import { normalizeProject } from './utils';
 
 type ProjectFromAPI = {
   id: string | number;
@@ -57,10 +56,9 @@ type ProjectFromAPI = {
 	return useQuery({
 	  queryKey: ['featuredProjects'],
 	  queryFn: async () => {
-		const projects: ProjectFromAPI[] = await getProjects();
-		// Explicit type for 'p' parameter
-		const featuredProjects = projects.filter((p: ProjectFromAPI) => p.is_featured);
-		return featuredProjects.map(normalizeProject);
+		// Fetch 3 school + 3 internship featured projects
+		const projects: ProjectFromAPI[] = await getFeaturedProjects({ school: 3, internship: 3 });
+		return projects.map(normalizeProject);
 	  },
 	  staleTime: 1000 * 60 * 5, // 5 minutes cache
 	  refetchOnWindowFocus: false

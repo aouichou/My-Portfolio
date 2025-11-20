@@ -48,7 +48,10 @@ export default function ProjectsGrid({ showAll = false }) {
           {showAll ? 'All Projects' : 'Featured Work'}
         </h2>
         <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {projects?.map((project: Project, index: number) => (
+          {projects?.map((project: Project, index: number) => {
+			const isInternship = project.project_type === 'internship';
+			
+			return (
             <motion.div
 			  key={project.id || `project-${index}`}
 			  initial={{ opacity: 0, y: 20 }}
@@ -60,7 +63,13 @@ export default function ProjectsGrid({ showAll = false }) {
 				boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
 			  }}
 			  whileTap={{ scale: 0.98 }}
-			  className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all flex flex-col h-full"
+			  className={`
+				rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all flex flex-col h-full
+				${isInternship 
+				  ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-blue-800' 
+				  : 'bg-white dark:bg-gray-700'
+				}
+			  `}
 			>
 			  <Link
 				href={`/projects/${project.slug}`}
@@ -72,14 +81,59 @@ export default function ProjectsGrid({ showAll = false }) {
 					alt={project.title}
 					className="w-full h-full object-cover"
 				  />
+				  {isInternship && (
+					<div className="absolute top-3 right-3 flex flex-wrap gap-2">
+					  {project.badges?.map((badge, idx) => (
+						<span 
+						  key={idx}
+						  className={`
+							px-3 py-1 rounded-full text-xs font-semibold
+							${badge.color === 'blue' ? 'bg-blue-500 text-white' : ''}
+							${badge.color === 'green' ? 'bg-green-500 text-white' : ''}
+							${badge.color === 'purple' ? 'bg-purple-500 text-white' : ''}
+							${badge.color === 'orange' ? 'bg-orange-500 text-white' : ''}
+						  `}
+						>
+						  {badge.text}
+						</span>
+					  ))}
+					</div>
+				  )}
 				</div>
 				<div className="p-6 flex flex-col flex-grow">
+				  {isInternship && project.company && (
+					<div className="flex items-center gap-2 mb-2">
+					  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+						{project.role} @ {project.company}
+					  </span>
+					</div>
+				  )}
 				  <h3 className="text-2xl font-bold mb-3 dark:text-white">
 					{project.title}
 				  </h3>
+				  
+				  {isInternship && project.stats && (
+					<div className="grid grid-cols-2 gap-2 mb-4">
+					  {Object.entries(project.stats).slice(0, 4).map(([key, value]) => (
+						<div key={key} className="text-center">
+						  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{value}</div>
+						  <div className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+							{key.replace(/_/g, ' ')}
+						  </div>
+						</div>
+					  ))}
+					</div>
+				  )}
+				  
 				  <div className="flex flex-wrap gap-2 mb-4">
-					{project.tech_stack.map((tech: string) => (
-					  <span key={tech} className="badge-tech">
+					{project.tech_stack.slice(0, isInternship ? 6 : 8).map((tech: string) => (
+					  <span 
+						key={tech} 
+						className={`
+						  badge-tech
+						  ${isInternship ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : ''}
+						`}
+					  >
 						{tech}
 					  </span>
 					))}
@@ -131,7 +185,7 @@ export default function ProjectsGrid({ showAll = false }) {
 				</div>
 			  </Link>
 			</motion.div>
-          ))}
+          )})}
         </div>
 
 		{!showAll && (
