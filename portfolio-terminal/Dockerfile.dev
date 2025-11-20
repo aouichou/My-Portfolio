@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     git curl wget \
     bash \
     vim \
+    libreadline-dev libreadline8 \
+    valgrind \
     redis-tools \
     && rm -rf /var/lib/apt/lists/*
 
