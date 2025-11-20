@@ -8,9 +8,11 @@ import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { useEffect, useRef, useState } from 'react';
 
+type CommandValue = string | (() => string);
+
 interface WasmTerminalProps {
   projectSlug: string;
-  commands: Record<string, string | (() => string)>;
+  commands: Record<string, CommandValue>;
   initialMessage?: string;
 }
 
@@ -22,6 +24,13 @@ export default function WasmTerminal({
   const terminalRef = useRef<HTMLDivElement>(null);
   const terminalInstance = useRef<Terminal | null>(null);
   const [input, setInput] = useState<string>('');
+  
+  // Convert commands object to Map for better type safety
+  const commandsMap = useRef<Map<string, CommandValue>>(new Map());
+  
+  useEffect(() => {
+    commandsMap.current = new Map(Object.entries(commands));
+  }, [commands]);
   
   useEffect(() => {
     // Terminal setup
@@ -96,7 +105,7 @@ export default function WasmTerminal({
       term.writeln('Available commands:');
       term.writeln('  help         Show this help message');
       term.writeln('  clear        Clear the terminal');
-      Object.keys(commands).forEach(cmd => {
+      commandsMap.current.forEach((_, cmd) => {
         term.writeln(`  ${cmd.padEnd(12)} Run ${cmd} command`);
       });
       return;
@@ -107,8 +116,8 @@ export default function WasmTerminal({
       return;
     }
     
-    if (trimmedCmd in commands) {
-      const command = commands[trimmedCmd as keyof typeof commands];
+    const command = commandsMap.current.get(trimmedCmd);
+    if (command !== undefined) {
       const output = typeof command === 'function' ? command() : command;
       const outputStr = output == null ? '' : String(output);
       term.writeln(outputStr);
