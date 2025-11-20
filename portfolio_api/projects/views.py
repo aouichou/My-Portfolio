@@ -26,8 +26,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Gallery, Project
-from .serializers import ContactSubmissionSerializer, ProjectSerializer
+from .models import Gallery, Internship, InternshipProject, Project
+from .serializers import (
+	ContactSubmissionSerializer,
+	InternshipListSerializer,
+	InternshipProjectSerializer,
+	InternshipSerializer,
+	ProjectSerializer,
+)
 from .storage import CustomS3Storage
 
 logger = logging.getLogger(__name__)
@@ -345,3 +351,49 @@ def generate_terminal_token(request):
     )
     
     return Response({'token': token})
+
+
+class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
+	"""
+	ViewSet for internship experiences
+	
+	Endpoints:
+	- GET /api/internships/ - List all active internships
+	- GET /api/internships/{slug}/ - Retrieve specific internship with projects
+	"""
+	serializer_class = InternshipSerializer
+	lookup_field = 'slug'
+	permission_classes = [AllowAny]
+	
+	def get_queryset(self):
+		"""Return only active internships, ordered by order field"""
+		return Internship.objects.filter(is_active=True).prefetch_related('projects')
+	
+	def get_serializer_class(self):
+		"""Use lightweight serializer for list, full serializer for detail"""
+		if self.action == 'list':
+			return InternshipListSerializer
+		return InternshipSerializer
+
+
+class InternshipProjectViewSet(viewsets.ReadOnlyModelViewSet):
+	"""
+	ViewSet for individual internship projects
+	
+	Endpoints:
+	- GET /api/internships/{internship_slug}/projects/ - List projects for internship
+	- GET /api/internships/{internship_slug}/projects/{slug}/ - Project detail
+	"""
+	serializer_class = InternshipProjectSerializer
+	lookup_field = 'slug'
+	permission_classes = [AllowAny]
+	
+	def get_queryset(self):
+		"""Return projects for a specific internship"""
+		internship_slug = self.kwargs.get('internship_slug')
+		if internship_slug:
+			return InternshipProject.objects.filter(
+				internship__slug=internship_slug,
+				internship__is_active=True
+			).select_related('internship')
+		return InternshipProject.objects.none()
