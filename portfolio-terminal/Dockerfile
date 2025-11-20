@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
 	nodejs npm \
 	bash-completion \
 	vim nano \
-	libreadline-dev \
+	libreadline-dev libreadline8 \
 	valgrind \
 	libx11-dev \
 	libxext-dev \

@@ -8,10 +8,10 @@ export SHELL=/bin/bash
 stty erase ^H
 stty columns 80 rows 24
 
-# Limit resources
-ulimit -t 60       # CPU time (seconds)
-ulimit -v 524288   # Virtual memory (KB) - 512MB
-ulimit -f 10240    # File size (KB) - 10MB
+# Resource limits for safety (but allow compilation)
+ulimit -t 300      # CPU time (seconds) - 5 min for compilation
+ulimit -v 1048576  # Virtual memory (KB) - 1GB
+ulimit -f 102400   # File size (KB) - 100MB for binaries
 
 # Define useful aliases
 alias ls='ls --color=auto'
@@ -19,6 +19,21 @@ alias ll='ls -la'
 alias py='python3'
 alias clear='echo -e "\033c"'  # Fix clear command
 
-# Welcome message
-echo -e "\033[1;34mWelcome to the terminal demo for $(basename $(pwd))!\033[0m"
-echo -e "\033[1;30mType 'ls' to see available files\033[0m"
+# Welcome message with project info
+if [ -n "$PROJECT" ]; then
+    echo -e "\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+    echo -e "\033[1;36m    Welcome to $PROJECT interactive terminal!\033[0m"
+    echo -e "\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+    echo -e ""
+    echo -e "\033[1;33m📂 Available commands:\033[0m"
+    echo -e "   • \033[0;32mls\033[0m        - List files"
+    echo -e "   • \033[0;32mcd <dir>\033[0m  - Navigate directories"  
+    echo -e "   • \033[0;32mcat <file>\033[0m - View file contents"
+    echo -e "   • \033[0;32mmake\033[0m      - Compile the project"
+    echo -e "   • \033[0;32m./<exec>\033[0m  - Run compiled program"
+    echo -e ""
+    echo -e "\033[1;33m💡 Tips:\033[0m"
+    echo -e "   • Run '\033[0;32mmake\033[0m' to compile"
+    echo -e "   • Check '\033[0;32mREADME.md\033[0m' for project details"
+    echo -e ""
+fi
