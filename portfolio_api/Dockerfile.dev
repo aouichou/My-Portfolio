@@ -14,12 +14,17 @@ RUN apt-get update && \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies with increased timeout and retries for slow networks
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir \
+    --timeout=300 \
+    --retries=5 \
+    -r requirements.txt
 
 # Install development tools
 RUN pip install --no-cache-dir \
+    --timeout=300 \
+    --retries=5 \
     ipdb \
     django-debug-toolbar \
     django-extensions \
