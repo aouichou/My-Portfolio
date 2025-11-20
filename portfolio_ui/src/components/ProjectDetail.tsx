@@ -31,6 +31,20 @@ interface ProjectDetailProps {
 }
 
 const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) => {
+  const divRef = React.useRef<HTMLDivElement>(null);
+  
+  React.useEffect(() => {
+    if (type === 'SVG' && divRef.current && diagram) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(diagram, 'image/svg+xml');
+      const svgElement = doc.documentElement;
+      if (svgElement.tagName === 'svg') {
+        divRef.current.textContent = '';
+        divRef.current.appendChild(svgElement);
+      }
+    }
+  }, [diagram, type]);
+  
   if (!diagram) {
     return null;
   }
