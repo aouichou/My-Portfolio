@@ -23,6 +23,7 @@ import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import DOMPurify from 'dompurify';
 
 interface ProjectDetailProps {
   slug: string;
@@ -49,7 +50,7 @@ const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) =
   }
   
   if (type === 'SVG') {
-    // Use DOMParser to safely parse SVG instead of dangerouslySetInnerHTML
+    // Use DOMPurify to sanitize SVG content
     const SvgComponent = () => {
       const divRef = React.useRef<HTMLDivElement>(null);
       React.useEffect(() => {
@@ -58,8 +59,8 @@ const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) =
           const doc = parser.parseFromString(diagram, 'image/svg+xml');
           const svgElement = doc.documentElement;
           if (svgElement.tagName === 'svg') {
-            divRef.current.textContent = '';
-            divRef.current.appendChild(svgElement);
+            const sanitized = DOMPurify.sanitize(svgElement.outerHTML, { USE_PROFILES: { svg: true, svgFilters: true } });
+            divRef.current.innerHTML = sanitized;
           }
         }
       }, []);
