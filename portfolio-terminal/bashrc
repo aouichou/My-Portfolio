@@ -8,10 +8,8 @@ export SHELL=/bin/bash
 stty erase ^H
 stty columns 80 rows 24
 
-# Resource limits for safety (but allow compilation)
-ulimit -t 300      # CPU time (seconds) - 5 min for compilation
-ulimit -v 1048576  # Virtual memory (KB) - 1GB
-ulimit -f 102400   # File size (KB) - 100MB for binaries
+# NOTE: Resource limits removed - they should be set at container level
+# Setting them here affects all child processes including the parent server
 
 # Define useful aliases
 alias ls='ls --color=auto'

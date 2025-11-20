@@ -77,15 +77,10 @@ def safe_join_path(base_dir: str, *paths: str) -> str:
 def apply_security_restrictions(child_process):
 	"""Apply security restrictions to spawned processes"""
 	try:
-		# Set resource limits
-		import resource
-		# Max CPU time in seconds (5 minutes for compilation)
-		resource.setrlimit(resource.RLIMIT_CPU, (300, 300))
-		# Max file size in bytes (100MB for compiled binaries)
-		resource.setrlimit(resource.RLIMIT_FSIZE, (100*1024*1024, 100*1024*1024))
-		# Max number of processes (allow make to spawn gcc processes)
-		resource.setrlimit(resource.RLIMIT_NPROC, (100, 100))
-
+		# NOTE: Resource limits should NOT be applied here as they affect the parent process
+		# They should be applied in the child process after fork but before exec
+		# For now, we rely on container-level resource limits set by Docker/Render
+		
 		# Configure environment for security
 		env = os.environ.copy()
 		env['SHELL'] = '/bin/bash'
