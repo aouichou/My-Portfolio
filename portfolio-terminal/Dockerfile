@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
 	nodejs npm \
 	bash-completion \
 	vim nano \
-	libreadline-dev \
+	libreadline-dev libreadline8 \
 	valgrind \
 	libx11-dev \
 	libxext-dev \
@@ -53,7 +53,7 @@ RUN echo "export TERM=xterm-256color" >> /home/coder/.zshrc && \
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN pip3 install --timeout=300 --retries=5 -r requirements.txt
 
 # Copy application files
 COPY --chown=coder:coder . /app

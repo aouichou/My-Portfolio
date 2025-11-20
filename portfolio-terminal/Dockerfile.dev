@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     git curl wget \
     bash \
     vim \
+    libreadline-dev libreadline8 \
+    valgrind \
     redis-tools \
     && rm -rf /var/lib/apt/lists/*
 
@@ -20,9 +22,12 @@ RUN useradd -m -s /bin/bash coder && \
     mkdir -p /home/coder/projects /home/coder/sandboxes && \
     chown -R coder:coder /home/coder
 
-# Install Python dependencies
+# Install Python dependencies with increased timeout and retries for slow networks
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir \
+    --timeout=300 \
+    --retries=5 \
+    -r requirements.txt
 
 # Copy application code (will be overridden by volume mount)
 COPY . .

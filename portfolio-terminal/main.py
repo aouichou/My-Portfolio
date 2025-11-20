@@ -77,24 +77,14 @@ def safe_join_path(base_dir: str, *paths: str) -> str:
 def apply_security_restrictions(child_process):
 	"""Apply security restrictions to spawned processes"""
 	try:
-		# Create a sandbox directory with restricted permissions
-		sandbox_dir = f"/home/coder/sandboxes/{uuid.uuid4()}"
-		os.makedirs(sandbox_dir, exist_ok=True)
-		os.chmod(sandbox_dir, 0o644)  # rwx for owner, rx for others
-
-		# Set resource limits
-		import resource
-		# Max CPU time in seconds
-		resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
-		# Max file size in bytes (10MB)
-		resource.setrlimit(resource.RLIMIT_FSIZE, (10*1024*1024, 10*1024*1024))
-		# Max number of processes
-		resource.setrlimit(resource.RLIMIT_NPROC, (50, 50))
-
+		# NOTE: Resource limits should NOT be applied here as they affect the parent process
+		# They should be applied in the child process after fork but before exec
+		# For now, we rely on container-level resource limits set by Docker/Render
+		
 		# Configure environment for security
 		env = os.environ.copy()
 		env['SHELL'] = '/bin/bash'
-		env['PATH'] = '/usr/local/bin:/usr/bin:/bin'
+		env['PATH'] = '/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin'
 		# Remove potentially dangerous environment variables
 		for var in ['LD_PRELOAD', 'LD_LIBRARY_PATH']:
 			if var in env:
@@ -105,8 +95,7 @@ def apply_security_restrictions(child_process):
 
 		# Log security application
 		logger.info("Security restrictions applied to process")
-
-		return env, sandbox_dir
+		return env, None
 	except Exception as e:
 		logger.error("Failed to apply security restrictions: %s", e)
 		raise
@@ -286,8 +275,8 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		})
 		
 		# Use bash instead of zsh for more reliable prompt detection
-		child = spawn('/bin/bash', ['--login', '--restricted'], cwd=project_dir, env=env, encoding='utf-8', timeout=60)
-		env, sandbox_dir = apply_security_restrictions(child)
+		child = spawn('/bin/bash', ['--login'], cwd=project_dir, env=env, encoding='utf-8', timeout=300)
+		env, _ = apply_security_restrictions(child)
 		child.setwinsize(40, 120)  # Initial size
 
 		
@@ -542,6 +531,7 @@ def download_project_files(project_slug, project_dir):
 				return False
 		
 		# Production: download from S3
+		logger.info("Production mode: downloading from S3 for project: %s", project_slug)
 		# Initialize S3 client with environment variables
 		s3 = boto3.client(
 			's3',
@@ -634,38 +624,54 @@ def download_project_files(project_slug, project_dir):
 				
 				# Extract the zip file to the project directory with progress updates
 				print(f"Opening ZIP file {temp_file.name}")
-				ALLOWED_EXTENSIONS = {'.c', '.h', '.md', '.py', '.txt', '.sh', '.Makefile', ''}
+				# Use blocklist instead of allowlist - block dangerous file types
+				BLOCKED_EXTENSIONS = {'.exe', '.dll', '.so', '.dylib', '.bin', '.app', '.dmg', '.pkg', '.deb', '.rpm'}
 				with zipfile.ZipFile(temp_file.name, 'r') as zip_ref:
 					for file in zip_ref.namelist():
 						# Skip directory entries (end with /)
 						if file.endswith('/'):
 							continue
-						# Check file extension
+						# Check for dangerous file extensions
 						file_ext = os.path.splitext(file)[1].lower()
-						# Allow files with no extension (like Makefile) or allowed extensions
-						if file_ext and file_ext not in ALLOWED_EXTENSIONS:
-							raise zipfile.BadZipFile(f"Disallowed file type: {file}")
+						if file_ext in BLOCKED_EXTENSIONS:
+							print(f"Warning: Skipping blocked file type: {file}")
+							continue
+						# Block path traversal attempts
+						if '..' in file or file.startswith('/'):
+							print(f"Warning: Skipping file with suspicious path: {file}")
+							continue
 					total_files = len([f for f in zip_ref.namelist() if not f.endswith('/')])
 					print(f"ZIP contains {total_files} files (excluding directories): {zip_ref.namelist()[:5]}...")
 					
 					# Extract in smaller batches to avoid memory issues
 					for i, file in enumerate(zip_ref.namelist()):
+						# Skip directories
+						if file.endswith('/'):
+							continue
+						# Skip blocked extensions
+						file_ext = os.path.splitext(file)[1].lower()
+						if file_ext in BLOCKED_EXTENSIONS:
+							continue
+						# Skip path traversal
+						if '..' in file or file.startswith('/'):
+							continue
+							
 						zip_ref.extract(file, project_dir)
 						if i % 10 == 0:  # Report progress every 10 files
 							print(f"Extracted {i}/{total_files} files")
-				
-				# Verify extraction
-				extracted = os.listdir(project_dir)
-				print(f"Files in project dir after extraction: {extracted}")
-				if len(extracted) == 0:
-					print("No files extracted")
-					return False
 					
-				# Create cache marker
-				with open(cache_marker, 'w') as f:
-					f.write(str(time.time()))
-					
-				return True
+					# Verify extraction
+					extracted = os.listdir(project_dir)
+					print(f"Files in project dir after extraction: {extracted}")
+					if len(extracted) == 0:
+						print("No files extracted")
+						return False
+						
+					# Create cache marker
+					with open(cache_marker, 'w') as f:
+						f.write(str(time.time()))
+						
+					return True
 			except zipfile.BadZipFile as e:
 				print(f"Bad ZIP file: {e}")
 				# Try to get file format info
