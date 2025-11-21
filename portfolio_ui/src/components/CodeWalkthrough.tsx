@@ -118,7 +118,7 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
 					}
 				  }
 				  
-				  return isListItem ? <li className={`mb-2 ${indentClass}`}>{parts}</li> : <p className={`mb-2 ${indentClass}`}>{parts}</p>;
+				  return isListItem ? <li key={i} className={`mb-2 ${indentClass}`}>{parts}</li> : <p key={i} className={`mb-2 ${indentClass}`}>{parts}</p>;
 				};
 				
 				return parseLine(line);

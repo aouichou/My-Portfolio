@@ -72,7 +72,7 @@ export default function ProjectsGrid({ showAll = false }) {
 			  `}
 			>
 			  <Link
-				href={`/projects/${project.slug}`}
+				href={isInternship ? `/internship/${project.slug}` : `/projects/${project.slug}`}
 				className="flex flex-col h-full"
 			  >
 				<div className="relative h-48 w-full">

@@ -97,7 +97,7 @@ export default function ImpactMetrics({ metrics }: ImpactMetricsProps) {
     {
       value: metrics.reusability || 'Company-Wide Adoption',
       label: 'Reusability',
-      description: 'Created Qycloak library adopted across 3+ independent projects',
+      description: 'Created internal Keycloak library deployed in 2 production applications',
       icon: Users,
       color: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },

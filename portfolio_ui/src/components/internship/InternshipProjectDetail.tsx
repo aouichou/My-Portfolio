@@ -137,11 +137,38 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
               <h2 className="text-4xl font-bold dark:text-white">Overview</h2>
             </div>
             <div className="prose prose-lg dark:prose-invert max-w-none">
-              {project.overview.split('\n\n').map((paragraph, index) => (
-                <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                  {paragraph}
-                </p>
-              ))}
+              {project.overview.split('\n\n').map((paragraph, index) => {
+                // Parse bold text **text** -> <strong>text</strong>
+                const parts: React.ReactNode[] = [];
+                let remaining = paragraph;
+                let key = 0;
+                
+                while (remaining.length > 0) {
+                  const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
+                  
+                  if (boldMatch) {
+                    // Add text before the bold match
+                    const textBefore = remaining.substring(0, boldMatch.index);
+                    if (textBefore) parts.push(<span key={key++}>{textBefore}</span>);
+                    
+                    // Add the bold text
+                    parts.push(<strong key={key++} className="font-bold">{boldMatch[1]}</strong>);
+                    
+                    // Continue with text after the bold match
+                    remaining = remaining.substring(boldMatch.index! + boldMatch[0].length);
+                  } else {
+                    // No more bold matches, add remaining text
+                    if (remaining) parts.push(<span key={key++}>{remaining}</span>);
+                    break;
+                  }
+                }
+                
+                return (
+                  <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    {parts}
+                  </p>
+                );
+              })}
             </div>
           </div>
         </div>

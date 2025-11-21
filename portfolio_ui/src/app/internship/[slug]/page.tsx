@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   
   try {
-    const project = await fetchInternshipProject('healthcare-technology-startup', slug);
+    const project = await fetchInternshipProject('qynapse-healthcare', slug);
     
     return {
       title: `${project.title} | Healthcare Technology Internship`,
@@ -38,7 +38,7 @@ export default async function InternshipProjectPage({ params }: Props) {
   const { slug } = await params;
   
   try {
-    const project = await fetchInternshipProject('healthcare-technology-startup', slug);
+    const project = await fetchInternshipProject('qynapse-healthcare', slug);
     
     if (!project) {
       notFound();

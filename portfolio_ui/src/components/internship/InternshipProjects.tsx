@@ -57,8 +57,8 @@ export default function InternshipProjects({ projects, internshipSlug }: Interns
                     ) : (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-6xl">
-                          {project.title.includes('Digital') && '🏗️'}
-                          {project.title.includes('Qycloak') && '🔐'}
+                          {project.title.includes('Clinical') && '📊'}
+                          {project.title.includes('Keycloak') && '🔐'}
                           {project.title.includes('Patient') && '🏥'}
                         </div>
                       </div>

@@ -327,36 +327,36 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow anonymous access for demo terminal
 def generate_terminal_token(request):
-    """Generate a JWT token for terminal access"""
-    
-    # Set expiration time (5 minutes)
-    expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-    
-    # Create payload for both authenticated and anonymous users
-    if request.user.is_authenticated:
-        payload = {
-            'user_id': request.user.id,
-            'username': request.user.username,
-            'purpose': 'terminal_access',
-            'exp': expiration
-        }
-    else:
-        # Anonymous user - generate a guest token
-        payload = {
-            'user_id': None,
-            'username': 'guest',
-            'purpose': 'terminal_access',
-            'exp': expiration
-        }
-    
-    # Create token
-    token = jwt.encode(
-        payload,
-        settings.SECRET_KEY,
-        algorithm="HS256"
-    )
-    
-    return Response({'token': token})
+	"""Generate a JWT token for terminal access"""
+	
+	# Set expiration time (5 minutes)
+	expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+	
+	# Create payload for both authenticated and anonymous users
+	if request.user.is_authenticated:
+		payload = {
+			'user_id': request.user.id,
+			'username': request.user.username,
+			'purpose': 'terminal_access',
+			'exp': expiration
+		}
+	else:
+		# Anonymous user - generate a guest token
+		payload = {
+			'user_id': None,
+			'username': 'guest',
+			'purpose': 'terminal_access',
+			'exp': expiration
+		}
+	
+	# Create token
+	token = jwt.encode(
+		payload,
+		settings.SECRET_KEY,
+		algorithm="HS256"
+	)
+	
+	return Response({'token': token})
 
 
 class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
@@ -389,17 +389,19 @@ class InternshipProjectViewSet(viewsets.ReadOnlyModelViewSet):
 	Endpoints:
 	- GET /api/internships/{internship_slug}/projects/ - List projects for internship
 	- GET /api/internships/{internship_slug}/projects/{slug}/ - Project detail
+	
+	Uses dedicated InternshipProject model with overview, role_description, etc.
 	"""
 	serializer_class = InternshipProjectSerializer
 	lookup_field = 'slug'
 	permission_classes = [AllowAny]
 	
 	def get_queryset(self):
-		"""Return projects for a specific internship"""
+		"""Return internship projects for a specific internship"""
 		internship_slug = self.kwargs.get('internship_slug')
 		if internship_slug:
 			return InternshipProject.objects.filter(
 				internship__slug=internship_slug,
 				internship__is_active=True
-			).select_related('internship')
+			).select_related('internship').order_by('order', '-is_featured', 'title')
 		return InternshipProject.objects.none()

@@ -9,7 +9,7 @@ export default function InternshipBanner() {
   const stats = [
     { value: '10,000+', label: 'Lines of Code', icon: Code },
     { value: '12', label: 'Documentation', icon: FileText },
-    { value: '3', label: 'Teams Supported', icon: Users }
+    { value: '2', label: 'Applications', icon: Users }
   ];
 
   return (
@@ -57,7 +57,7 @@ export default function InternshipBanner() {
                 transition={{ delay: 0.3 }}
                 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
               >
-                Healthcare Technology Internship
+                Qynapse Healthcare AI
               </motion.h2>
               
               <motion.p
@@ -67,7 +67,7 @@ export default function InternshipBanner() {
                 transition={{ delay: 0.4 }}
                 className="text-lg text-gray-700 dark:text-gray-300 mb-6"
               >
-                Architected and implemented production-grade healthcare analytics platform with Zero Trust security, microservices architecture, and enterprise observability.
+                Fullstack Engineer developing AI-powered neuroimaging analytics platform with Zero Trust security, microservices architecture, and enterprise observability for clinical research.
               </motion.p>
 
               <motion.div

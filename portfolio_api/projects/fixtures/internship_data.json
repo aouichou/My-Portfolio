@@ -3,13 +3,13 @@
   "model": "projects.internship",
   "pk": 3,
   "fields": {
-    "company": "Healthcare Technology Startup",
-    "role": "Backend Engineer",
-    "subtitle": "Building secure, scalable microservices for digital healthcare platform",
-    "slug": "healthcare-technology-startup",
+    "company": "Qynapse",
+    "role": "Fullstack Engineer",
+    "subtitle": "Building secure, scalable healthcare analytics platform with AI-powered neuroimaging",
+    "slug": "qynapse-healthcare",
     "start_date": "2025-05-12",
     "end_date": "2025-11-11",
-    "overview": "Led backend development for a HIPAA-compliant digital healthcare platform serving clinical research workflows. Architected and implemented three core systems using FastAPI, PostgreSQL, and Keycloak in a Zero Trust security model:\n\n1. Digital Platform Microservices: RESTful API with comprehensive authentication, authorization, and audit logging. Implemented JWT validation via Keycloak JWKS, mTLS enforcement through Istio service mesh, and OpenTelemetry-instrumented observability. Achieved 85% test coverage across 55 integration tests with zero static analysis issues.\n\n2. Qycloak Library: Created production-ready, project-agnostic Keycloak integration package (2,000+ LOC) for FastAPI applications. Features async JWT validation with Redis/in-memory caching, dynamic RBAC, Admin API integration, and comprehensive documentation. Successfully deployed across 3+ projects in the organization.\n\n3. Patient Monitoring Module: Refactored legacy FHIR-compliant patient data system using Domain-Driven Design principles. Implemented value objects for type safety, repository pattern for data access abstraction, and service layer with dependency injection. Improved code maintainability while maintaining full backward compatibility.\n\nWorked in Agile sprints with Docker containerization, Kubernetes orchestration, Istio service mesh, and comprehensive CI/CD pipelines. All code passed Pylint, Semgrep, and Trivy security scans with zero defects.",
+    "overview": "**About Qynapse:**\nQynapse is a leading healthcare AI company specializing in neuroimaging analysis for central nervous system (CNS) diseases including Alzheimer's, Multiple Sclerosis, and Parkinson's. Their FDA-cleared QyScore® platform provides AI-powered, automated brain imaging analysis used by clinicians, pharmaceutical companies, and clinical research organizations worldwide. With offices in Paris, Boston, and Montreal, Qynapse is transforming CNS disease diagnosis and monitoring through precision neuroimaging.\n\n**Role & Contributions:**\nLed fullstack development for HIPAA-compliant healthcare analytics platform serving clinical research workflows. Architected and implemented three core systems using FastAPI, PostgreSQL, Next.js, and Keycloak in a Zero Trust security model:\n\n1. **Clinical Analytics Platform:** Fullstack application aggregating patient cohort data from the company's flagship QyScore® backend. Built RESTful API with comprehensive authentication, authorization, and audit logging. Created frontend dashboard with three interactive charts (radar, linear, box plot) using Next.js and ECharts, plus medical imaging module displaying aggregated brain scan metrics. Platform serves regulatory agencies, pharmaceutical companies, and clinical trial coordinators. Implemented JWT validation via Keycloak JWKS, mTLS enforcement through Istio service mesh, and OpenTelemetry observability. Achieved 85% test coverage across 55 integration tests. Developed comprehensive OpenAPI/Swagger documentation for all 15+ endpoints.\n\n2. **Keycloak Integration Library:** Created production-ready, project-agnostic Keycloak integration package (2,000+ LOC) for FastAPI applications. Features async JWT validation with Redis/in-memory caching, dynamic RBAC, Admin API integration, and comprehensive documentation. Successfully deployed as internal company library in flagship QyScore® application and analytics platform (2 applications total).\n\n3. **Patient Monitoring Module:** Designed and implemented entirely new DDD-based module for the company's flagship application (Orchestrator). Created from scratch using Domain-Driven Design principles with immutable value objects for type safety, repository pattern for data access abstraction, and service layer with dependency injection. Implemented backward compatibility with existing FHIR R4 system and forward compatibility for Pydantic 2 migration. Developed complex calculations for chart data presentation and NIfTI mask generation for multi-encounter brain scan comparisons. Successfully introduced DDD architecture patterns to company codebase.\n\nWorked with Jira ticket-based workflow using Docker containerization, Kubernetes orchestration, Istio service mesh, and comprehensive CI/CD pipelines. All code passed Pylint, Semgrep, and Trivy security scans with zero defects. Collaborated closely with internship supervisor throughout development.",
     "stats": {
       "test_files": "55",
       "lines_of_code": "10,000+",
@@ -35,17 +35,25 @@
       "Structlog",
       "Pytest",
       "HTTPX",
-      "Pydantic"
+      "Pydantic",
+      "Next.js",
+      "React",
+      "TypeScript",
+      "ECharts",
+      "OpenAPI/Swagger",
+      "NIfTI",
+      "FHIR R4"
     ],
     "impact_metrics": {
       "testing": "55 integration tests ensuring production reliability and regression prevention",
       "security": "Zero Trust Architecture with mTLS, RBAC, and comprehensive audit logging",
       "compliance": "HIPAA and FHIR R4 standards compliance with full audit trail",
-      "reusability": "Created open-source Keycloak library used across multiple projects",
-      "code_quality": "Zero Codacy/Pylint issues across 10,000+ lines of code"
+      "reusability": "Created internal Keycloak library deployed company-wide across 2 production applications",
+      "code_quality": "Zero Codacy/Pylint issues across 10,000+ lines of code",
+      "architecture": "Introduced Domain-Driven Design patterns to company codebase with Patient Monitoring Module"
     },
-    "architecture_description": "Zero Trust Architecture (ZTA) implementation with defense-in-depth security:\n\n**Layer 1 - Edge Security:**\nTraefik gateway handles TLS termination, SSL/TLS certificates, and rate limiting\n\n**Layer 2 - Service Mesh (Istio):**\nAutomatic mTLS for all service-to-service communication, Envoy sidecars inject client certificates, network policies deny all traffic by default\n\n**Layer 3 - Application Security:**\nJWT authentication via Keycloak OIDC (RS256 signatures), JWKS endpoint validation with Redis caching, dynamic RBAC using Keycloak realm roles, input validation with Pydantic models\n\n**Layer 4 - Observability & Compliance:**\nOpenTelemetry distributed tracing with correlation IDs, structured logging via Structlog, comprehensive audit trail in PostgreSQL, Prometheus metrics for monitoring",
-    "architecture_diagram": "graph TB\n    subgraph edge [\"Edge Layer\"]\n        traefik[\"Traefik Gateway<br/>TLS Termination<br/>Rate Limiting\"]\n    end\n    subgraph mesh [\"Service Mesh - Istio\"]\n        backend[\"FastAPI Backend<br/>JWT Validation<br/>RBAC Enforcement\"]\n        orchestrator[\"Orchestrator Service<br/>FHIR Processing<br/>DDD Architecture\"]\n        cache[\"Redis Cache<br/>JWKS + Sessions\"]\n    end\n    subgraph identity [\"Identity & Access\"]\n        keycloak[\"Keycloak IdP<br/>OAuth2/OIDC<br/>User Management\"]\n    end\n    subgraph data [\"Data Layer\"]\n        db[(\"PostgreSQL<br/>FHIR Data<br/>Audit Logs\")]\n    end\n    traefik -->|\"mTLS + JWT\"| backend\n    backend -->|\"JWKS Validation\"| keycloak\n    backend -->|\"FHIR Operations\"| orchestrator\n    backend -->|\"Cache Keys\"| cache\n    backend -->|\"Audit Trail\"| db\n    orchestrator -->|\"Patient Data\"| db\n    keycloak -->|\"Public Keys\"| backend\n    style backend fill:#4CAF50,stroke:#2E7D32,stroke-width:3px\n    style keycloak fill:#FF9800,stroke:#E65100,stroke-width:3px\n    style db fill:#2196F3,stroke:#0D47A1,stroke-width:3px\n    style orchestrator fill:#9C27B0,stroke:#4A148C,stroke-width:2px",
+    "architecture_description": "Zero Trust Architecture (ZTA) implementation with defense-in-depth security and Istio service mesh:\n\n**Layer 1 - Edge Security:**\nTraefik gateway handles TLS termination, SSL/TLS certificates, and rate limiting\n\n**Layer 2 - Service Mesh (Istio Control Plane + Sidecars):**\nIstio control plane manages service discovery and policy enforcement. Envoy sidecar proxies automatically inject client certificates for mTLS on all service-to-service communication. Network policies deny all traffic by default with explicit allow rules. Mutual TLS encryption for all internal traffic.\n\n**Layer 3 - Application Security:**\nJWT authentication via Keycloak OIDC (RS256 signatures), JWKS endpoint validation with Redis caching, dynamic RBAC using Keycloak realm roles, input validation with Pydantic models\n\n**Layer 4 - Observability & Compliance:**\nOpenTelemetry distributed tracing with correlation IDs, structured logging via Structlog, comprehensive audit trail in PostgreSQL, Prometheus metrics for monitoring, OpenAPI documentation for all endpoints",
+    "architecture_diagram": "graph TB\n    subgraph edge [\"Edge Layer\"]\n        traefik[\"Traefik Gateway<br/>TLS Termination<br/>Rate Limiting\"]\n    end\n    subgraph istio_control [\"Istio Control Plane\"]\n        istiod[\"Istiod<br/>Service Discovery<br/>Certificate Authority<br/>Policy Enforcement\"]\n    end\n    subgraph mesh [\"Service Mesh - Data Plane\"]\n        direction LR\n        subgraph backend_pod [\"Backend Pod\"]\n            envoy_b[\"Envoy Sidecar<br/>mTLS Proxy\"]\n            backend[\"FastAPI Backend<br/>JWT Validation<br/>RBAC Enforcement\"]\n        end\n        subgraph orch_pod [\"Orchestrator Pod\"]\n            envoy_o[\"Envoy Sidecar<br/>mTLS Proxy\"]\n            orchestrator[\"Flagship App<br/>FHIR Processing<br/>QyScore® Backend\"]\n        end\n        cache[\"Redis Cache<br/>JWKS + Sessions\"]\n    end\n    subgraph identity [\"Identity & Access\"]\n        keycloak[\"Keycloak IdP<br/>OAuth2/OIDC<br/>User Management\"]\n    end\n    subgraph data [\"Data Layer\"]\n        db[(\"PostgreSQL<br/>FHIR Data<br/>Audit Logs\")]\n    end\n    traefik -->|\"HTTPS + JWT\"| envoy_b\n    envoy_b <-->|\"mTLS\"| backend\n    istiod -.->|\"Config + Certs\"| envoy_b\n    istiod -.->|\"Config + Certs\"| envoy_o\n    backend -->|\"JWKS Validation\"| keycloak\n    envoy_b <-->|\"mTLS\"| envoy_o\n    envoy_o <-->|\"mTLS\"| orchestrator\n    backend -->|\"Fetch Cohort Data\"| orchestrator\n    backend -->|\"Cache Keys\"| cache\n    backend -->|\"Audit Trail\"| db\n    orchestrator -->|\"Patient Data\"| db\n    keycloak -->|\"Public Keys\"| backend\n    style backend fill:#4CAF50,stroke:#2E7D32,stroke-width:3px\n    style orchestrator fill:#9C27B0,stroke:#4A148C,stroke-width:3px\n    style keycloak fill:#FF9800,stroke:#E65100,stroke-width:3px\n    style db fill:#2196F3,stroke:#0D47A1,stroke-width:3px\n    style envoy_b fill:#466BB0,stroke:#1a237e,stroke-width:2px\n    style envoy_o fill:#466BB0,stroke:#1a237e,stroke-width:2px\n    style istiod fill:#466BB0,stroke:#1a237e,stroke-width:3px",
     "code_samples": [
       {
         "code": "import time\nfrom typing import Optional\n\nimport structlog\nfrom fastapi import HTTPException, Request, status\nfrom starlette.middleware.base import BaseHTTPMiddleware\nfrom starlette.responses import JSONResponse\n\n# === Keycloak Imports ===\nfrom keycloak.validators import jwt_validator\n\n# === Project Imports ===\nfrom src.core.database.session import AsyncSessionLocal\nfrom src.core.settings import settings\nfrom src.core.utils.correlation import set_correlation_id\nfrom src.core.utils.helpers import add_security_headers\nfrom src.core.utils.record_audit_log import record_audit_log\n\n# === Logger Setup ===\nlogger = structlog.get_logger(__name__)\n\nPUBLIC_ENDPOINTS = [\n\t\"/health\",\n\t\"/health/\",\n\t\"/docs\",\n\t\"/openapi.json\",\n\tf\"{settings.API_PREFIX}/auth/login\",\n\tf\"{settings.API_PREFIX}/auth/refresh\"\n]\n\nclass ZeroTrustMiddleware(BaseHTTPMiddleware):\n\t\"\"\"\n\tZero Trust security middleware enforcing mTLS and correlation tracking.\n\tValidates Istio sidecar headers and client certificates.\n\t\"\"\"\n\n\tdef __init__(self, app, verify_mtls: bool = True):\n\t\tsuper().__init__(app)\n\t\tself.verify_mtls = verify_mtls and settings.ISTIO_MTLS_ENABLED\n\n\tasync def dispatch(self, request: Request, call_next):\n\t\t\"\"\"\n\t\tDispatch request through middleware, enforcing Zero Trust security.\n\t\t- Validates mTLS headers if enabled\n\t\t- Validates JWT tokens for authenticated endpoints\n\t\t- Adds security headers and correlation ID\n\t\t\"\"\"\n\t\tstart_time = time.time()\n\n\t\t# Skip mTLS for OPTIONS (CORS preflight) and /health\n\t\tif request.method == \"OPTIONS\" or request.url.path in (\"/health\", \"/health/\"):\n\t\t\treturn await call_next(request)\n\n\t\t# Generate correlation ID for request tracing\n\t\tcorrelation_id = request.headers.get(\"X-Correlation-ID\") or set_correlation_id()\n\n\t\t# Zero Trust: Verify mTLS when enabled\n\t\tif self.verify_mtls:\n\t\t\tmtls_error = self._verify_mtls_headers(request)\n\t\t\tif mtls_error:\n\t\t\t\tlogger.warning(\n\t\t\t\t\t\"mTLS verification failed\",\n\t\t\t\t\terror=mtls_error,\n\t\t\t\t\tclient_ip=request.client.host if request.client else None,\n\t\t\t\t\tcorrelation_id=correlation_id\n\t\t\t\t)\n\t\t\t\tresponse = JSONResponse(\n\t\t\t\t\tstatus_code=status.HTTP_401_UNAUTHORIZED,\n\t\t\t\t\tcontent={\n\t\t\t\t\t\t\"error\": \"mTLS_verification_failed\",\n\t\t\t\t\t\t\"message\": \"Client certificate validation failed\",\n\t\t\t\t\t\t\"correlation_id\": correlation_id\n\t\t\t\t\t}\n\t\t\t\t)\n\t\t\t\treturn add_security_headers(response)\n\n\t\t# JWT validation: prefer cookie token; allow Authorization Bearer as fallback\n\t\tif request.url.path not in PUBLIC_ENDPOINTS:\n\t\t\ttoken: Optional[str] = request.cookies.get(\"access_token\")\n\t\t\tif not token:\n\t\t\t\tauth_header = request.headers.get(\"Authorization\", \"\")\n\t\t\t\tif auth_header.lower().startswith(\"bearer \"):\n\t\t\t\t\ttoken = auth_header.split(\" \", 1)[1].strip()\n\t\t\tif not token:\n\t\t\t\tlogger.warning(\n\t\t\t\t\t\"Missing or invalid JWT token\",\n\t\t\t\t\tclient_ip=request.client.host if request.client else None,\n\t\t\t\t\tcorrelation_id=correlation_id\n\t\t\t\t)\n\t\t\t\tresponse = JSONResponse(\n\t\t\t\t\tstatus_code=status.HTTP_401_UNAUTHORIZED,\n\t\t\t\t\tcontent={\"error\": \"missing_jwt\", \"message\": \"Missing JWT token\"}\n\t\t\t\t)\n\t\t\t\treturn add_security_headers(response)\n\t\t\ttry:\n\t\t\t\tawait jwt_validator.validate_token(token)\n\t\t\texcept HTTPException as exc:\n\t\t\t\tlogger.warning(\n\t\t\t\t\t\"JWT validation failed\",\n\t\t\t\t\terror=str(exc.detail),\n",
@@ -96,9 +104,9 @@
         "description": "Container hardening techniques and runtime security"
       },
       {
-        "title": "Keycloak Integration Package",
+        "title": "Keycloak Integration Package Documentation",
         "category": "API Documentation",
-        "description": "Complete usage guide for Qycloak library"
+        "description": "Complete usage guide for internal Keycloak library"
       },
       {
         "title": "OAuth2/OIDC Authentication Flows",
@@ -114,6 +122,21 @@
         "title": "Observability & Monitoring",
         "category": "Operations",
         "description": "OpenTelemetry setup and Prometheus metrics"
+      },
+      {
+        "title": "OpenAPI/Swagger API Documentation",
+        "category": "API Documentation",
+        "description": "Complete REST API specification for all 15+ endpoints"
+      },
+      {
+        "title": "ECharts Integration for Healthcare Analytics",
+        "category": "Frontend",
+        "description": "Building interactive charts for cohort data visualization"
+      },
+      {
+        "title": "NIfTI Medical Imaging Processing",
+        "category": "Healthcare Integration",
+        "description": "Brain scan mask generation and multi-encounter comparison"
       }
     ],
     "is_active": true,
@@ -127,13 +150,13 @@
   "pk": 4,
   "fields": {
     "internship": 3,
-    "title": "Digital Platform Microservices",
-    "slug": "digital-platform-microservices",
-    "description": "HIPAA-compliant backend API with Zero Trust Architecture",
+    "title": "Clinical Analytics Platform",
+    "slug": "clinical-analytics-platform",
+    "description": "Fullstack HIPAA-compliant analytics dashboard aggregating patient cohort data",
     "thumbnail": "",
     "thumbnail_url": null,
-    "overview": "Architected and implemented the complete backend infrastructure for a digital healthcare platform. Built using FastAPI and PostgreSQL with a focus on security, observability, and regulatory compliance.\n\nKey achievements: 15+ RESTful endpoints, JWT validation middleware with Redis caching, comprehensive audit logging with correlation IDs, mTLS enforcement via Istio, async SQLAlchemy patterns, 85% test coverage across 45 integration tests.",
-    "role_description": "Designed entire backend architecture from scratch including database schema, API structure, and security model. Wrote 8,000+ lines of production code, implemented all security layers, developed comprehensive test suite, created technical documentation, and configured Docker/CI/CD.",
+    "overview": "Architected and implemented fullstack healthcare analytics platform aggregating patient cohort data from Qynapse's flagship QyScore® backend. The platform serves regulatory agencies, pharmaceutical companies, and clinical trial coordinators by providing aggregated insights from brain imaging analysis cohorts.\n\n**Frontend (Next.js + ECharts):** Created three interactive visualization modules - radar chart for multi-dimensional metrics, linear trend chart for temporal analysis, and box plot for statistical distribution. Developed medical imaging module displaying aggregated brain scan analysis results. All charts feature responsive design, real-time data updates, and export functionality.\n\n**Backend (FastAPI + PostgreSQL):** Built 15+ RESTful endpoints with comprehensive authentication, authorization, and audit logging. Implemented complex aggregation algorithms to process cohort data from flagship application backend. Created JWT validation middleware with Redis caching, mTLS enforcement via Istio, async SQLAlchemy patterns, and OpenAPI/Swagger documentation. Achieved 85% test coverage across 45 integration tests.\n\nKey achievements: Zero Trust security architecture, HIPAA compliance with full audit trail, comprehensive OpenAPI documentation, production deployment serving live clinical research data.",
+    "role_description": "Fullstack development: Designed entire application architecture from scratch including database schema, API structure, security model, and frontend component hierarchy. Backend: 8,000+ lines (90% ownership), Frontend: 3 chart modules (radar, linear, box plot) + imaging module. Wrote comprehensive test suite, created technical documentation, configured Docker/CI/CD, and integrated with Qynapse flagship application backend.",
     "tech_stack": [
       "FastAPI",
       "PostgreSQL",
@@ -143,14 +166,19 @@
       "Istio",
       "Kubernetes",
       "OpenTelemetry",
-      "Pytest"
+      "Pytest",
+      "Next.js",
+      "TypeScript",
+      "React",
+      "ECharts",
+      "OpenAPI/Swagger"
     ],
     "stats": {
       "coverage": "85%",
       "endpoints": "15+",
-      "ownership": "100%",
+      "ownership": "90% backend + 3 frontend modules",
       "test_files": "45",
-      "lines_of_code": "8,000+"
+      "lines_of_code": "8,000+ backend, 2,000+ frontend"
     },
     "badges": [
       {
@@ -166,26 +194,29 @@
         "color": "purple"
       },
       {
-        "text": "FHIR R4",
+        "text": "Fullstack",
         "color": "orange"
       }
     ],
     "architecture_description": null,
     "architecture_diagrams": [
       {
-        "title": "Request Flow",
-        "diagram": "graph LR\nClient-->|HTTPS|Traefik\nTraefik-->|JWT+mTLS|Backend\nBackend-->|Validate|Keycloak\nBackend-->|Cache|Redis\nBackend-->|Data|DB[(PostgreSQL)]",
-        "description": "Complete request flow with security validation"
+        "title": "Data Flow Architecture",
+        "diagram": "graph LR\nClient-->|HTTPS|Traefik\nTraefik-->|JWT+mTLS|Platform[Analytics Platform]\nPlatform-->|Fetch Cohorts|Flagship[QyScore® Backend]\nPlatform-->|Validate|Keycloak\nPlatform-->|Cache|Redis\nPlatform-->|Store|DB[(PostgreSQL)]\nFlagship-->|Brain Scan Data|DB2[(Flagship DB)]",
+        "description": "Fullstack platform aggregating data from flagship application"
       }
     ],
     "key_features": [
+      "Three interactive ECharts visualizations: radar, linear trend, and box plot charts",
+      "Medical imaging module with aggregated brain scan metrics",
       "Zero Trust Architecture with Istio mTLS and Keycloak RBAC",
+      "Data aggregation engine fetching from QyScore® flagship backend",
       "JWT authentication with JWKS caching for 95%+ validation performance",
-      "Comprehensive audit logging with correlation IDs",
-      "FHIR R4 compliant data models",
-      "Async database operations with SQLAlchemy",
-      "OpenTelemetry distributed tracing",
-      "85% test coverage with Pytest"
+      "Comprehensive OpenAPI/Swagger documentation for all endpoints",
+      "Comprehensive audit logging with correlation IDs for HIPAA compliance",
+      "Async database operations with complex aggregation queries",
+      "OpenTelemetry distributed tracing across frontend and backend",
+      "85% test coverage with Pytest for backend reliability"
     ],
     "code_snippets": [
       {
@@ -216,25 +247,26 @@
   "pk": 5,
   "fields": {
     "internship": 3,
-    "title": "Qycloak - Keycloak Integration Library",
-    "slug": "qycloak-keycloak-integration-library",
-    "description": "Production-ready Keycloak integration package for FastAPI",
+    "title": "Keycloak Integration Library",
+    "slug": "keycloak-integration-library",
+    "description": "Production-ready internal Keycloak integration package for FastAPI",
     "thumbnail": "",
     "thumbnail_url": null,
-    "overview": "Developed a fully project-agnostic, reusable library (2,000+ LOC) for Keycloak authentication in FastAPI applications. Features async JWT validation with Redis/in-memory caching, dynamic RBAC, Admin API integration, and comprehensive documentation. Successfully deployed across 3+ independent projects.",
-    "role_description": "Sole developer: designed library architecture, implemented all 2,000+ lines, created testing strategy, wrote comprehensive documentation, and integrated into production projects.",
+    "overview": "Developed fully project-agnostic, reusable internal library (2,000+ LOC) for Keycloak authentication in FastAPI applications. Features async JWT validation with Redis/in-memory caching, dynamic RBAC, Admin API integration, and comprehensive documentation. Successfully deployed as company-wide internal library in Qynapse's flagship QyScore® application and Clinical Analytics Platform (2 production applications).",
+    "role_description": "Sole developer: designed library architecture, implemented all 2,000+ lines, created testing strategy, wrote comprehensive documentation with usage examples, and integrated into 2 production applications. Established library as internal standard for Keycloak integration across company projects.",
     "tech_stack": [
       "Python",
       "FastAPI",
       "Keycloak",
       "Redis",
       "OAuth2/OIDC",
-      "OpenTelemetry"
+      "OpenTelemetry",
+      "Pytest"
     ],
     "stats": {
       "modules": "8",
       "ownership": "100%",
-      "reusability": "3+ projects",
+      "reusability": "2 applications",
       "lines_of_code": "2,000+"
     },
     "badges": [
@@ -243,7 +275,7 @@
         "color": "blue"
       },
       {
-        "text": "Open Source",
+        "text": "Internal Library",
         "color": "green"
       },
       {
@@ -281,11 +313,11 @@
     "internship": 3,
     "title": "Patient Monitoring Module",
     "slug": "patient-monitoring-module",
-    "description": "Domain-Driven Design implementation for FHIR patient data",
+    "description": "Domain-Driven Design module for FHIR patient data with advanced calculations",
     "thumbnail": "",
     "thumbnail_url": null,
-    "overview": "Refactored legacy patient data management system using Domain-Driven Design principles. Implemented value objects for type safety, repository pattern for data access abstraction, and service layer with dependency injection. Achieved 40% reduction in cyclomatic complexity while maintaining 100% backward compatibility.",
-    "role_description": "Led modernization effort: analyzed legacy codebase, designed DDD architecture, refactored 5 core modules (1,500+ LOC), developed comprehensive tests, and documented migration strategy.",
+    "overview": "Designed and implemented entirely new Domain-Driven Design module for Qynapse's flagship Orchestrator application. Created from scratch (not refactored) using clean architecture principles with immutable value objects for type safety, repository pattern for data access abstraction, and service layer with dependency injection.\n\n**Architecture Innovation:** Successfully introduced Domain-Driven Design patterns to company codebase, establishing new architectural standards. Implemented backward compatibility with existing FHIR R4 system and forward compatibility for future Pydantic 2 migration.\n\n**Advanced Functionality:** Developed complex calculation engine for patient chart data presentation, enabling clinicians to visualize trends across multiple brain scans. Implemented NIfTI (Neuroimaging Informatics Technology Initiative) mask generation algorithms for multi-encounter brain scan comparisons, allowing radiologists to identify subtle changes in brain structure over time.\n\n**Impact:** Reduced cyclomatic complexity by 40% compared to legacy modules, improved type safety with Pydantic validation, and maintained 100% backward compatibility. Module serves as architectural reference for future development.",
+    "role_description": "Sole architect and developer: analyzed requirements with clinical team, designed DDD architecture from first principles, implemented 5 core domain modules (1,500+ LOC), developed complex calculation and NIfTI processing algorithms, created comprehensive test suite with 90%+ coverage, and documented architectural decisions and migration patterns for future developers.",
     "tech_stack": [
       "Python",
       "FastAPI",
@@ -293,13 +325,17 @@
       "PostgreSQL",
       "DDD",
       "FHIR R4",
-      "Pydantic"
+      "Pydantic",
+      "NIfTI",
+      "NumPy",
+      "Pytest"
     ],
     "stats": {
       "ownership": "100%",
       "lines_of_code": "1,500+",
-      "refactored_modules": "5",
-      "complexity_reduction": "40%"
+      "created_modules": "5",
+      "complexity_reduction": "40%",
+      "test_coverage": "90%+"
     },
     "badges": [
       {
@@ -313,16 +349,25 @@
       {
         "text": "Type-Safe",
         "color": "purple"
+      },
+      {
+        "text": "Medical Imaging",
+        "color": "orange"
       }
     ],
     "architecture_description": null,
     "architecture_diagrams": [],
     "key_features": [
-      "Immutable value objects for type safety",
+      "Domain-Driven Design with bounded contexts and aggregates",
+      "Immutable value objects preventing invalid state",
       "Domain models with encapsulated business logic",
-      "Repository pattern for database abstraction",
-      "Service layer with dependency injection",
-      "100% backward compatibility with FHIR R4"
+      "Repository pattern abstracting data persistence concerns",
+      "Service layer with dependency injection for testability",
+      "Complex calculation engine for patient chart data visualization",
+      "NIfTI mask generation for multi-encounter brain scan comparisons",
+      "100% backward compatibility with existing FHIR R4 system",
+      "Forward compatibility for Pydantic 2 migration",
+      "90%+ test coverage with domain-focused unit tests"
     ],
     "code_snippets": [],
     "impact_metrics": {
