@@ -95,7 +95,7 @@ export default async function InternshipPage() {
                         while (remaining.length > 0) {
                           const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
                           
-                          if (boldMatch) {
+                          if (boldMatch && boldMatch.index !== undefined) {
                             const textBefore = remaining.substring(0, boldMatch.index);
                             if (textBefore) {
                               parts.push(<span key={key++}>{textBefore}</span>);
@@ -108,7 +108,7 @@ export default async function InternshipPage() {
                               </strong>
                             );
                             inTitle = false;
-                            remaining = remaining.substring(boldMatch.index! + boldMatch[0].length);
+                            remaining = remaining.substring(boldMatch.index + boldMatch[0].length);
                           } else {
                             if (remaining) parts.push(<span key={key++}>{remaining}</span>);
                             break;

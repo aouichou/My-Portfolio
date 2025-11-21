@@ -4,8 +4,6 @@ to the unified Project model with project_type='internship'
 """
 from django.core.management.base import BaseCommand
 
-from projects.models import Internship, InternshipProject, Project
-
 
 class Command(BaseCommand):
     help = 'Migrate Internship and InternshipProject data to unified Project model'

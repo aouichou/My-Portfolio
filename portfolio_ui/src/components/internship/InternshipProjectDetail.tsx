@@ -146,7 +146,7 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
                 while (remaining.length > 0) {
                   const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
                   
-                  if (boldMatch) {
+                  if (boldMatch && boldMatch.index !== undefined) {
                     // Add text before the bold match
                     const textBefore = remaining.substring(0, boldMatch.index);
                     if (textBefore) parts.push(<span key={key++}>{textBefore}</span>);
@@ -155,7 +155,7 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
                     parts.push(<strong key={key++} className="font-bold">{boldMatch[1]}</strong>);
                     
                     // Continue with text after the bold match
-                    remaining = remaining.substring(boldMatch.index! + boldMatch[0].length);
+                    remaining = remaining.substring(boldMatch.index + boldMatch[0].length);
                   } else {
                     // No more bold matches, add remaining text
                     if (remaining) parts.push(<span key={key++}>{remaining}</span>);
