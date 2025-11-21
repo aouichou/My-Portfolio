@@ -84,6 +84,9 @@ class ProjectSerializer(serializers.ModelSerializer):
 	tech_stack = serializers.JSONField()
 	code_steps = serializers.JSONField()
 	code_snippets = serializers.JSONField()
+	stats = serializers.JSONField(required=False)
+	badges = serializers.JSONField(required=False)
+	impact_metrics = serializers.JSONField(required=False)
 	
 	class Meta:
 		model = Project
@@ -93,7 +96,10 @@ class ProjectSerializer(serializers.ModelSerializer):
 			'features', 'challenges', 'lessons', 'video_url', 'galleries',
 			'has_interactive_demo', 'demo_commands', 'architecture_diagram', 
 			'diagram_type', 'thumbnail_url', 'demo_files_path', 'code_steps',
-			'code_snippets'
+			'code_snippets',
+			# New internship fields
+			'project_type', 'company', 'role', 'start_date', 'end_date',
+			'stats', 'badges', 'role_description', 'impact_metrics'
 		]
 		extra_kwargs = {
 			'architecture_diagram': {'write_only': True}

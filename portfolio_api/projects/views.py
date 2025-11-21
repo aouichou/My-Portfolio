@@ -305,9 +305,15 @@ def health_check(request):
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 	serializer_class = ProjectSerializer
 	lookup_field = 'slug'
+	filterset_fields = ['is_featured', 'project_type']
 	
 	def get_queryset(self):
-		queryset = Project.objects.all().order_by('-score')
+		queryset = Project.objects.all().order_by('-is_featured', '-score')
+		
+		# Filter by project_type if specified
+		project_type = self.request.query_params.get('project_type')
+		if project_type in ['school', 'internship']:
+			queryset = queryset.filter(project_type=project_type)
 		
 		# By default, only return featured projects unless include_all=true is specified
 		include_all_param = self.request.query_params.get('include_all', 'false')

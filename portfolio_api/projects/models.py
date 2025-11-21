@@ -11,12 +11,26 @@ from django.utils.text import slugify
 
 
 class Project(models.Model):
+	PROJECT_TYPE_CHOICES = [
+		('school', 'School Project'),
+		('internship', 'Internship Project'),
+	]
+	
 	DIAGRAM_CHOICES = [
 		('mermaid', 'Mermaid.js'),
 		('flowchart', 'Flowchart.js'),
 		('custom', 'Custom SVG/Image')
 	]
 	
+	# Project Type & Classification
+	project_type = models.CharField(
+		max_length=20,
+		choices=PROJECT_TYPE_CHOICES,
+		default='school',
+		help_text="Type of project: school or internship"
+	)
+	
+	# Basic Information
 	title = models.CharField(max_length=255)
 	slug = models.SlugField(unique=True, max_length=100)
 	description = models.TextField()
@@ -55,6 +69,50 @@ class Project(models.Model):
 	
 	code_steps = models.JSONField(blank=True, null=True, help_text="List of steps to run the code")
 	code_snippets = models.JSONField(blank=True, null=True, help_text="List of code snippets")
+	
+	# Internship-specific fields
+	company = models.CharField(
+		max_length=255,
+		blank=True,
+		null=True,
+		help_text="Company name (for internship projects)"
+	)
+	role = models.CharField(
+		max_length=255,
+		blank=True,
+		null=True,
+		help_text="Role/position (for internship projects)"
+	)
+	start_date = models.DateField(
+		blank=True,
+		null=True,
+		help_text="Project start date (for internship projects)"
+	)
+	end_date = models.DateField(
+		blank=True,
+		null=True,
+		help_text="Project end date (for internship projects)"
+	)
+	stats = models.JSONField(
+		blank=True,
+		null=True,
+		help_text='Project stats: {"coverage": "85%", "endpoints": "15+", ...}'
+	)
+	badges = models.JSONField(
+		blank=True,
+		null=True,
+		help_text='Badges: [{"text": "Zero Trust", "color": "blue"}, ...]'
+	)
+	role_description = models.TextField(
+		blank=True,
+		null=True,
+		help_text="Your specific role and contributions (for internship projects)"
+	)
+	impact_metrics = models.JSONField(
+		blank=True,
+		null=True,
+		help_text='Impact metrics: {"security_vulnerabilities_prevented": "15+", ...}'
+	)
 	
 	def save(self, *args, **kwargs):
 		# Allow bypassing validation for initial imports
@@ -150,6 +208,10 @@ class ContactSubmission(models.Model):
 
 class Internship(models.Model):
 	"""
+	DEPRECATED: This model is deprecated in favor of unified Project model with project_type='internship'.
+	Use Project model with project_type='internship' for new internship projects.
+	This model will be removed in a future release.
+	
 	Model for internship/professional experience showcase
 	Supports the /internship landing page with overview, stats, and projects
 	"""
