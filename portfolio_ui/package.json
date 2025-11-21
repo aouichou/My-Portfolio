@@ -57,7 +57,7 @@
     "@next/eslint-plugin-next": "^15.1.7",
     "@tailwindcss/typography": "^0.5.16",
     "@types/jszip": "^3.4.0",
-    "@types/node": "^20",
+    "@types/node": "20.19.25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
@@ -67,7 +67,7 @@
     "eslint-config-next": ">=15.4.7",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "5.9.3"
   },
   "overrides": {
     "prismjs": "^1.30.0",
