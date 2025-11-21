@@ -44,11 +44,42 @@ export default async function InternshipPage() {
               Overview
             </h2>
             <div className="prose prose-lg dark:prose-invert max-w-none">
-              {internship.overview.split('\n\n').map((paragraph: string, index: number) => (
-                <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                  {paragraph}
-                </p>
-              ))}
+              {internship.overview.split('\n\n').map((paragraph: string, index: number) => {
+                // Split paragraph by lines to process numbered points
+                const lines = paragraph.split('\n');
+                
+                return (
+                  <div key={index} className="mb-6">
+                    {lines.map((line, lineIndex) => {
+                      // Match numbered points like "1. Title:" or "2. Title:"
+                      const numberedMatch = line.match(/^(\d+)\.\s+(.+?):\s*(.*)$/);
+                      
+                      if (numberedMatch) {
+                        const [, number, title, content] = numberedMatch;
+                        return (
+                          <p key={lineIndex} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                            <span className="text-blue-600 dark:text-blue-400 font-bold">
+                              {number}. {title}:
+                            </span>
+                            {content && <span> {content}</span>}
+                          </p>
+                        );
+                      }
+                      
+                      // Regular line
+                      return lineIndex > 0 ? (
+                        <p key={lineIndex} className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {line}
+                        </p>
+                      ) : (
+                        <p key={lineIndex} className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {line}
+                        </p>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
