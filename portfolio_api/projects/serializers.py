@@ -1,7 +1,16 @@
 # portfolio_api/projects/serializers.py
 
 from rest_framework import serializers
-from .models import Project, Gallery, GalleryImage, ContactSubmission
+
+from .models import (
+	ContactSubmission,
+	Gallery,
+	GalleryImage,
+	Internship,
+	InternshipProject,
+	Project,
+)
+
 
 class GalleryImageSerializer(serializers.ModelSerializer):
 	image_url = serializers.SerializerMethodField()
@@ -104,3 +113,135 @@ class ContactSubmissionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ContactSubmission
 		fields = ['name', 'email', 'message']
+
+
+class InternshipProjectSerializer(serializers.ModelSerializer):
+	"""
+	Serializer for individual internship projects
+	Used for both card display and detail pages
+	"""
+	thumbnail_url = serializers.SerializerMethodField()
+	internship_company = serializers.CharField(source='internship.company', read_only=True)
+	
+	class Meta:
+		model = InternshipProject
+		fields = [
+			'id',
+			'title',
+			'slug',
+			'description',
+			'thumbnail',
+			'thumbnail_url',
+			'overview',
+			'role_description',
+			'tech_stack',
+			'stats',
+			'badges',
+			'architecture_description',
+			'architecture_diagrams',
+			'key_features',
+			'code_snippets',
+			'impact_metrics',
+			'related_documentation',
+			'order',
+			'is_featured',
+			'internship_company',
+		]
+	
+	def get_thumbnail_url(self, obj):
+		"""Return absolute URL for thumbnail if available"""
+		if obj.thumbnail:
+			request = self.context.get('request')
+			return request.build_absolute_uri(obj.thumbnail.url) if request else obj.thumbnail.url
+		return obj.thumbnail_url
+
+
+class InternshipSerializer(serializers.ModelSerializer):
+	"""
+	Serializer for internship overview
+	Includes nested projects for the landing page
+	"""
+	projects = InternshipProjectSerializer(many=True, read_only=True)
+	period_display = serializers.SerializerMethodField()
+	duration_months = serializers.SerializerMethodField()
+	
+	class Meta:
+		model = Internship
+		fields = [
+			'id',
+			'company',
+			'role',
+			'subtitle',
+			'slug',
+			'start_date',
+			'end_date',
+			'period_display',
+			'duration_months',
+			'overview',
+			'stats',
+			'technologies',
+			'impact_metrics',
+			'architecture_description',
+			'architecture_diagram',
+			'code_samples',
+			'documentation',
+			'projects',
+			'is_active',
+			'order',
+		]
+	
+	def get_period_display(self, obj):
+		"""Format period as 'May 2025 - Nov 2025' or 'May 2025 - Present'"""
+		start = obj.start_date.strftime('%b %Y')
+		if obj.end_date:
+			end = obj.end_date.strftime('%b %Y')
+		else:
+			end = 'Present'
+		return f"{start} - {end}"
+	
+	def get_duration_months(self, obj):
+		"""Calculate duration in months"""
+		from datetime import date
+		end = obj.end_date if obj.end_date else date.today()
+		months = (end.year - obj.start_date.year) * 12 + (end.month - obj.start_date.month)
+		return months
+
+
+class InternshipListSerializer(serializers.ModelSerializer):
+	"""
+	Lightweight serializer for internship list (without nested projects)
+	Used for homepage banner or listing pages
+	"""
+	period_display = serializers.SerializerMethodField()
+	project_count = serializers.SerializerMethodField()
+	
+	class Meta:
+		model = Internship
+		fields = [
+			'id',
+			'company',
+			'role',
+			'subtitle',
+			'slug',
+			'start_date',
+			'end_date',
+			'period_display',
+			'overview',
+			'stats',
+			'project_count',
+			'is_active',
+			'order',
+		]
+	
+	def get_period_display(self, obj):
+		"""Format period as 'May 2025 - Nov 2025'"""
+		start = obj.start_date.strftime('%b %Y')
+		if obj.end_date:
+			end = obj.end_date.strftime('%b %Y')
+		else:
+			end = 'Present'
+		return f"{start} - {end}"
+	
+	def get_project_count(self, obj):
+		"""Return number of projects in this internship"""
+		return obj.projects.count()
