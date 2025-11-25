@@ -21,7 +21,7 @@ jobs:
       shared: ${{ steps.filter.outputs.shared }}
       force_deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
       
@@ -70,7 +70,7 @@ jobs:
     permissions:
       contents: read  # Need to read repo for checkout
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
       - name: Check if Dependabot PR
         id: check-dependabot
@@ -142,7 +142,7 @@ jobs:
     permissions:
       contents: read  # Need to read repo for checkout
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
       - name: Check if Dependabot PR
         id: check-dependabot
@@ -197,7 +197,7 @@ jobs:
     permissions:
       contents: read  # Need to read repo for checkout
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
       - name: Check if Dependabot PR
         id: check-dependabot
