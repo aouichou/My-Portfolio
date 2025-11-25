@@ -104,6 +104,12 @@ portfolio_api/.env.backup
 .env.dev
 backups/
 *.sql
+certs/
+
+# Local SSL certificates
+*.pem
+*.key
+*.crt
 
 # Documentation
 docs/*

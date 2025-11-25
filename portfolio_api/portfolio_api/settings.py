@@ -276,24 +276,24 @@ LOGGING = {
 	},
 }
 
-# S3 settings
+# Cloudflare R2 Storage settings (S3-compatible)
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_ACCESS_KEY_ID = os.getenv('BUCKETEER_AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('BUCKETEER_AWS_SECRET_ACCESS_KEY') 
-AWS_STORAGE_BUCKET_NAME = os.getenv('BUCKETEER_BUCKET_NAME')
-AWS_S3_REGION_NAME = 'eu-west-1'  # Must match bucket region
-AWS_S3_ADDRESSING_STYLE = 'path'  # Use path-style instead of virtual-hosted style
-AWS_S3_ENDPOINT_URL = 'https://s3.eu-west-1.amazonaws.com'  # Direct endpoint
-AWS_QUERYSTRING_AUTH = False  # For signed URLs
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', 'portfolio-bucket')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'auto')  # R2 uses 'auto'
+AWS_S3_ADDRESSING_STYLE = 'path'  # Required for R2
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')  # R2 endpoint from env
+AWS_QUERYSTRING_AUTH = False  # Public URLs via custom domain
 AWS_S3_FILE_OVERWRITE = False
-# AWS_DEFAULT_ACL = 'public-read'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_USE_SSL = True
-AWS_S3_VERIFY = True 
+AWS_S3_VERIFY = True
+AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', 'media.aouichou.me')  # R2 custom domain
 
-# Override MEDIA_URL for production S3 storage only
+# Override MEDIA_URL to use R2 custom domain
 if not DEBUG:
-	MEDIA_URL = f'https://s3.eu-west-1.amazonaws.com/{os.getenv("BUCKETEER_BUCKET_NAME")}/'
+	MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
 
 # Channel layers for WebSocket

@@ -530,25 +530,26 @@ def download_project_files(project_slug, project_dir):
 				print(f"Local project file not found: {local_zip_path}")
 				return False
 		
-		# Production: download from S3
-		logger.info("Production mode: downloading from S3 for project: %s", project_slug)
-		# Initialize S3 client with environment variables
+		# Production: download from Cloudflare R2 (S3-compatible)
+		logger.info("Production mode: downloading from R2 for project: %s", project_slug)
+		# Initialize R2 client with environment variables
 		s3 = boto3.client(
 			's3',
-			aws_access_key_id=os.environ.get('BUCKETEER_AWS_ACCESS_KEY_ID'),
-			aws_secret_access_key=os.environ.get('BUCKETEER_AWS_SECRET_ACCESS_KEY'),
-			region_name=os.environ.get('AWS_S3_REGION_NAME', 'eu-west-1')
+			aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+			aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+			region_name=os.environ.get('AWS_S3_REGION_NAME', 'auto'),
+			endpoint_url=os.environ.get('AWS_S3_ENDPOINT_URL')  # R2 endpoint
 		)
 		
-		# The expected file path in S3 (matches your Django view)
+		# The expected file path in R2 (matches your Django view)
 		s3_path = f'project-files/{project_slug}.zip'
-		bucket_name = os.environ.get('BUCKETEER_BUCKET_NAME')
+		bucket_name = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'portfolio-bucket')
 		
 		if not bucket_name:
-			print("Missing S3 bucket configuration")
+			print("Missing R2 bucket configuration")
 			return False
 			
-		print(f"Looking for S3 object: {s3_path} in bucket {bucket_name}")
+		print(f"Looking for R2 object: {s3_path} in bucket {bucket_name}")
 
 		# Check if we've already downloaded this project in the last 24 hours
 		cache_marker = os.path.join(project_dir, ".cached_download")
