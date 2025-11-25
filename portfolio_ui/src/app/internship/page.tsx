@@ -3,6 +3,7 @@
 import AutoRenderMermaid from '@/components/AutoRenderMermaid';
 import ArchitectureDiagram from '@/components/internship/ArchitectureDiagram';
 import CodeSamples from '@/components/internship/CodeSamples';
+import FeaturedDocumentation from '@/components/internship/FeaturedDocumentation';
 import ImpactMetrics from '@/components/internship/ImpactMetrics';
 import InternshipHero from '@/components/internship/InternshipHero';
 import InternshipProjects from '@/components/internship/InternshipProjects';
@@ -159,6 +160,14 @@ export default async function InternshipPage() {
 
       {/* Code Samples */}
       <CodeSamples samples={internship.code_samples} />
+
+      {/* Featured Documentation */}
+      {internship.documentation && internship.documentation.length > 0 && (
+        <FeaturedDocumentation 
+          documents={internship.documentation}
+          totalCount={internship.documentation.length}
+        />
+      )}
 
       {/* Technologies Section */}
       {internship.technologies && internship.technologies.length > 0 && (

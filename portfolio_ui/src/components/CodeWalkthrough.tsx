@@ -4,8 +4,8 @@
 
 import { useTheme } from '@/context/ThemeContext';
 import { useState } from 'react';
+// @ts-ignore - react-syntax-highlighter lacks type definitions but works correctly
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vs, vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export interface CodeSnippet {
   code: string;
@@ -19,6 +19,58 @@ interface CodeWalkthroughProps {
   projectTitle: string;
   steps: CodeSnippet[];
 }
+
+// Custom syntax highlighting colors - gray/blue palette
+const createCustomStyle = (isDark: boolean) => ({
+  'code[class*="language-"]': {
+    color: isDark ? '#d1d5db' : '#374151',
+    fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+    fontSize: '0.875rem',
+    textAlign: 'left' as const,
+    whiteSpace: 'pre' as const,
+    wordSpacing: 'normal',
+    wordBreak: 'normal',
+    wordWrap: 'normal',
+    lineHeight: '1.5',
+    tabSize: 4,
+    hyphens: 'none' as const,
+  },
+  'pre[class*="language-"]': {
+    color: isDark ? '#d1d5db' : '#374151',
+    padding: '1.5rem',
+    margin: '0',
+    overflow: 'auto',
+  },
+  'comment': { color: isDark ? '#6b7280' : '#9ca3af', fontStyle: 'italic' },
+  'prolog': { color: isDark ? '#6b7280' : '#9ca3af' },
+  'doctype': { color: isDark ? '#6b7280' : '#9ca3af' },
+  'cdata': { color: isDark ? '#6b7280' : '#9ca3af' },
+  'punctuation': { color: isDark ? '#9ca3af' : '#6b7280' },
+  'property': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'tag': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'boolean': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'number': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'constant': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'symbol': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'selector': { color: isDark ? '#a5b4fc' : '#6366f1' },
+  'attr-name': { color: isDark ? '#a5b4fc' : '#6366f1' },
+  'string': { color: isDark ? '#9ca3af' : '#6b7280' },
+  'char': { color: isDark ? '#9ca3af' : '#6b7280' },
+  'builtin': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'inserted': { color: isDark ? '#34d399' : '#10b981' },
+  'operator': { color: isDark ? '#9ca3af' : '#6b7280' },
+  'entity': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'url': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'variable': { color: isDark ? '#d1d5db' : '#374151' },
+  'atrule': { color: isDark ? '#a5b4fc' : '#6366f1' },
+  'attr-value': { color: isDark ? '#9ca3af' : '#6b7280' },
+  'keyword': { color: isDark ? '#60a5fa' : '#2563eb' },
+  'function': { color: isDark ? '#93c5fd' : '#3b82f6' },
+  'class-name': { color: isDark ? '#a5b4fc' : '#6366f1' },
+  'regex': { color: isDark ? '#34d399' : '#10b981' },
+  'important': { color: isDark ? '#fbbf24' : '#f59e0b', fontWeight: 'bold' },
+  'deleted': { color: isDark ? '#f87171' : '#ef4444' },
+});
 
 export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthroughProps) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -34,8 +86,7 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
   }
   
   const step = validSteps[currentStep];
-  // Choose syntax highlighting theme based on app theme
-  const codeStyle = theme === 'dark' ? vscDarkPlus : vs;
+  const customStyle = createCustomStyle(theme === 'dark');
   
   // Function to sanitize code by replacing escape sequences
   const sanitizeCode = (code: string): string => {
@@ -132,18 +183,24 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
           </div>
         </div>
         
-        <div className="max-h-[500px] overflow-auto">
+        <div className="max-h-[500px] overflow-auto bg-gray-50 dark:bg-gray-950">
           <SyntaxHighlighter 
             language={step.language} 
-            style={codeStyle}
+            style={customStyle}
             wrapLines={true}
             showLineNumbers={true}
+            wrapLongLines={true}
             customStyle={{
               margin: 0,
               borderRadius: 0,
               height: '100%',
               minHeight: '500px',
-              width: '100%'
+              width: '100%',
+              background: 'transparent'
+            }}
+            lineNumberStyle={{
+              opacity: 0.5,
+              minWidth: '2.5em'
             }}
           >
             {sanitizeCode(step.code)}
