@@ -42,11 +42,12 @@ export default function InternshipProjects({ projects, internshipSlug }: Interns
               whileHover={{ y: -10 }}
               className="relative group"
             >
-              {/* Gradient Border Wrapper */}
-              <div className="p-[2px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
-                <div className="bg-white dark:bg-gray-800 rounded-xl h-full overflow-hidden">
-                  {/* Thumbnail */}
-                  <div className="relative h-48 w-full bg-gradient-to-br from-blue-500/10 to-purple-500/10">
+              <Link href={`/internship/${project.slug}`} className="block h-full">
+                {/* Gradient Border Wrapper */}
+                <div className="p-[2px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl h-full">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl h-full overflow-hidden flex flex-col">
+                    {/* Thumbnail */}
+                    <div className="relative h-48 w-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex-shrink-0">
                     {project.thumbnail_url ? (
                       <Image
                         src={project.thumbnail_url}
@@ -89,12 +90,12 @@ export default function InternshipProjects({ projects, internshipSlug }: Interns
                   </div>
 
                   {/* Content */}
-                  <div className="p-6">
+                  <div className="p-6 flex-1 flex flex-col">
                     <h3 className="text-2xl font-bold mb-3 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {project.title}
                     </h3>
                     
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                    <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 flex-1">
                       {project.description}
                     </p>
 
@@ -137,16 +138,14 @@ export default function InternshipProjects({ projects, internshipSlug }: Interns
                     </div>
 
                     {/* CTA */}
-                    <Link
-                      href={`/internship/${project.slug}`}
-                      className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                    >
+                    <div className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                       View Details
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    </div>
                   </div>
                 </div>
               </div>
+              </Link>
             </motion.div>
           ))}
         </div>

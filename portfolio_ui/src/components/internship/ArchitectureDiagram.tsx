@@ -16,7 +16,15 @@ export default function ArchitectureDiagram({
 }: ArchitectureDiagramProps) {
   const diagramRef = useRef<HTMLDivElement>(null);
 
+  // Check if diagram is valid mermaid code
+  const isValidDiagram = diagram && diagram.trim().length > 0 && 
+    (diagram.includes('graph') || diagram.includes('flowchart') || 
+     diagram.includes('sequenceDiagram') || diagram.includes('classDiagram') ||
+     diagram.includes('stateDiagram') || diagram.includes('erDiagram'));
+
   useEffect(() => {
+    if (!isValidDiagram) return;
+    
     const renderDiagram = () => {
       if (typeof window !== 'undefined' && window.renderMermaidDiagrams) {
         // Small delay to ensure DOM is ready
@@ -30,7 +38,7 @@ export default function ArchitectureDiagram({
     };
 
     renderDiagram();
-  }, [diagram]);
+  }, [diagram, isValidDiagram]);
 
   return (
     <section id="architecture" className="py-20 bg-white dark:bg-gray-800">
@@ -44,16 +52,36 @@ export default function ArchitectureDiagram({
               {description.split('\n\n').map((paragraph, index) => (
                 <p key={index} className="mb-4 last:mb-0">
                   {paragraph.split('\n').map((line, lineIndex) => {
-                    // Check if line starts with **text** for bold formatting
-                    const boldMatch = line.match(/^\*\*(.*?)\*\*$/);
-                    if (boldMatch) {
-                      return (
-                        <span key={lineIndex} className="block">
-                          <strong className="text-blue-600 dark:text-blue-400">{boldMatch[1]}</strong>
-                        </span>
-                      );
+                    // Parse bold text **text** -> <strong>text</strong>
+                    const parts: React.ReactNode[] = [];
+                    let remaining = line;
+                    let key = 0;
+                    
+                    while (remaining.length > 0) {
+                      const boldMatch = remaining.match(/\*\*([^*]+?)\*\*/);
+                      
+                      if (boldMatch && boldMatch.index !== undefined) {
+                        // Add text before the bold match
+                        const textBefore = remaining.substring(0, boldMatch.index);
+                        if (textBefore) parts.push(<span key={key++}>{textBefore}</span>);
+                        
+                        // Add the bold text
+                        parts.push(<strong key={key++} className="font-bold text-blue-600 dark:text-blue-400">{boldMatch[1]}</strong>);
+                        
+                        // Continue with text after the bold match
+                        remaining = remaining.substring(boldMatch.index + boldMatch[0].length);
+                      } else {
+                        // No more bold matches, add remaining text
+                        if (remaining) parts.push(<span key={key++}>{remaining}</span>);
+                        break;
+                      }
                     }
-                    return lineIndex > 0 ? <span key={lineIndex} className="block">{line}</span> : line;
+                    
+                    return (
+                      <span key={lineIndex} className={lineIndex > 0 ? "block" : ""}>
+                        {parts}
+                      </span>
+                    );
                   })}
                 </p>
               ))}
@@ -61,14 +89,22 @@ export default function ArchitectureDiagram({
           )}
           
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 shadow-xl">
-            <div 
-              ref={diagramRef}
-              className="bg-white dark:bg-gray-900 rounded-xl p-6 overflow-x-auto"
-            >
-              <pre className="mermaid text-center" suppressHydrationWarning>
-                {diagram}
-              </pre>
-            </div>
+            {isValidDiagram ? (
+              <div 
+                ref={diagramRef}
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 overflow-x-auto"
+              >
+                <pre className="mermaid text-center" suppressHydrationWarning>
+                  {diagram}
+                </pre>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 text-center">
+                <p className="text-gray-500 dark:text-gray-400">
+                  Architecture diagram will be available soon. Please configure the mermaid diagram in the admin panel.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

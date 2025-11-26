@@ -44,6 +44,10 @@ CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
 MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 MEDIA_ROOT = '/app/media'
 
+# File Upload Settings
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
+
 # File storage configuration - use local storage in DEBUG mode, S3 in production
 if DEBUG:
 	STORAGES = {
