@@ -292,11 +292,11 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				asyncio.get_event_loop().run_in_executor(
 					None, lambda: child.expect([
 						r'[$#>]',  # Basic prompt chars
-						r'bash.*[$#>]',  # bash-4.4$
-						r'[@\w-]+[:~].*[$#>]',  # user@host:path$
-						r'\[.*\].*[$#>]',  # Colored prompts with escape codes
-						'.*[$#>]\s*$',  # Any prompt ending with $/#/>
-					])
+					r'bash.*[$#>]',  # bash-4.4$
+					r'[@\w-]+[:~].*[$#>]',  # user@host:path$
+					r'\[.*\].*[$#>]',  # Colored prompts with escape codes
+					r'.*[$#>]\s*$',  # Any prompt ending with $/#/>
+				])
 				),
 				timeout=45  # Increased from 15s to 45s to handle slow initialization
 			)
