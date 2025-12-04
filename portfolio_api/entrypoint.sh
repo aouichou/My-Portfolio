@@ -50,10 +50,10 @@ python manage.py migrate
 # "
 
 
-# Check if running on Render (production) or locally with docker-compose
-if [ -n "$RENDER" ]; then
-  # PRODUCTION (Render): Use only Daphne for both HTTP and WebSocket
-  # Render only exposes ONE port, so Daphne handles everything
+# Check if running on Render or DigitalOcean (production) or locally with docker-compose
+if [ -n "$RENDER" ] || [ -n "$DIGITALOCEAN_APP" ]; then
+  # PRODUCTION (Render/DigitalOcean): Use only Daphne for both HTTP and WebSocket
+  # Cloud platforms only expose ONE port, so Daphne handles everything
   export PORT=${PORT:-8000}
   echo "🚀 PRODUCTION MODE: Starting Daphne on port $PORT (HTTP + WebSocket)"
   exec daphne -b 0.0.0.0 -p "$PORT" portfolio_api.asgi:application

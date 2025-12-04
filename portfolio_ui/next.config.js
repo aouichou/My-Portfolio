@@ -10,6 +10,8 @@ const nextConfig = {
       'bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579.s3.eu-west-1.amazonaws.com',
       's3.eu-west-1.amazonaws.com',
       'portfolio-backend-dytv.onrender.com',
+      'media.aouichou.me', // Cloudflare R2 custom domain
+      'a1fe8a3e45d7ca8688b8022738641412.r2.cloudflarestorage.com', // R2 direct endpoint
     ],
     minimumCacheTTL: 60,
   },
@@ -74,8 +76,8 @@ const nextConfig = {
   },
   env: {
     PORT: process.env.PORT || '3000',
-    NEXT_PUBLIC_API_URL: 'https://portfolio-backend-dytv.onrender.com/api',
-    NEXT_PUBLIC_MEDIA_URL: 'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-dytv.onrender.com/api',
+    NEXT_PUBLIC_MEDIA_URL: process.env.NEXT_PUBLIC_MEDIA_URL || 'https://media.aouichou.me',
   }
 };
 

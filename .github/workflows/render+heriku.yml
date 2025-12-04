@@ -1,4 +1,4 @@
-name: Heroku + Render Deploy
+name: Heroku + DigitalOcean Deploy
 on:
   push:
     branches:
@@ -61,7 +61,7 @@ jobs:
           echo "Shared config changes: ${{ steps.filter.outputs.shared }}"
           echo "Force deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}"
 
-  # Backend deployment job with condition
+  # Backend deployment job - DigitalOcean App Platform
   deploy-backend:
     needs: [check-changes]
     if: |
@@ -85,47 +85,25 @@ jobs:
       - name: Deploy reason
         run: |
           if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
-            echo "🚀 Deploying backend because force deploy was requested in commit message"
+            echo "🚀 Deploying backend to DigitalOcean because force deploy was requested"
           else
-            echo "🚀 Deploying backend because backend files changed"
+            echo "🚀 Deploying backend to DigitalOcean because backend files changed"
           fi
 
-      - name: Update Render Environment Variables
+      - name: Trigger DigitalOcean Deployment
         if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: |
-          curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.DIGITALOCEAN_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "envVars": [
-              {"key": "SMTP_USER", "value": "${{ secrets.SMTP_USER }}"},
-              {"key": "SMTP_PASSWORD", "value": "${{ secrets.SMTP_PASSWORD }}"}
-            ]
-          }' \
-          https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/env-vars
-              
-      - name: Render Deploy Action
-        if: steps.check-dependabot.outputs.is_dependabot != 'true'
-        uses: johnbeynon/render-deploy-action@a0588f9aca995a15d69a72cb2bfbf37c12e5b540 # v0.0.8
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
-          
-      - name: Run Migrations and Import Data
+            https://api.digitalocean.com/v2/apps/${{ secrets.DIGITALOCEAN_APP_ID }}/deployments
+      
+      - name: Wait for Deployment
         if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: |
-          # First deployment to create service
-          curl -X POST -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-               https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
-          
-          # Wait for service to be ready
-          sleep 120
-          
-          # Run migrations
-          curl -X POST -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-               -H "Content-Type: application/json" \
-               -d '{"clearCache": "do_not_clear"}' \
-               https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploy
+          echo "⏳ Waiting for DigitalOcean deployment to complete (2-3 minutes)..."
+          sleep 180
+          echo "✅ Deployment should be complete. Check DigitalOcean dashboard for status."
       
       - name: Dependabot PR Check Passed
         if: steps.check-dependabot.outputs.is_dependabot == 'true'
@@ -188,7 +166,7 @@ jobs:
           echo "✅ Dependabot PR validated - deployment skipped intentionally"
           echo "This PR can be safely merged if all other checks pass"
 
-  # Terminal service deployment job
+  # Terminal service deployment job - DigitalOcean App Platform
   deploy-terminal:
     needs: [check-changes]
     if: |
@@ -212,19 +190,28 @@ jobs:
       - name: Deploy reason
         run: |
           if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
-            echo "🚀 Deploying terminal service because force deploy was requested"
+            echo "🚀 Deploying terminal service to DigitalOcean because force deploy was requested"
           elif [[ "${{ needs.check-changes.outputs.shared }}" == "true" ]]; then
-            echo "🚀 Deploying terminal service because shared configs changed"
+            echo "🚀 Deploying terminal service to DigitalOcean because shared configs changed"
           else
-            echo "🚀 Deploying terminal service because terminal files changed"
+            echo "🚀 Deploying terminal service to DigitalOcean because terminal files changed"
           fi
 
-      - name: Render Deploy Action for Terminal Service
+      - name: Trigger DigitalOcean Deployment
         if: steps.check-dependabot.outputs.is_dependabot != 'true'
-        uses: johnbeynon/render-deploy-action@a0588f9aca995a15d69a72cb2bfbf37c12e5b540 # v0.0.8
-        with:
-          service-id: ${{ secrets.RENDER_TERMINAL_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          # Same app ID - DigitalOcean deploys all components together
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.DIGITALOCEAN_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            https://api.digitalocean.com/v2/apps/${{ secrets.DIGITALOCEAN_APP_ID }}/deployments
+      
+      - name: Wait for Deployment
+        if: steps.check-dependabot.outputs.is_dependabot != 'true'
+        run: |
+          echo "⏳ Waiting for DigitalOcean deployment to complete..."
+          sleep 180
+          echo "✅ Terminal service deployment triggered. Check DigitalOcean dashboard."
       
       - name: Dependabot PR Check Passed
         if: steps.check-dependabot.outputs.is_dependabot == 'true'

@@ -4,7 +4,14 @@ from django import forms
 from django.contrib import admin
 from django.core.files.storage import default_storage
 
-from .models import ContactSubmission, Gallery, GalleryImage, Project
+from .models import (
+	ContactSubmission,
+	Gallery,
+	GalleryImage,
+	Internship,
+	InternshipProject,
+	Project,
+)
 
 
 class GalleryImageInline(admin.TabularInline):
@@ -142,3 +149,115 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
 
 # Register additional models
 admin.site.register(Gallery, GalleryAdmin)
+
+
+# ============ Internship Admin Configuration ============
+
+class InternshipProjectInline(admin.TabularInline):
+	"""Inline editor for internship projects"""
+	model = InternshipProject
+	extra = 1
+	fields = ('title', 'slug', 'order', 'is_featured')
+	prepopulated_fields = {'slug': ('title',)}
+	show_change_link = True
+
+
+@admin.register(Internship)
+class InternshipAdmin(admin.ModelAdmin):
+	"""Admin interface for Internship model"""
+	list_display = ('company', 'role', 'start_date', 'end_date', 'is_active', 'order')
+	list_filter = ('is_active', 'start_date')
+	prepopulated_fields = {'slug': ('company',)}
+	search_fields = ('company', 'role', 'subtitle', 'overview')
+	inlines = [InternshipProjectInline]
+	
+	fieldsets = (
+		('Basic Information', {
+			'fields': ('company', 'role', 'subtitle', 'slug', 'start_date', 'end_date')
+		}),
+		('Overview Content', {
+			'fields': ('overview',),
+			'classes': ('wide',)
+		}),
+		('Hero Stats', {
+			'fields': ('stats',),
+			'classes': ('wide',),
+			'description': 'JSON array: [{"value": "10,000+", "label": "Lines of Code", "color": "blue"}, ...]'
+		}),
+		('Technologies', {
+			'fields': ('technologies',),
+			'classes': ('wide',),
+			'description': 'JSON array: [{"name": "FastAPI", "icon": "⚡", "category": "backend", "level": 5}, ...]'
+		}),
+		('Impact Metrics', {
+			'fields': ('impact_metrics',),
+			'classes': ('wide',),
+			'description': 'JSON array: [{"value": "10000", "label": "Lines of Code", "description": "...", "icon": "💻"}, ...]'
+		}),
+		('Architecture', {
+			'fields': ('architecture_description', 'architecture_diagram'),
+			'classes': ('wide',)
+		}),
+		('Code Samples', {
+			'fields': ('code_samples',),
+			'classes': ('wide',),
+			'description': 'JSON array: [{"title": "...", "description": "...", "code": "...", "language": "python"}, ...]'
+		}),
+		('Documentation', {
+			'fields': ('documentation',),
+			'classes': ('wide',),
+			'description': 'JSON array: [{"title": "...", "description": "...", "category": "architecture", "icon": "📄"}, ...]'
+		}),
+		('Display Settings', {
+			'fields': ('is_active', 'order')
+		}),
+	)
+
+
+@admin.register(InternshipProject)
+class InternshipProjectAdmin(admin.ModelAdmin):
+	"""Admin interface for InternshipProject model"""
+	list_display = ('title', 'internship', 'order', 'is_featured')
+	list_filter = ('internship', 'is_featured')
+	prepopulated_fields = {'slug': ('title',)}
+	search_fields = ('title', 'description', 'overview')
+	
+	fieldsets = (
+		('Basic Information', {
+			'fields': ('internship', 'title', 'slug', 'description')
+		}),
+		('Visual', {
+			'fields': ('thumbnail', 'thumbnail_url')
+		}),
+		('Project Details', {
+			'fields': ('overview', 'role_description'),
+			'classes': ('wide',)
+		}),
+		('Technologies & Stats', {
+			'fields': ('tech_stack', 'stats', 'badges'),
+			'classes': ('wide',),
+			'description': 'tech_stack: ["FastAPI", ...], stats: {"ownership": "80%", ...}, badges: [{"text": "...", "variant": "primary"}, ...]'
+		}),
+		('Architecture', {
+			'fields': ('architecture_description', 'architecture_diagrams'),
+			'classes': ('wide',),
+			'description': 'architecture_diagrams: [{"title": "...", "diagram": "mermaid code", "description": "..."}, ...]'
+		}),
+		('Key Features', {
+			'fields': ('key_features',),
+			'classes': ('wide',),
+			'description': 'JSON array: [{"title": "...", "description": "...", "icon": "🔐"}, ...]'
+		}),
+		('Code Snippets', {
+			'fields': ('code_snippets',),
+			'classes': ('wide',),
+			'description': 'JSON array: [{"title": "...", "code": "...", "language": "python", "description": "..."}, ...]'
+		}),
+		('Impact & Documentation', {
+			'fields': ('impact_metrics', 'related_documentation'),
+			'classes': ('wide',)
+		}),
+		('Display Settings', {
+			'fields': ('order', 'is_featured')
+		}),
+	)

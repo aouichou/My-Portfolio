@@ -1,0 +1,8 @@
+build:
+  docker:
+    web: Dockerfile
+  config:
+    NEXT_PUBLIC_API_URL: https://api.aouichou.me/api
+    NEXT_PUBLIC_MEDIA_URL: https://media.aouichou.me
+run:
+  web: npm start

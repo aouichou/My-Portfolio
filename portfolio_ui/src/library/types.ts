@@ -53,6 +53,23 @@ export type GalleryImage = {
   demo_commands?: Record<string, string>;
   code_steps?: Record<string, string | number | boolean | object>;
   code_snippets?: Record<string, string | CodeSnippet>;
+  
+  // Unified project type fields
+  project_type: 'school' | 'internship';
+  
+  // Internship-specific fields
+  company?: string;
+  role?: string;
+  start_date?: string;
+  end_date?: string;
+  stats?: Record<string, string>;
+  badges?: Array<{ text: string; color: string }>;
+  role_description?: string;
+  impact_metrics?: {
+    security_vulnerabilities_prevented?: string;
+    reusability_score?: string;
+    code_quality_rating?: string;
+  };
 }
 
 declare global {
