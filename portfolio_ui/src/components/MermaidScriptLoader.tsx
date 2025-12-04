@@ -23,8 +23,12 @@ export function MermaidScriptLoader() {
         fontFamily: 'var(--font-geist-mono)',
         htmlLabels: true,
         flowchart: {
-		  curve: 'linear',
-          useMaxWidth: false,
+          curve: 'linear',
+          useMaxWidth: true,
+          htmlLabels: true,
+          nodeSpacing: 50,
+          rankSpacing: 50,
+          padding: 20,
         },
       });
       
@@ -36,7 +40,15 @@ export function MermaidScriptLoader() {
       // Useful for theme changes or dynamic content updates
       window.renderMermaidDiagrams = async () => {
         try {
-          await mermaid.run();
+          const mermaidElements = document.querySelectorAll('.mermaid');
+          
+          if (mermaidElements.length === 0) {
+            return;
+          }
+          
+          await mermaid.run({
+            querySelector: '.mermaid'
+          });
         } catch (error) {
           console.error('MermaidScriptLoader: Error rendering diagrams', error);
         }

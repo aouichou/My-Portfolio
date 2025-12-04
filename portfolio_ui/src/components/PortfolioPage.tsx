@@ -3,8 +3,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import AutoRenderMermaid from './AutoRenderMermaid';
 
 
 interface SectionVisibility {
@@ -329,41 +331,29 @@ return (
             animate={isVisible['architecture'] ? 'visible' : 'hidden'}
             transition={{ delay: 0.1, duration: 0.6 }}
           >
-<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700">
-  <div className="relative w-full" style={{ paddingTop: '56.25%' /* 16:9 aspect ratio */ }}>
-    {/* Light Mode SVG */}
-    <object
-      data="/diagrams/architecture-diagram-light.svg"
-      type="image/svg+xml"
-      className="absolute top-0 left-0 w-full h-full dark:hidden"
-      aria-label="System Architecture Diagram (Light Mode)"
-    >
-      {/* Fallback for unsupported browsers */}
-      <img 
-        src="/diagrams/architecture-diagram-light.png" 
-        alt="System Architecture Diagram"
-        className="w-full h-full"
-      />
-    </object>
-
-    {/* Dark Mode SVG */}
-    <object
-      data="/diagrams/architecture-diagram-dark.svg"
-      type="image/svg+xml"
-      className="absolute top-0 left-0 w-full h-full hidden dark:block"
-      aria-label="System Architecture Diagram (Dark Mode)"
-    >
-      <img 
-        src="/diagrams/architecture-diagram-dark.png" 
-        alt="System Architecture Diagram"
-        className="w-full h-full"
-      />
-    </object>
-  </div>
-  <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-    Figure 1: System Architecture Diagram
-  </div>
-</div>
+            <div className="bg-gray-50 dark:bg-gray-900 p-8 rounded border border-gray-200 dark:border-gray-700">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 overflow-x-auto">
+                <Image
+                  src="/diagrams/architecture-diagram-light.svg"
+                  alt="System Architecture Diagram"
+                  width={800}
+                  height={600}
+                  className="mx-auto block dark:hidden"
+                  priority
+                />
+                <Image
+                  src="/diagrams/architecture-diagram-dark.svg"
+                  alt="System Architecture Diagram"
+                  width={800}
+                  height={600}
+                  className="mx-auto hidden dark:block"
+                  priority
+                />
+              </div>
+              <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                Figure 1: System Architecture Diagram
+              </div>
+            </div>
           </motion.div>
           
           <motion.div
@@ -466,40 +456,30 @@ return (
                 animate={isVisible['cloud'] ? 'visible' : 'hidden'}
                 transition={{ delay: 0.1, duration: 0.6 }}
             >
-<div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700">
-  <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
-    {/* Light Mode SVG */}
-    <object
-      data="/diagrams/cloud-deployment-light.svg"
-      type="image/svg+xml"
-      className="absolute top-0 left-0 w-full h-full dark:hidden"
-      aria-label="Cloud Deployment Architecture (Light Mode)"
-    >
-      <img 
-        src="/diagrams/cloud-deployment-light.png" 
-        alt="Cloud Deployment Architecture"
-        className="w-full h-full"
-      />
-    </object>
+              <div className="bg-gray-50 dark:bg-gray-900 p-8 rounded border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 overflow-x-auto">
+                  <Image
+                    src="/diagrams/cloud-deployment-light.svg"
+                    alt="Cloud Deployment Architecture"
+                    width={800}
+                    height={600}
+                    className="mx-auto block dark:hidden"
+                    priority
+                  />
+                  <Image
+                    src="/diagrams/cloud-deployment-dark.svg"
+                    alt="Cloud Deployment Architecture"
+                    width={800}
+                    height={600}
+                    className="mx-auto hidden dark:block"
+                    priority
+                  />
+                </div>
+                <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                  Figure 2: Cloud Deployment Architecture
+                </div>
+              </div>
 
-    {/* Dark Mode SVG */}
-    <object
-      data="/diagrams/cloud-deployment-dark.svg"
-      type="image/svg+xml"
-      className="absolute top-0 left-0 w-full h-full hidden dark:block"
-      aria-label="Cloud Deployment Architecture (Dark Mode)"
-    >
-      <img 
-        src="/diagrams/cloud-deployment-dark.png" 
-        alt="Cloud Deployment Architecture"
-        className="w-full h-full"
-      />
-    </object>
-  </div>
-  <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-    Figure 2: Cloud Deployment Architecture
-  </div>
-{/* </div> */}
                 <div className="mt-8">
                     <h4 className="font-bold mb-4">Multi-Cloud Strategy Benefits</h4>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -520,7 +500,6 @@ return (
                         </ul>
                     </div>
                     </div>
-                </div>
                 </div>
             </motion.div>
             
@@ -1142,6 +1121,7 @@ return (
           </motion.div>
         </section>
         </main>
+        <AutoRenderMermaid />
         </div>
   );
 }
