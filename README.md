@@ -1,4 +1,4 @@
-# 🚀 Interactive Portfolio: Terminal + Cloud Architecture
+# Interactive Portfolio: Terminal + Cloud Architecture
 
 > A modern, production-grade portfolio with interactive terminal demos, running on a distributed cloud architecture
 
@@ -8,7 +8,7 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/My-Portfolio/render+heriku.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?style=for-the-badge&logo=dependabot)](https://github.com/aouichou/My-Portfolio/network/updates)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Local Development
 
@@ -29,7 +29,7 @@ docker-compose -f docker-compose.dev.yml up
 # Terminal:  ws://localhost:8001
 ```
 
-## 🖥️ Interactive Terminal Demo
+## Interactive Terminal Demo
 
 <p align="center">
   <img src="docs/terminal_demo.gif" width="650px" alt="Interactive Terminal Demo">
@@ -56,28 +56,74 @@ The terminal operates through a multi-layered WebSocket architecture:
 
 This design ensures greater security as the terminal service is never directly exposed to the internet.
 
-## 🏗️ DevOps Architecture
-
-<p align="center">
-  <img src="portfolio_ui/public/diagrams/cloud-deployment-dark.png" width="650px" alt="Cloud Deployment">
-</p>
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD
     User("User Browser") -->|HTTPS| CF("Cloudflare")
     CF -->|HTTP/2| Next("Next.js Frontend")
-    CF -->|WebSocket| Django("Django Backend")
-    Django -->|Internal WebSocket| WS("Terminal Service")
-    Django -->|JSON| DB[("PostgreSQL")]
-    Django -->|Async Tasks| Redis[("Redis Cache")]
-    Django -->|Files| S3[("S3 Storage")]
-    Next -->|API Calls| Django
-    WS -->|PTY| Terminal("PTY Process")
-    Terminal -->|Files| Project("Project Files")
-    Github("GitHub") -->|CI/CD| Actions("GitHub Actions")
+    CF -->|HTTPS| Django("Django Backend")
+    Django -->|WebSocket| WS("Terminal Service")
+    Django -->|SQL| DB[("Neon PostgreSQL")]
+    Django -->|Cache| Redis[("Redis")]
+    Django -->|Files| R2[("Cloudflare R2")]
+    Next -->|API| Django
+    WS -->|PTY| Process("PTY Process")
+    Process -->|Files| Projects("Project Files")
+    GitHub("GitHub") -->|CI/CD| Actions("GitHub Actions")
     Actions -->|Deploy| Next
     Actions -->|Deploy| Django
     Actions -->|Deploy| WS
+    
+    style User fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style CF fill:#F6821F,stroke:#C5681A,color:#fff
+    style Next fill:#000,stroke:#333,color:#fff
+    style Django fill:#092E20,stroke:#0A1F16,color:#fff
+    style WS fill:#009688,stroke:#00695C,color:#fff
+    style DB fill:#336791,stroke:#22496B,color:#fff
+    style Redis fill:#DC382D,stroke:#A02A22,color:#fff
+    style R2 fill:#F6821F,stroke:#C5681A,color:#fff
+    style GitHub fill:#24292E,stroke:#1B1F23,color:#fff
+    style Actions fill:#2088FF,stroke:#176CB8,color:#fff
+```
+
+## 🌐 Cloud Deployment Architecture
+
+```mermaid
+graph TD
+    User("User") -->|HTTPS| CF("Cloudflare CDN")
+    CF --> Heroku("Heroku<br/>Next.js 16")
+    CF --> DO("DigitalOcean<br/>Django 5 + FastAPI")
+    
+    subgraph "Frontend - Heroku"
+        Heroku
+    end
+    
+    subgraph "Backend - DigitalOcean"
+        DO --> API("Django API")
+        DO --> Terminal("Terminal Service")
+        API --> Redis[("Redis Cache")]
+    end
+    
+    subgraph "Database - Neon"
+        DB[("PostgreSQL<br/>Serverless")]
+    end
+    
+    subgraph "Storage - Cloudflare"
+        R2[("R2 Object Storage")]
+    end
+    
+    API --> DB
+    API --> R2
+    Terminal --> PTY("PTY Processes")
+    
+    style User fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style CF fill:#F6821F,stroke:#C5681A,color:#fff
+    style Heroku fill:#430098,stroke:#2E0066,color:#fff
+    style DO fill:#0080FF,stroke:#0059B3,color:#fff
+    style DB fill:#336791,stroke:#22496B,color:#fff
+    style R2 fill:#F6821F,stroke:#C5681A,color:#fff
+    style Redis fill:#DC382D,stroke:#A02A22,color:#fff
 ```
 
 ### Infrastructure Components
@@ -91,7 +137,9 @@ graph TD
 | Cache | Redis 7 | DigitalOcean | Django Channels layer |
 | Storage | Cloudflare R2 (S3-compatible) | Cloudflare | Project files, assets |
 | CDN | Cloudflare | Cloudflare | Edge caching, WAF |
-| CI/CD | GitHub Actions | GitHub | Automated deployment |## 🛡️ Security & Reliability Features
+| CI/CD | GitHub Actions | GitHub | Automated deployment |
+
+## Security & Reliability Features
 
 - **Service Health Monitoring**
   - Mutual health checks to prevent free-tier shutdowns
@@ -111,7 +159,7 @@ graph TD
   - TLS 1.3 enforced throughout
   - Database connection pooling and timeouts
 
-## 🔍 Code Quality & Automation
+## Code Quality & Automation
 
 - **Codacy Integration**
   - Separate security scans for each service (API, UI, Terminal)
@@ -143,7 +191,7 @@ TTI: 1.4s                       Error Rate: 0.02%
 Bundle Size: 128kb              Cache Hit Rate: 92%
 ```
 
-## 🧰 Technical Decisions
+## Technical Decisions
 
 - **Hybrid WebSocket Architecture**: Django Channels handles browser connections with Redis channel layer, then proxies to FastAPI terminal service for actual command execution
 - **FastAPI for Terminal Service**: Chose FastAPI over Express.js for strong async/await support, built-in WebSocket handling, and seamless Python PTY integration
@@ -154,7 +202,7 @@ Bundle Size: 128kb              Cache Hit Rate: 92%
 - **Multi-Provider Backup**: Render and Neon as backup providers for database and backend services
 - **Custom R2 Integration**: Built custom Cloudflare R2 storage class to handle delayed file processing and zip extraction
 
-## 🚀 Getting Started
+## Getting Started
 
 ```bash
 # Clone the repository
