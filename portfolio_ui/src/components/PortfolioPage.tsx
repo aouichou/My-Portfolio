@@ -134,7 +134,7 @@ return (
               </div>
               <h3 className="text-xl font-semibold mb-2">Modern Stack</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Built with Next.js 15, TypeScript, Django 5, and WebSockets for real-time interaction.
+                Built with Next.js 16, TypeScript, Django 5, Python 3.14, Node 25, and WebSockets for real-time interaction.
               </p>
             </motion.div>
             
@@ -152,7 +152,7 @@ return (
               </div>
               <h3 className="text-xl font-semibold mb-2">Cloud Native</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Deployed on Render and Heroku with distributed services, Redis for pub/sub, and S3 for storage.
+                Deployed on DigitalOcean and Heroku with distributed services, Redis for pub/sub, Neon PostgreSQL, and Cloudflare R2 for storage.
               </p>
             </motion.div>
             
@@ -378,7 +378,8 @@ return (
 			  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
 				<h4 className="font-bold text-lg mb-2 text-blue-600">Frontend Service</h4>
 				<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
-				  <li><span className="font-medium">Next.js 15</span> with TypeScript</li>
+				  <li><span className="font-medium">Next.js 16</span> with TypeScript</li>
+				  <li><span className="font-medium">Node 25</span> runtime</li>
 				  <li><span className="font-medium">Tailwind CSS</span> for styling</li>
 				  <li><span className="font-medium">React Query</span> for data fetching</li>
 				  <li>Deployed on <span className="font-medium">Heroku</span></li>
@@ -390,10 +391,11 @@ return (
 				<h4 className="font-bold text-lg mb-2 text-blue-600">Backend Service</h4>
 				<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
 				  <li><span className="font-medium">Django 5</span> REST API</li>
+				  <li><span className="font-medium">Python 3.14</span> runtime</li>
 				  <li><span className="font-medium">Django Channels</span> for WebSockets</li>
-				  <li><span className="font-medium">PostgreSQL</span> database</li>
+				  <li><span className="font-medium">Neon PostgreSQL</span> database</li>
 				  <li><span className="font-medium">Redis</span> for caching/pub-sub</li>
-				  <li><span className="font-medium">S3</span> storage for media</li>
+				  <li><span className="font-medium">Cloudflare R2</span> storage for media</li>
 				</ul>
 			  </div>
 			  
@@ -401,6 +403,7 @@ return (
 				<h4 className="font-bold text-lg mb-2 text-blue-600">Terminal Service</h4>
 				<ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
 				  <li><span className="font-medium">FastAPI</span> with WebSockets</li>
+				  <li><span className="font-medium">Python 3.14</span> runtime</li>
 				  <li><span className="font-medium">PTY</span> process management</li>
 				  <li>Sandboxed <span className="font-medium">Docker</span> environment</li>
 				  <li>Command validation & security</li>
@@ -542,8 +545,9 @@ return (
                 </div>
                 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <h4 className="font-bold text-lg mb-2 text-blue-600">Render Optimizations</h4>
+                    <h4 className="font-bold text-lg mb-2 text-blue-600">DigitalOcean Optimizations</h4>
                     <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+                    <li>App Platform for backend & terminal services</li>
                     <li>Private service networking</li>
                     <li>Persistent disk for terminal sessions</li>
                     <li>Zero-downtime deployments</li>
@@ -553,13 +557,13 @@ return (
                 </div>
                 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <h4 className="font-bold text-lg mb-2 text-blue-600">AWS Integrations</h4>
+                    <h4 className="font-bold text-lg mb-2 text-blue-600">Cloudflare & Neon</h4>
                     <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
-                    <li>S3 for persistent media storage</li>
-                    <li>CloudFront for global asset delivery</li>
-                    <li>IAM roles for secure access</li>
-                    <li>Versioned object storage</li>
-                    <li>Lifecycle rules for cost management</li>
+                    <li>R2 for persistent media storage (S3-compatible)</li>
+                    <li>Neon serverless PostgreSQL database</li>
+                    <li>Zero cold starts with Neon branching</li>
+                    <li>Cloudflare CDN for global asset delivery</li>
+                    <li>WAF protection and DDoS mitigation</li>
                     </ul>
                 </div>
                 </div>
@@ -743,7 +747,57 @@ return (
                 <li><span className="font-medium">Automatic Database Migrations</span>: Safe application of schema changes</li>
                 <li><span className="font-medium">Force Deploy Flag</span>: Deploy all services with commit message flag [deploy-all]</li>
                 <li><span className="font-medium">Rollback Support</span>: Quick rollback to previous version if needed</li>
+                <li><span className="font-medium">Dependabot Integration</span>: Automated dependency updates targeting dev branch</li>
               </ul>
+            </div>
+          </motion.div>
+          
+          <motion.div
+            className="mb-12"
+            variants={fadeIn}
+            initial="hidden"
+            animate={isVisible['devops'] ? 'visible' : 'hidden'}
+            transition={{ delay: 0.15, duration: 0.6 }}
+          >
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-bold mb-4">Automated Code Quality & Dependency Management</h3>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold mb-3 text-blue-600">Codacy Security Scanning</h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
+                    Three separate workflows analyze each service independently for code quality, security vulnerabilities, and best practices.
+                  </p>
+                  <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <li><span className="font-medium">API Service Scan</span>: Django/Python analysis (weekly + on PR)</li>
+                    <li><span className="font-medium">UI Service Scan</span>: Next.js/TypeScript analysis (weekly + on PR)</li>
+                    <li><span className="font-medium">Terminal Service Scan</span>: FastAPI/Python analysis (weekly + on PR)</li>
+                    <li><span className="font-medium">SARIF Upload</span>: Results integrated into GitHub Security tab</li>
+                    <li><span className="font-medium">Continuous Monitoring</span>: Scheduled weekly scans for emerging issues</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-3 text-blue-600">Dependabot Automation</h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
+                    Automated dependency updates across npm, pip, Docker, and GitHub Actions - all targeting dev branch for safe testing.
+                  </p>
+                  <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <li><span className="font-medium">Grouped Updates</span>: npm production/development, Django dependencies</li>
+                    <li><span className="font-medium">Security Priority</span>: Immediate PRs for critical vulnerabilities</li>
+                    <li><span className="font-medium">Multi-Ecosystem</span>: npm, pip, Docker base images, GitHub Actions</li>
+                    <li><span className="font-medium">Dev Branch Targeting</span>: Test updates locally before production</li>
+                    <li><span className="font-medium">Weekly Schedule</span>: Mondays at 9:00 AM for dependency updates</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800/30">
+                <h4 className="font-semibold mb-2 text-green-700 dark:text-green-300">Recent Achievement</h4>
+                <p className="text-gray-700 dark:text-gray-300 text-sm">
+                  Successfully merged 10+ Dependabot PRs in December 2024, upgrading to Python 3.14, Node 25, Ubuntu 24.04, Next.js 16, and React 19 - all tested systematically in dev environment before production deployment.
+                </p>
+              </div>
             </div>
           </motion.div>
           
@@ -857,11 +911,11 @@ return (
               
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">Render</h4>
+                  <h4 className="font-semibold mb-2">DigitalOcean</h4>
                   <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-300">
                     <li>Django backend web service</li>
                     <li>Terminal service (internal only)</li>
-                    <li>PostgreSQL database</li>
+                    <li>App Platform deployment</li>
                     <li>Redis cache service</li>
                     <li>Private networking between services</li>
                   </ul>
@@ -870,8 +924,8 @@ return (
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Heroku</h4>
                   <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                    <li>Next.js frontend</li>
-                    <li>Node.js runtime</li>
+                    <li>Next.js 16 frontend</li>
+                    <li>Node 25 runtime</li>
                     <li>Automatic HTTPS</li>
                     <li>SSL certificate management</li>
                     <li>Custom domain support</li>
@@ -879,11 +933,11 @@ return (
                 </div>
                 
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">AWS</h4>
+                  <h4 className="font-semibold mb-2">Cloudflare & Neon</h4>
                   <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                    <li>S3 storage for media files</li>
-                    <li>CloudFront for CDN delivery</li>
-                    <li>IAM for access management</li>
+                    <li>R2 storage for media files</li>
+                    <li>Neon serverless PostgreSQL</li>
+                    <li>Cloudflare CDN delivery</li>
                     <li>Custom storage adapters</li>
                     <li>Secure uploads and downloads</li>
                   </ul>
@@ -926,7 +980,7 @@ return (
         script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com;
-        img-src 'self' data: https://*.amazonaws.com;
+        img-src 'self' data: https://*.r2.cloudflarestorage.com;
         connect-src 'self' wss://*.aouichou.me api.aouichou.me;`}
                     </pre>
                   </div>
@@ -1050,8 +1104,9 @@ return (
                 <div>
                   <h4 className="font-semibold mb-2">Backup & Disaster Recovery</h4>
                   <ul className="list-disc pl-5 space-y-2 text-gray-600 dark:text-gray-300">
-                    <li>Daily database backups</li>
-                    <li>Versioned S3 storage for media files</li>
+                    <li>Daily database backups (Neon + Render backup)</li>
+                    <li>Versioned R2 storage for media files</li>
+                    <li>Multi-provider redundancy (DigitalOcean + Render)</li>
                     <li>Configuration stored as environment variables</li>
                     <li>Infrastructure as code for quick recovery</li>
                   </ul>

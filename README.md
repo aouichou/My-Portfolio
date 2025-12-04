@@ -3,9 +3,10 @@
 > A modern, production-grade portfolio with interactive terminal demos, running on a distributed cloud architecture
 
 [![Codacy Badge](https://img.shields.io/codacy/grade/db3f1b73496040b39030c8c45c54e5a9?style=for-the-badge&logo=codacy&label=Code%20Quality)](https://app.codacy.com/gh/aouichou/My-Portfolio?utm_source=github.com&utm_medium=referral&utm_content=aouichou/My-Portfolio&utm_campaign=Badge_Grade)
-[![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=render)](https://aouichou.me)
+[![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=digitalocean)](https://aouichou.me)
 [![WebSocket Status](https://img.shields.io/badge/WebSockets-active-4BC51D?style=for-the-badge&logo=websocket)](https://api.aouichou.me/ws)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/My-Portfolio/render+heriku.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?style=for-the-badge&logo=dependabot)](https://github.com/aouichou/My-Portfolio/network/updates)
 
 ## 🚀 Quick Start
 
@@ -82,17 +83,15 @@ graph TD
 ### Infrastructure Components
 
 | Service | Technology | Provider | Purpose |
-|---------|------------|----------|---------|
+|---------|------------|----------|---------|  
 | Frontend | Next.js 16 + React 19, TypeScript, Tailwind CSS 3 | Heroku | User interface with Turbopack |
-| Backend API | Django 5.1 + Channels 4, DRF 3.15, Daphne | Render | Data, auth & WebSocket proxy |
-| Terminal Service | FastAPI 0.115, pexpect, PTY, Uvicorn | Render | Terminal execution service |
-| Database | PostgreSQL 15 | Render | Persistent storage |
-| Cache | Redis 7 | Render | Django Channels layer |
-| Storage | S3-compatible | AWS | Project files, assets |
+| Backend API | Django 5.1 + Channels 4, DRF 3.15, Python 3.14 | DigitalOcean | Data, auth & WebSocket proxy |
+| Terminal Service | FastAPI 0.122, Python 3.14, pexpect, PTY | DigitalOcean | Terminal execution service |
+| Database | Neon PostgreSQL (Serverless) | Neon | Persistent storage |
+| Cache | Redis 7 | DigitalOcean | Django Channels layer |
+| Storage | Cloudflare R2 (S3-compatible) | Cloudflare | Project files, assets |
 | CDN | Cloudflare | Cloudflare | Edge caching, WAF |
-| CI/CD | GitHub Actions | GitHub | Automated deployment |
-
-## 🛡️ Security & Reliability Features
+| CI/CD | GitHub Actions | GitHub | Automated deployment |## 🛡️ Security & Reliability Features
 
 - **Service Health Monitoring**
   - Mutual health checks to prevent free-tier shutdowns
@@ -112,6 +111,27 @@ graph TD
   - TLS 1.3 enforced throughout
   - Database connection pooling and timeouts
 
+## 🔍 Code Quality & Automation
+
+- **Codacy Integration**
+  - Separate security scans for each service (API, UI, Terminal)
+  - Weekly scheduled analysis + PR-triggered scans
+  - SARIF results integrated into GitHub Security tab
+  - Continuous monitoring for code quality and vulnerabilities
+
+- **Dependabot Automation**
+  - Multi-ecosystem support: npm, pip, Docker, GitHub Actions
+  - Grouped dependency updates (production/development)
+  - All PRs target dev branch for safe testing
+  - Weekly schedule with security priority
+  - Recent achievement: Python 3.14, Node 25, Ubuntu 24.04, Next.js 16, React 19
+
+- **Development Workflow**
+  - Dev branch for testing updates locally with Docker
+  - Main branch for production deployment
+  - Path-based deployment (only changed services deployed)
+  - Force deploy flag: [deploy-all] in commit message
+
 ## 📈 Performance Optimization
 
 ```text
@@ -130,8 +150,9 @@ Bundle Size: 128kb              Cache Hit Rate: 92%
 - **React 19 Early Adoption**: Upgraded to React 19 for improved concurrent rendering and automatic batching
 - **Tailwind CSS v3 over v4**: Stayed on v3 for production stability; v4 requires significant migration effort
 - **Next.js 16 with Turbopack**: Leveraging Turbopack for faster development builds and improved HMR
-- **Split Deployment Strategy**: Heroku for frontend (simple Docker deployment), Render for backend services (superior container support, free PostgreSQL & Redis)
-- **Custom S3 Integration**: Built custom S3 storage class to handle delayed file processing and zip extraction
+- **Split Deployment Strategy**: Heroku for frontend (simple Docker deployment), DigitalOcean for backend services (superior App Platform, integrated Redis)
+- **Multi-Provider Backup**: Render and Neon as backup providers for database and backend services
+- **Custom R2 Integration**: Built custom Cloudflare R2 storage class to handle delayed file processing and zip extraction
 
 ## 🚀 Getting Started
 
