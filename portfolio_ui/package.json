@@ -34,7 +34,7 @@
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
     "jszip": "^3.10.1",
-    "lucide-react": "^0.555.0",
+    "lucide-react": "^0.556.0",
     "mermaid": "^11.12.2",
     "next": "^16.0.7",
     "next-mdx-remote": "^5.0.0",
