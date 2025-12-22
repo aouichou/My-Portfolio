@@ -1,7 +1,7 @@
 websockets==15.0.1
-fastapi==0.124.4
+fastapi==0.127.0
 uvicorn[standard]==0.40.0
-python-multipart==0.0.20
+python-multipart==0.0.21
 pexpect==4.9.0
 redis==7.1.0
 psutil==7.0.0

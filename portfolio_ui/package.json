@@ -54,18 +54,18 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^16.0.10",
+    "@next/eslint-plugin-next": "^16.1.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
     "@types/jszip": "^3.4.0",
     "@types/node": "25.0.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^8.49.0",
-    "@typescript-eslint/parser": "^8.49.0",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
+    "@typescript-eslint/parser": "^8.50.1",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.2",
-    "eslint-config-next": ">=16.0.10",
+    "eslint-config-next": "^16.1.1",
     "postcss": "^8.5.1",
     "tailwindcss": "^4.1.17",
     "typescript": "5.9.3"
