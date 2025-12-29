@@ -4,6 +4,6 @@ uvicorn[standard]==0.40.0
 python-multipart==0.0.21
 pexpect==4.9.0
 redis==7.1.0
-psutil==7.0.0
+psutil==7.2.1
 boto3==1.42.14
 aiohttp==3.13.2
