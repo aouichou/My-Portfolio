@@ -44,7 +44,7 @@ export default function InternshipProjects({ projects, internshipSlug }: Interns
             >
               <Link href={`/internship/${project.slug}`} className="block h-full">
                 {/* Gradient Border Wrapper */}
-                <div className="p-[2px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl h-full">
+                <div className="p-[2px] bg-linear-to-r from-blue-600 to-purple-600 rounded-xl h-full">
                   <div className="bg-white dark:bg-gray-800 rounded-xl h-full overflow-hidden flex flex-col">
                     {/* Thumbnail */}
                     <div className="relative h-48 w-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex-shrink-0">
@@ -68,7 +68,7 @@ export default function InternshipProjects({ projects, internshipSlug }: Interns
                     {/* Badges Overlay */}
                     <div className="absolute top-4 right-4 flex flex-col gap-2">
                       {project.is_featured && (
-                        <span className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg">
+                        <span className="px-3 py-1 bg-linear-to-r from-blue-600 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg">
                           Featured
                         </span>
                       )}

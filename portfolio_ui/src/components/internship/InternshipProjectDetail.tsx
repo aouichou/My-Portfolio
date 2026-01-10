@@ -29,7 +29,7 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
       </div>
 
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 text-white relative overflow-hidden">
+      <section className="py-16 bg-linear-to-r from-blue-900 via-purple-900 to-blue-900 text-white relative overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0 opacity-20">
           <motion.div
@@ -217,7 +217,7 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.05 }}
                     viewport={{ once: true }}
-                    className="flex items-start gap-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+                    className="flex items-start gap-4 bg-linear-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 mt-2" />
                     <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -244,7 +244,7 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
                 {project.tech_stack.map((tech, index) => (
                   <span
                     key={index}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-semibold text-sm hover:scale-110 transition-transform"
+                    className="px-4 py-2 bg-linear-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-semibold text-sm hover:scale-110 transition-transform"
                   >
                     {tech}
                   </span>

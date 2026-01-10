@@ -21,9 +21,9 @@ import CodeWalkthrough from '@/components/CodeWalkthrough';
 import { Icons } from '@/components/Icons';
 import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
+import DOMPurify from 'dompurify';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import DOMPurify from 'dompurify';
 
 interface ProjectDetailProps {
   slug: string;
@@ -161,7 +161,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
         <MotionH1
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-500 bg-clip-text text-transparent mb-6"
+          className="text-6xl font-bold bg-linear-to-r from-blue-600 to-purple-500 bg-clip-text text-transparent mb-6"
         >
           {project.title}
         </MotionH1>
@@ -188,7 +188,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
                 href={project.live_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all"
+                className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all"
                 >
                 <div className="h-5 w-5">
                     <Icons.externalLink />
@@ -508,7 +508,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 				initial={{ y: 100, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
 				transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-				className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center z-50"
+				className="fixed bottom-0 left-0 right-0 bg-linear-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center z-50"
 			>
 				<div className="flex items-center gap-2">
 				<span className="text-2xl">✨</span>

@@ -50,7 +50,7 @@ export default function InternshipHero({
   ];
 
   return (
-    <section className="relative bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 text-white py-28 md:py-40 overflow-hidden">
+    <section className="relative bg-linear-to-r from-blue-900 via-purple-900 to-blue-900 text-white py-28 md:py-40 overflow-hidden">
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-10 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
