@@ -181,7 +181,7 @@ export default async function InternshipPage() {
                 {internship.technologies.map((tech: string, index: number) => (
                   <span
                     key={index}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-semibold text-sm hover:scale-110 transition-transform"
+                    className="px-4 py-2 bg-linear-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-semibold text-sm hover:scale-110 transition-transform"
                   >
                     {tech}
                   </span>

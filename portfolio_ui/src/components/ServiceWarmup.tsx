@@ -18,7 +18,7 @@ export default function ServiceWarmup() {
         });
         
         // Warm up terminal service
-        const terminalUrl = process.env.NEXT_PUBLIC_TERMINAL_WS_URL?.replace('ws://', 'http://').replace(':8001', ':8001') || 'https://portfolio-terminal-4t9w.onrender.com';
+        const terminalUrl = process.env.NEXT_PUBLIC_TERMINAL_WS_URL?.replace('ws://', 'http://').replace('wss://', 'https://') || 'https://portfolio-terminal-4t9w.onrender.com';
         await fetch(`${terminalUrl}/healthz`, { 
           method: 'GET',
           mode: 'no-cors'

@@ -10,18 +10,30 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    // Only proxy from our S3 bucket
-    if (!url.includes('bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579')) {
-      console.error(`Invalid URL domain: ${url}`);
-      return NextResponse.json({ error: 'Invalid URL domain' }, { status: 403 });
+    // Validate URL format and protocol
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
     }
     
+    // Only allow HTTPS protocol
+    if (parsedUrl.protocol !== 'https:') {
+      return NextResponse.json({ error: 'Only HTTPS URLs are allowed' }, { status: 403 });
+    }
+    
+    // Only proxy from our Cloudflare R2 bucket custom domain
+    if (parsedUrl.hostname !== 'media.aouichou.me') {
+      console.error(`Invalid URL domain: ${parsedUrl.hostname}`);
+      return NextResponse.json({ error: 'Invalid URL domain' }, { status: 403 });
+    }
     
     // Direct fetch with timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => { controller.abort(); }, 5000);
     
-    const response = await fetch(url, { 
+    const response = await fetch(parsedUrl.toString(), { 
       signal: controller.signal 
     });
     clearTimeout(timeoutId);

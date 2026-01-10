@@ -90,7 +90,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
       )}
 
       {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-24 px-4">
+      <section className="bg-linear-to-r from-blue-600 to-purple-600 py-24 px-4">
         <div className="container mx-auto">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
@@ -283,7 +283,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                   href={project.live_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl text-center font-bold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                  className="block w-full bg-linear-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl text-center font-bold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
                 >
                   Visit Live Site →
                 </a>

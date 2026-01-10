@@ -44,7 +44,7 @@ export default function PortfolioPage() {
     
 return (    
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black">
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-24 px-4">
+      <header className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-24 px-4">
         <div className="container mx-auto max-w-6xl px-4 py-4">
           <Link href="/projects" className="inline-flex items-center text-white hover:text-blue-200 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -549,7 +549,7 @@ return (
             </motion.div>
 
 			<motion.div
-			className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-100 dark:border-blue-800/30 shadow-sm"
+			className="mt-12 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-100 dark:border-blue-800/30 shadow-sm"
 			variants={fadeIn}
 			initial="hidden"
 			animate={isVisible['cloud'] ? 'visible' : 'hidden'}
@@ -771,7 +771,7 @@ return (
                 </div>
               </div>
               
-              <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800/30">
+              <div className="mt-6 bg-linear-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800/30">
                 <h4 className="font-semibold mb-2 text-green-700 dark:text-green-300">Recent Achievement</h4>
                 <p className="text-gray-700 dark:text-gray-300 text-sm">
                   Successfully merged 10+ Dependabot PRs in December 2024, upgrading to Python 3.14, Node 25, Ubuntu 24.04, Next.js 16, and React 19 - all tested systematically in dev environment before production deployment.

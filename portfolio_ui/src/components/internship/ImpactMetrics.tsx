@@ -74,7 +74,7 @@ function MetricCard({ metric, index }: MetricCardProps) {
         {metric.label}
       </h4>
       
-      <p className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      <p className="text-2xl font-bold mb-3 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
         {metric.value}
       </p>
       
@@ -154,7 +154,7 @@ export default function ImpactMetrics({ metrics }: ImpactMetricsProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.6, duration: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white"
+          className="mt-12 bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white"
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>

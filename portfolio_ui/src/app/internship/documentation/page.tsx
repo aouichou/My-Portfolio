@@ -121,7 +121,7 @@ export default function DocumentationPage() {
       <section className="py-20 bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold mb-6 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Documentation & Code Samples
             </h1>
             <p className="text-xl text-gray-700 dark:text-gray-300">
@@ -139,7 +139,7 @@ export default function DocumentationPage() {
               onClick={() => setActiveTab('documents')}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 activeTab === 'documents'
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                  ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -150,7 +150,7 @@ export default function DocumentationPage() {
               onClick={() => setActiveTab('code')}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 activeTab === 'code'
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                  ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -180,7 +180,7 @@ export default function DocumentationPage() {
                         onClick={() => category && setSelectedCategory(category)}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all capitalize ${
                           selectedCategory === category
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                            ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-md'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                       >

@@ -2,8 +2,8 @@
 
 'use client';
 
-import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function ArchitectureShowcase() {
   return (
@@ -13,7 +13,7 @@ export default function ArchitectureShowcase() {
       transition={{ duration: 0.5, delay: 0.2 }}
       className="container mx-auto px-4 py-16"
     >
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-8 shadow-lg border border-purple-100 dark:border-purple-800/30">
+      <div className="bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-8 shadow-lg border border-purple-100 dark:border-purple-800/30">
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="mr-6 flex-shrink-0">
             <div className="bg-purple-100 dark:bg-purple-800/50 p-5 rounded-full">

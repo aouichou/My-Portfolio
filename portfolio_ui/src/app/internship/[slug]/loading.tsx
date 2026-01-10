@@ -11,7 +11,7 @@ export default function InternshipProjectLoading() {
       </div>
 
       {/* Hero Skeleton */}
-      <div className="py-16 bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 animate-pulse">
+      <div className="py-16 bg-linear-to-r from-blue-900 via-purple-900 to-blue-900 animate-pulse">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <div className="h-14 bg-blue-800/50 rounded w-3/4 mx-auto mb-6" />
