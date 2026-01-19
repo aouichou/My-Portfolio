@@ -214,7 +214,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
       </section>
 
     {/* Project Description */}
-    <section className="my-12 p-8 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 shadow-lg">
+    <section className="my-12 p-8 rounded-xl bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 shadow-lg">
       <h2 className="text-3xl font-bold mb-6 text-blue-900 dark:text-blue-100">Project Overview</h2>
       <MotionDiv 
         className="prose prose-lg dark:prose-invert max-w-none"
@@ -224,7 +224,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
       >
         <ReactMarkdown components={{
           img: ({ node, ...props }) => (
-            <ImageComponent src={props.src} alt={props.alt} />
+            <ImageComponent src={typeof props.src === 'string' ? props.src : undefined} alt={props.alt} />
           )
         }}>
           {project.description}
@@ -278,7 +278,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-2 border-2 border-background" />
+                <div className="absolute w-4 h-4 bg-primary rounded-full -left-2.25 top-2 border-2 border-background" />
                 <h5 className="font-medium mb-2">{step.title}</h5>
                 <p className="text-sm text-muted-foreground">{step.description}</p>
               </MotionDiv>

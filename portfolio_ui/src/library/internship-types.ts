@@ -84,7 +84,11 @@ export interface InternshipProject {
   stats: InternshipProjectStats;
   badges: InternshipProjectBadge[];
   architecture_description?: string;
-  architecture_diagrams: string[]; // Array of Mermaid codes
+  architecture_diagrams: Array<{
+    title: string;
+    diagram: string;
+    description?: string;
+  }>;
   key_features: string[];
   code_snippets: InternshipCodeSample[];
   impact_metrics?: {

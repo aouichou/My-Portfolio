@@ -28,7 +28,7 @@ export default function FeaturedDocumentation({ documents, totalCount }: Feature
   const featuredDocs = documents.slice(0, 4);
 
   return (
-    <section className="py-20 bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <section className="py-20 bg-linear-to-br from-purple-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -50,8 +50,8 @@ export default function FeaturedDocumentation({ documents, totalCount }: Feature
               >
                 <div className="flex items-start gap-4">
                   {/* Icon */}
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center text-2xl">
+                  <div className="shrink-0">
+                    <div className="w-12 h-12 rounded-lg bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center text-2xl">
                       {doc.icon || '📄'}
                     </div>
                   </div>
@@ -62,7 +62,7 @@ export default function FeaturedDocumentation({ documents, totalCount }: Feature
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {doc.title}
                       </h3>
-                      <span className={`flex-shrink-0 px-2 py-1 rounded-md text-xs font-semibold ${categoryColors[doc.category] || categoryColors.architecture}`}>
+                      <span className={`shrink-0 px-2 py-1 rounded-md text-xs font-semibold ${categoryColors[doc.category] || categoryColors.architecture}`}>
                         {doc.category}
                       </span>
                     </div>

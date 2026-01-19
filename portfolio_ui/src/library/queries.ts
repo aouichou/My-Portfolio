@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import api, { getProjectBySlug as apiGetProjectBySlug, getFeaturedProjects } from './api-client';
-import { Project } from './types';
+import { CodeSnippet, Project } from './types';
 import { normalizeProject } from './utils';
 
 type ProjectFromAPI = {
@@ -33,8 +33,8 @@ type ProjectFromAPI = {
   demo_files_path?: string;
   
   // Code details
-  code_steps?: Record<string, string>;
-  code_snippets?: Record<string, string>;
+  code_steps?: Record<string, string | number | boolean | object>;
+  code_snippets?: Record<string, string | CodeSnippet>;
   
   // Galleries (complex nested structure)
   galleries?: Array<{
@@ -57,7 +57,7 @@ type ProjectFromAPI = {
 	  queryKey: ['featuredProjects'],
 	  queryFn: async () => {
 		// Fetch 3 school + 3 internship featured projects
-		const projects: ProjectFromAPI[] = await getFeaturedProjects({ school: 3, internship: 3 });
+		const projects = await getFeaturedProjects({ school: 3, internship: 3 });
 		return projects.map(normalizeProject);
 	  },
 	  staleTime: 1000 * 60 * 5, // 5 minutes cache

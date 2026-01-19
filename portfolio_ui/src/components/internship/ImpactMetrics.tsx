@@ -92,40 +92,40 @@ export default function ImpactMetrics({ metrics }: ImpactMetricsProps) {
       label: 'Security',
       description: 'Implemented comprehensive Zero Trust security with mTLS, JWT validation, and RBAC',
       icon: Shield,
-      color: 'bg-gradient-to-br from-blue-500 to-blue-600'
+      color: 'bg-linear-to-br from-blue-500 to-blue-600'
     },
     {
       value: metrics.reusability || 'Company-Wide Adoption',
       label: 'Reusability',
       description: 'Created internal Keycloak library deployed in 2 production applications',
       icon: Users,
-      color: 'bg-gradient-to-br from-purple-500 to-purple-600'
+      color: 'bg-linear-to-br from-purple-500 to-purple-600'
     },
     {
       value: metrics.testing || '85% Coverage',
       label: 'Testing',
       description: '55+ integration tests with comprehensive coverage across critical paths',
       icon: Award,
-      color: 'bg-gradient-to-br from-green-500 to-green-600'
+      color: 'bg-linear-to-br from-green-500 to-green-600'
     },
     {
       value: metrics.code_quality || 'Zero Defects',
       label: 'Code Quality',
       description: 'All code passed Pylint, Semgrep, and Trivy scans with zero issues',
       icon: TrendingUp,
-      color: 'bg-gradient-to-br from-indigo-500 to-indigo-600'
+      color: 'bg-linear-to-br from-indigo-500 to-indigo-600'
     },
     {
       value: 'DDD Refactoring',
       label: 'Architecture',
       description: '40% reduction in complexity through Domain-Driven Design patterns',
       icon: Code,
-      color: 'bg-gradient-to-br from-pink-500 to-pink-600'
+      color: 'bg-linear-to-br from-pink-500 to-pink-600'
     }
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+    <section className="py-20 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

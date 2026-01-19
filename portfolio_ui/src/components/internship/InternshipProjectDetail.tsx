@@ -79,11 +79,11 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
                     <span
                       key={index}
                       className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                        badge.color === 'blue'
+                        badge.variant === 'blue'
                           ? 'bg-blue-500/20 text-blue-200 border border-blue-400/30'
-                          : badge.color === 'green'
+                          : badge.variant === 'green'
                           ? 'bg-green-500/20 text-green-200 border border-green-400/30'
-                          : badge.color === 'purple'
+                          : badge.variant === 'purple'
                           ? 'bg-purple-500/20 text-purple-200 border border-purple-400/30'
                           : 'bg-orange-500/20 text-orange-200 border border-orange-400/30'
                       }`}
@@ -103,15 +103,9 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
                       <div className="text-blue-200 text-sm">Lines of Code</div>
                     </div>
                   )}
-                  {project.stats.test_files && (
+                  {project.stats.test_coverage && (
                     <div className="text-center">
-                      <div className="text-3xl font-bold">{project.stats.test_files}</div>
-                      <div className="text-blue-200 text-sm">Test Files</div>
-                    </div>
-                  )}
-                  {project.stats.coverage && (
-                    <div className="text-center">
-                      <div className="text-3xl font-bold">{project.stats.coverage}</div>
+                      <div className="text-3xl font-bold">{project.stats.test_coverage}</div>
                       <div className="text-blue-200 text-sm">Test Coverage</div>
                     </div>
                   )}
@@ -219,7 +213,7 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
                     viewport={{ once: true }}
                     className="flex items-start gap-4 bg-linear-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
                   >
-                    <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 mt-2" />
+                    <div className="shrink-0 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 mt-2" />
                     <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                       {feature}
                     </p>
@@ -258,20 +252,20 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
       {/* Architecture Diagrams */}
       {project.architecture_diagrams && project.architecture_diagrams.length > 0 && (
         <div>
-          {project.architecture_diagrams.map((diagram, index) => (
+          {project.architecture_diagrams.map((diagramObj, index) => (
             <ArchitectureDiagram
               key={index}
-              diagram={diagram.diagram}
-              title={diagram.title}
-              description={diagram.description}
+              diagram={diagramObj.diagram}
+              title={diagramObj.title}
+              description={diagramObj.description}
             />
           ))}
         </div>
       )}
 
       {/* Code Samples */}
-      {project.code_samples && project.code_samples.length > 0 && (
-        <CodeSamples samples={project.code_samples} />
+      {project.code_snippets && project.code_snippets.length > 0 && (
+        <CodeSamples samples={project.code_snippets} />
       )}
 
       {/* Impact Metrics */}

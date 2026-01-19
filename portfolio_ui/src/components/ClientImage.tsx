@@ -61,7 +61,7 @@ export default function ClientImage({
           } else if (src) {
             const directUrl = src.startsWith('http') 
               ? src 
-              : `https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579/${src.replace(/^\//, '')}`;
+              : `https://media.aouichou.me/${src.replace(/^\//, '')}`;
             setImgSrc(directUrl);
           }
         }

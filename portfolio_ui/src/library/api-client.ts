@@ -38,7 +38,7 @@ export const api = axios.create({
 });
 
 export const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL?.replace(/\/$/, '') || 
-						'https://s3.eu-west-1.amazonaws.com/bucketeer-0a244e0e-1266-4baf-88d1-99a1b4b3e579';
+						'https://media.aouichou.me';
 
 export async function getProjectBySlug(slug: string): Promise<Project> {
   try {

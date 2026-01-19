@@ -44,10 +44,10 @@ export default function InternshipProjects({ projects, internshipSlug }: Interns
             >
               <Link href={`/internship/${project.slug}`} className="block h-full">
                 {/* Gradient Border Wrapper */}
-                <div className="p-[2px] bg-linear-to-r from-blue-600 to-purple-600 rounded-xl h-full">
+                <div className="p-0.5 bg-linear-to-r from-blue-600 to-purple-600 rounded-xl h-full">
                   <div className="bg-white dark:bg-gray-800 rounded-xl h-full overflow-hidden flex flex-col">
                     {/* Thumbnail */}
-                    <div className="relative h-48 w-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex-shrink-0">
+                    <div className="relative h-48 w-full bg-linear-to-br from-blue-500/10 to-purple-500/10 shrink-0">
                     {project.thumbnail_url ? (
                       <Image
                         src={project.thumbnail_url}

@@ -183,7 +183,7 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
           </div>
         </div>
         
-        <div className="max-h-[500px] overflow-auto bg-gray-50 dark:bg-gray-950">
+        <div className="max-h-125 overflow-auto bg-gray-50 dark:bg-gray-950">
           <SyntaxHighlighter 
             language={step.language} 
             style={customStyle}
