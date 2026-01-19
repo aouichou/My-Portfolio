@@ -17,7 +17,35 @@ interface CodeSamplesProps {
   samples: CodeSample[];
 }
 
-// Custom syntax highlighting colors - gray/blue palette
+// Helper function to detect language from code content
+const detectLanguage = (code: string): string => {
+  if (!code || typeof code !== 'string') return 'text';
+  
+  const codeLower = code.toLowerCase();
+  
+  // Python indicators
+  if (codeLower.includes('def ') || codeLower.includes('import ') || codeLower.includes('from ') || codeLower.includes('print(')) {
+    return 'python';
+  }
+  
+  // JavaScript/TypeScript indicators
+  if (codeLower.includes('function ') || codeLower.includes('const ') || codeLower.includes('let ') || codeLower.includes('console.log')) {
+    return 'javascript';
+  }
+  
+  // C/C++ indicators
+  if (codeLower.includes('#include') || codeLower.includes('int main') || codeLower.includes('printf(')) {
+    return 'c';
+  }
+  
+  // SQL indicators
+  if (codeLower.includes('select ') || codeLower.includes('from ') || codeLower.includes('where ')) {
+    return 'sql';
+  }
+  
+  // Default to text
+  return 'text';
+};
 const createCustomStyle = (isDark: boolean) => ({
   'code[class*="language-"]': {
     color: isDark ? '#d1d5db' : '#374151',
@@ -73,7 +101,35 @@ export default function CodeSamples({ samples }: CodeSamplesProps) {
   const { theme } = useTheme();
   const customStyle = createCustomStyle(theme === 'dark');
 
-  if (!samples || samples.length === 0) {
+  // Handle both old object format and new array format
+  let samplesArray: CodeSample[] = [];
+  
+  if (Array.isArray(samples)) {
+    // New format: already an array
+    samplesArray = samples;
+  } else if (samples && typeof samples === 'object') {
+    // Old format: object with keys as titles and values as code
+    samplesArray = Object.entries(samples).map(([key, code]) => ({
+      title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      description: `${key.replace(/_/g, ' ')} implementation`,
+      code: typeof code === 'string' ? code : '',
+      language: detectLanguage(typeof code === 'string' ? code : '')
+    }));
+  }
+  
+  // Filter out samples without code content and ensure proper structure
+  const validSamples = samplesArray.filter(sample => 
+    sample && 
+    typeof sample === 'object' && 
+    sample.code && 
+    typeof sample.code === 'string' && 
+    sample.code.trim().length > 0
+  ).map(sample => ({
+    ...sample,
+    language: sample.language || detectLanguage(sample.code)
+  }));
+
+  if (!validSamples || validSamples.length === 0) {
     return null;
   }
 
@@ -89,7 +145,7 @@ export default function CodeSamples({ samples }: CodeSamplesProps) {
           </p>
           
           <div className="space-y-8">
-            {samples.map((sample, index) => (
+            {validSamples.map((sample, index) => (
               <div
                 key={index}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
@@ -100,7 +156,7 @@ export default function CodeSamples({ samples }: CodeSamplesProps) {
                       {sample.title}
                     </h3>
                     <span className="text-xs font-mono bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full">
-                      {sample.language.toUpperCase()}
+                      {sample.language?.toUpperCase() || 'CODE'}
                     </span>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -109,7 +165,7 @@ export default function CodeSamples({ samples }: CodeSamplesProps) {
                 </div>
                 <div className="overflow-x-auto bg-gray-50 dark:bg-gray-950 rounded-lg">
                   <SyntaxHighlighter 
-                    language={sample.language}
+                    language={sample.language || 'text'}
                     style={customStyle}
                     showLineNumbers={true}
                     wrapLines={true}

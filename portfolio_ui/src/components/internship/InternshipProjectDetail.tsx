@@ -264,7 +264,7 @@ export default function InternshipProjectDetail({ project }: InternshipProjectDe
       )}
 
       {/* Code Samples */}
-      {project.code_snippets && project.code_snippets.length > 0 && (
+      {project.code_snippets && (
         <CodeSamples samples={project.code_snippets} />
       )}
 
