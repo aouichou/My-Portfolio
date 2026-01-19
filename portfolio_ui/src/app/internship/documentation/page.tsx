@@ -253,12 +253,12 @@ export default function DocumentationPage() {
                         </p>
                       </div>
                       <span className="text-xs font-mono bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full">
-                        {sample.language.toUpperCase()}
+                        {sample.language?.toUpperCase() || 'CODE'}
                       </span>
                     </div>
                     <div className="overflow-x-auto bg-gray-50 dark:bg-gray-950 rounded-lg">
                       <SyntaxHighlighter 
-                        language={sample.language}
+                        language={sample.language || 'text'}
                         style={customStyle}
                         showLineNumbers={true}
                         wrapLines={true}

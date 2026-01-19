@@ -179,13 +179,13 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
 		)}
           
           <div className="mt-6 text-sm bg-gray-50 dark:bg-gray-800/50 p-3 rounded border border-gray-200 dark:border-gray-700">
-            <span className="font-semibold">Language:</span> {step.language.toUpperCase()}
+            <span className="font-semibold">Language:</span> {step.language?.toUpperCase() || 'CODE'}
           </div>
         </div>
         
         <div className="max-h-125 overflow-auto bg-gray-50 dark:bg-gray-950">
           <SyntaxHighlighter 
-            language={step.language} 
+            language={step.language || 'text'} 
             style={customStyle}
             wrapLines={true}
             showLineNumbers={true}
