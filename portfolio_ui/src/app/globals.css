@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@variant dark (.dark &);
+
 @layer base {
 	:root {
 	  /* Base colors */
