@@ -54,7 +54,7 @@ def upload_file(local_path, r2_key):
             r2_key,
             Callback=lambda bytes_transferred: print(f"  Uploaded {bytes_transferred / 1024 / 1024:.2f} MB", end='\r')
         )
-        print(f"\n✅ Upload successful!")
+        print("\n✅ Upload successful!")
         print(f"URL: https://media.aouichou.me/{r2_key}")
     except Exception as e:
         print(f"\n❌ Upload failed: {e}")

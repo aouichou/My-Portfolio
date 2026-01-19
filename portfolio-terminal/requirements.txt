@@ -1,9 +1,9 @@
-websockets==15.0.1
+websockets==16.0
 fastapi==0.128.0
 uvicorn[standard]==0.40.0
 python-multipart==0.0.21
 pexpect==4.9.0
 redis==7.1.0
 psutil==7.2.1
-boto3==1.42.21
+boto3==1.42.30
 aiohttp==3.13.3

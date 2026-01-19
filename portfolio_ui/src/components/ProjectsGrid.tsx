@@ -66,7 +66,7 @@ export default function ProjectsGrid({ showAll = false }) {
 			  className={`
 				rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all flex flex-col h-full
 				${isInternship 
-				  ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-blue-800' 
+				  ? 'bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-blue-800' 
 				  : 'bg-white dark:bg-gray-700'
 				}
 			  `}
@@ -100,7 +100,7 @@ export default function ProjectsGrid({ showAll = false }) {
 					</div>
 				  )}
 				</div>
-				<div className="p-6 flex flex-col flex-grow">
+				<div className="p-6 flex flex-col grow">
 				  {isInternship && project.company && (
 					<div className="flex items-center gap-2 mb-2">
 					  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
@@ -141,7 +141,7 @@ export default function ProjectsGrid({ showAll = false }) {
 				  <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-3 mb-4">
 					{project.description.slice(0, 150)}...
 				  </p>
-				  <div className="flex-grow"></div>
+				  <div className="grow"></div>
 				  <div className="flex gap-4 mt-4">
 					{(project.has_interactive_demo || (project.live_url && project.slug === 'ft_transcendence')) && (
 					  <button

@@ -88,7 +88,7 @@ export default function ArchitectureDiagram({
             </div>
           )}
           
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 shadow-xl">
+          <div className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 shadow-xl">
             {isValidDiagram ? (
               <div 
                 ref={diagramRef}

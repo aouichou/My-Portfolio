@@ -43,7 +43,7 @@ export default function PortfolioDiagram({
       {isValidDiagram ? (
         <div 
           ref={diagramRef}
-          className="bg-white dark:bg-gray-900 rounded-xl p-6 overflow-x-auto min-h-[400px]"
+          className="bg-white dark:bg-gray-900 rounded-xl p-6 overflow-x-auto min-h-100"
         >
           <pre className="mermaid text-center" suppressHydrationWarning>
             {diagram}

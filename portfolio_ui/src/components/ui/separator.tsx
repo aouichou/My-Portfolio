@@ -1,7 +1,7 @@
 // components/ui/separator.tsx
 
-import { HTMLAttributes } from "react";
 import { cn } from "@/library/utils";
+import { HTMLAttributes } from "react";
 
 interface SeparatorProps extends HTMLAttributes<HTMLDivElement> {
   orientation?: "horizontal" | "vertical";
@@ -16,7 +16,7 @@ export const Separator = ({
     <div
       className={cn(
         "shrink-0 bg-border",
-        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
         className
       )}
       {...props}

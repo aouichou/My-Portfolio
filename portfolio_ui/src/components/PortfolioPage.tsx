@@ -43,7 +43,7 @@ export default function PortfolioPage() {
     }, []); 
     
 return (    
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black">
       <header className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-24 px-4">
         <div className="container mx-auto max-w-6xl px-4 py-4">
           <Link href="/projects" className="inline-flex items-center text-white hover:text-blue-200 transition-colors">
@@ -695,7 +695,7 @@ return (
               <h3 className="text-xl font-bold mb-4">CI/CD Pipeline</h3>
               
               <div className="overflow-x-auto">
-                <div className="min-w-[800px]">
+                <div className="min-w-200">
                   <div className="grid grid-cols-5 gap-2 mb-4">
                     <div className="p-4 bg-blue-100 dark:bg-blue-900 rounded text-center">
                       <p className="font-bold">Code Push</p>

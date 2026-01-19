@@ -10,7 +10,7 @@ interface CodeSample {
   description: string;
   code: string;
   language: string;
-  category: string;
+  highlights?: string[];
 }
 
 interface CodeSamplesProps {
