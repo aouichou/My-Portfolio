@@ -36,7 +36,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.563.0",
     "mermaid": "^11.12.2",
-    "next": "^16.1.4",
+    "next": "^16.1.5",
     "next-mdx-remote": "^5.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
