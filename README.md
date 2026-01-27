@@ -56,7 +56,7 @@ The terminal operates through a multi-layered WebSocket architecture:
 
 This design ensures greater security as the terminal service is never directly exposed to the internet.
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -87,7 +87,7 @@ graph TD
     style Actions fill:#2088FF,stroke:#176CB8,color:#fff
 ```
 
-## 🌐 Cloud Deployment Architecture
+## Cloud Deployment Architecture
 
 ```mermaid
 graph TD
@@ -180,7 +180,7 @@ graph TD
   - Path-based deployment (only changed services deployed)
   - Force deploy flag: [deploy-all] in commit message
 
-## 📈 Performance Optimization
+## Performance Optimization
 
 ```text
 Frontend Metrics                API Performance
@@ -218,7 +218,7 @@ docker-compose up -d
 # Visit http://localhost:3000
 ```
 
-### 📁 Repository Structure
+### Repository Structure
 
 ```
 .
