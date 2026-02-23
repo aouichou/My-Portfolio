@@ -30,12 +30,12 @@
     "clsx": "^2.1.1",
     "critters": "^0.0.25",
     "dompurify": "^3.3.1",
-    "framer-motion": "^12.33.0",
+    "framer-motion": "^12.34.3",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
     "jszip": "^3.10.1",
-    "lucide-react": "^0.564.0",
-    "mermaid": "^11.12.2",
+    "lucide-react": "^0.575.0",
+    "mermaid": "^11.12.3",
     "next": "^16.1.6",
     "next-mdx-remote": "^6.0.0",
     "react": "^19.2.4",
@@ -51,7 +51,7 @@
     "serve": "^14.2.4",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.4.1"
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.1.6",
