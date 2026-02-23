@@ -1,6 +1,6 @@
 websockets==16.0
 fastapi==0.131.0
-uvicorn[standard]==0.40.0
+uvicorn[standard]==0.41.0
 python-multipart==0.0.22
 pexpect==4.9.0
 redis==7.2.0
