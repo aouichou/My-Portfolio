@@ -30,7 +30,8 @@ const fillAndSubmitForm = async (
     target: { name: 'message', value: message },
   });
   const form = screen.getByRole('button', { name: /send message/i }).closest('form');
-  fireEvent.submit(form!);
+  if (!form) throw new Error('Form element not found');
+  fireEvent.submit(form);
 };
 
 describe('ContactForm', () => {

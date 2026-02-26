@@ -17,7 +17,6 @@ import sys
 # Allow importing the module from the project root
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-import pytest
 from main import validate_command
 
 # ═════════════════════════════════════════════════════════════════════════════

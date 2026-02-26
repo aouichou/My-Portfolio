@@ -3,7 +3,6 @@
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 from projects.models import ContactSubmission, Gallery, Project
 
 from tests.conftest import make_project

@@ -2,7 +2,6 @@
 """Shared pytest fixtures for the portfolio_api test suite."""
 
 import pytest
-from django.test import override_settings
 from rest_framework.test import APIClient
 
 # ─────────────────────────── helpers ─────────────────────────────────────────

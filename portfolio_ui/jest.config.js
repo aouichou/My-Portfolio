@@ -1,4 +1,5 @@
 // portfolio_ui/jest.config.js
+const path = require('path');
 const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
@@ -9,7 +10,7 @@ const createJestConfig = nextJest({
 /** @type {import('jest').Config} */
 const customConfig = {
   testEnvironment: 'jest-environment-jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: [path.resolve(__dirname, 'jest.setup.js')],
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',

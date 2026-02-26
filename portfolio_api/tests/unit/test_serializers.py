@@ -1,7 +1,6 @@
 # tests/unit/test_serializers.py
 """Unit tests for serializer helper functions and serializer field validation."""
 
-import pytest
 from projects.serializers import validate_code_snippets, validate_code_steps
 
 # ═════════════════════════════════════════════════════════════════════════════
