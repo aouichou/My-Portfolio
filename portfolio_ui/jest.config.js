@@ -24,6 +24,7 @@ const customConfig = {
     '!src/middleware.ts',
   ],
   coverageDirectory: 'coverage',
+  coverageProvider: 'v8',
   coverageReporters: ['text', 'lcov', 'json-summary'],
 };
 
