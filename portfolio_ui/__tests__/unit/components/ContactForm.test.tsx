@@ -1,5 +1,4 @@
 // __tests__/unit/components/ContactForm.test.tsx
-import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 // Mock sonner toast
