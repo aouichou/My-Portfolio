@@ -1,0 +1,49 @@
+name: Test – Terminal Service
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'portfolio-terminal/**'
+      - '.github/workflows/test-terminal.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'portfolio-terminal/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: pytest (FastAPI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portfolio-terminal
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: portfolio-terminal/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests with coverage
+        env:
+          REDIS_URL: redis://localhost:6379
+          DEBUG: 'True'
+        run: pytest
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        with:
+          files: portfolio-terminal/coverage.xml
+          flags: terminal
+          fail_ci_if_error: false
