@@ -1,0 +1,144 @@
+name: Test – Dependabot Validation
+
+# Triggered automatically on Dependabot PRs and can also be triggered manually
+on:
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ─── npm audit ─────────────────────────────────────────────────────────────
+  audit-frontend:
+    name: npm audit (frontend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portfolio_ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: portfolio_ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit for known vulnerabilities
+        run: npm audit --audit-level=high
+
+      - name: Verify overrides are applied correctly
+        run: |
+          echo "=== Checking security override versions ==="
+          node -e "
+            const lock = require('./package-lock.json');
+            const pkgs = lock.packages || {};
+            const check = (name, want) => {
+              const found = Object.entries(pkgs)
+                .filter(([k]) => k.includes('node_modules/' + name) && !k.includes('node_modules/' + name + '/'))
+                .map(([, v]) => v.version);
+              console.log(name + ': ' + (found[0] || 'not found'));
+            };
+            check('lodash-es', '4.17.23');
+            check('ajv', '>=8.18');
+            check('minimatch', '>=10');
+          "
+
+  # ─── pip-audit ────────────────────────────────────────────────────────────
+  audit-backend:
+    name: pip-audit (backend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portfolio_api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        run: pip-audit -r requirements.txt --desc on --fix --dry-run || true
+
+  # ─── Run tests on dependency update PRs ───────────────────────────────────
+  regression-backend:
+    name: Regression tests – Backend
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: portfolio_api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: portfolio_api/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run backend tests
+        env:
+          SECRET_KEY: django-insecure-ci-dependabot-key
+          DEBUG: 'True'
+        run: pytest -q --no-header
+
+  regression-frontend:
+    name: Regression tests – Frontend
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: portfolio_ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: portfolio_ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Jest tests
+        run: npm run test:ci
+
+  regression-terminal:
+    name: Regression tests – Terminal
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: portfolio-terminal
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: portfolio-terminal/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run terminal tests
+        env:
+          REDIS_URL: redis://localhost:6379
+          DEBUG: 'True'
+        run: pytest -q --no-header

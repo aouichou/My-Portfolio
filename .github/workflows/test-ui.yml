@@ -1,0 +1,49 @@
+name: Test – Frontend UI
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'portfolio_ui/**'
+      - '.github/workflows/test-ui.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'portfolio_ui/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Jest (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portfolio_ui
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: portfolio_ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Run Jest tests with coverage
+        run: npm run test:ci
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          files: portfolio_ui/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
