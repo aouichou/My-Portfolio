@@ -3,7 +3,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from '../../context/ThemeContext';
@@ -607,7 +607,7 @@ function CodeSection({ snippet, isVisible, delay = 0 }: { snippet: CodeSnippet; 
         <div className={`relative ${!expanded && needsExpand ? 'max-h-150 overflow-hidden' : ''}`}>
           <SyntaxHighlighter
             language={snippet.language}
-            style={oneDark}
+            style={oneDark as { [key: string]: React.CSSProperties }}
             customStyle={{ margin: 0, padding: '1rem', fontSize: '0.8rem', lineHeight: '1.5' }}
             showLineNumbers
           >
