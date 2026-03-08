@@ -66,6 +66,17 @@ export default function Navbar() {
             </Link>
             
             <Link 
+              href="/realms" 
+              className={`px-3 py-2 rounded-md ${
+                isActive('/realms') 
+                  ? 'bg-emerald-600/10 text-emerald-600 dark:text-emerald-400' 
+                  : `${scrolled || !isHomepage ? 'text-gray-700 dark:text-gray-300' : 'text-white/90'} hover:text-emerald-600 dark:hover:text-emerald-400`
+              } transition-colors`}
+            >
+              <span className="hidden lg:inline">Mistral </span>Realms
+            </Link>
+
+            <Link 
               href="/showcase" 
               className={`px-3 py-2 rounded-md ${
                 isActive('/showcase') 
@@ -131,6 +142,18 @@ export default function Navbar() {
                 Projects
               </Link>
               
+              <Link 
+                href="/realms" 
+                className={`px-3 py-2 rounded-md ${
+                  isActive('/realms') 
+                    ? 'bg-emerald-600/10 text-emerald-600 dark:text-emerald-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400'
+                } transition-colors`}
+                onClick={() => { setMobileMenuOpen(false); }}
+              >
+                Mistral Realms
+              </Link>
+
               <Link 
                 href="/showcase" 
                 className={`px-3 py-2 rounded-md ${
