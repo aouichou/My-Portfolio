@@ -5,7 +5,7 @@ name: Codacy Scan - API
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "staging" ]
     paths:
       - 'portfolio_api/**'
       - '.github/workflows/codacy-api.yml'
