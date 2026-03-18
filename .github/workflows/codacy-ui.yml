@@ -38,8 +38,6 @@ jobs:
           verbose: false
           upload: true
           max-allowed-issues: 2147483647
-          # Analyze only the UI directory
-          directory: portfolio_ui
         continue-on-error: true
 
       - name: Upload SARIF results

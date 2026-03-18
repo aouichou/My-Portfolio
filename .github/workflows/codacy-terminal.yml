@@ -38,8 +38,6 @@ jobs:
           verbose: false
           upload: true
           max-allowed-issues: 2147483647
-          # Analyze only the terminal directory
-          directory: portfolio-terminal
         continue-on-error: true
 
       - name: Upload SARIF results

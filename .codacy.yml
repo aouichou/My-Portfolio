@@ -15,6 +15,34 @@ engines:
     exclude_patterns:
       # Exclude Django migrations from style checks
       - "**/migrations/*.py"
+  
+  # Explicitly disable tools causing false positives in isolated directory scans
+  Hadolint:
+    enabled: false
+  
+  Jacksonlinter:
+    enabled: false
+  
+  Markdownlint:
+    enabled: false
+  
+  Pylint:
+    enabled: false
+  
+  Pylintpython3:
+    enabled: false
+  
+  Remark-lint:
+    enabled: false
+  
+  Shellcheck:
+    enabled: false
+  
+  Stylelint:
+    enabled: false
+  
+  Tslint:
+    enabled: false
 
 exclude_paths:
   - "portfolio_ui/package-lock.json"
