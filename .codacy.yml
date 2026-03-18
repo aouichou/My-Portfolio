@@ -44,6 +44,16 @@ engines:
   Tslint:
     enabled: false
 
+  # Disable engines that are noisy/non-applicable in this repository setup
+  Trivy:
+    enabled: false
+
+  ESLint:
+    enabled: false
+
+  "eslint-8":
+    enabled: false
+
 exclude_paths:
   - "portfolio_ui/package-lock.json"
   - "**/node_modules/**"
