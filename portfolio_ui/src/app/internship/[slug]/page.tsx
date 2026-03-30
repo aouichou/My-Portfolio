@@ -16,6 +16,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   
   try {
     const project = await fetchInternshipProject('qynapse-healthcare', slug);
+
+    if (!project) {
+      return {
+        title: 'Project Not Found',
+        description: 'Internship project not found'
+      };
+    }
     
     return {
       title: `${project.title} | Healthcare Technology Internship`,
@@ -46,6 +53,6 @@ export default async function InternshipProjectPage({ params }: Props) {
     
     return <InternshipProjectDetail project={project} />;
   } catch {
-    notFound();
+    return notFound();
   }
 }

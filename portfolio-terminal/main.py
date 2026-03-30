@@ -560,8 +560,8 @@ def download_project_files(project_slug, project_dir):
 					if time.time() - timestamp < 86400:  # 24 hours
 						print("Using cached project files (downloaded less than 24h ago)")
 						return True
-				except Exception:
-					pass
+				except Exception as exc:
+					logger.debug("Ignoring invalid cache marker: %s", exc)
 
 		try:
 			# Get object metadata to check if it exists and get size

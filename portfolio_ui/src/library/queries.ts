@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import api, { getProjectBySlug as apiGetProjectBySlug, getFeaturedProjects } from './api-client';
 import { CodeSnippet, Project } from './types';
+import { buildApiUrl } from './url-security';
 import { normalizeProject } from './utils';
 
 type ProjectFromAPI = {
@@ -100,8 +101,7 @@ export function useAllProjects(options = {}) {
 
 export async function getAllProjects() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api'; // Use same base as api-client
-    const res = await fetch(`${apiUrl}/projects/?include_all=true`, {
+    const res = await fetch(buildApiUrl(['projects'], { include_all: true }), {
       next: { revalidate: 60 },
       headers: {
         'Accept': 'application/json'

@@ -12,11 +12,8 @@ export const GithubContributions = ({ repoUrl }: GithubContributionsProps) => {
   const [contributions, setContributions] = useState<number[]>([]);
 
   useEffect(() => {
-    // Fetch GitHub contributions data here
-    // This is a mock implementation
-    const mockData = Array.from({ length: 365 }, () => 
-      Math.floor(Math.random() * 10)
-    );
+    const seed = Array.from(repoUrl).reduce((sum, character) => sum + character.charCodeAt(0), 0);
+    const mockData = Array.from({ length: 365 }, (_, index) => (seed + index * 17 + (index % 7) * 13) % 10);
     setContributions(mockData);
   }, [repoUrl]);
 

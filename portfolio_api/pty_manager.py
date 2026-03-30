@@ -12,6 +12,16 @@ from termios import TIOCSWINSZ
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_SHELL_PATHS = ('/bin/bash', '/bin/sh')
+
+
+def _resolve_shell_path():
+	for shell_path in DEFAULT_SHELL_PATHS:
+		if os.path.exists(shell_path):
+			return shell_path
+
+	raise FileNotFoundError('No supported shell found')
+
 
 class AsyncPTY:
 	def __init__(self, command, cwd=None, env=None, timeout=15):
@@ -34,14 +44,11 @@ class AsyncPTY:
 		if self.pid == 0:  # Child process
 			# Execute shell with hardcoded path to prevent command injection
 			try:
-				os.chdir(self.cwd)
-				# Use hardcoded shell path instead of dynamic command
-				shell_path = os.getenv('SHELL_PATH', '/bin/bash')
-				if not os.path.exists(shell_path):
-					shell_path = '/bin/sh'  # Fallback to sh
+				os.chdir(self.cwd or os.path.expanduser('~'))
+				shell_path = _resolve_shell_path()
 				os.execv(shell_path, [shell_path, '-l'])  # -l for login shell
-			except Exception as e:
-				print(f"Error executing command: {e}")
+			except Exception:
+				logger.exception('Error executing PTY shell')
 				os._exit(1)
 		
 		# Make non-blocking
@@ -95,8 +102,8 @@ class AsyncPTY:
 					attempts = 0
 				except OSError:
 					break
-		except Exception as e:
-			logger.debug("Error reading from PTY: %s", type(e).__name__)
+		except Exception as exc:
+			logger.debug("Error reading from PTY: %s", type(exc).__name__)
 		return output
 
 	def resize(self, rows, cols):

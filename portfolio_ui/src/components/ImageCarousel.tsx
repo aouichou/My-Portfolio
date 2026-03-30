@@ -7,6 +7,7 @@ import ClientImage from './ClientImage';
 
 export default function ImageCarousel({ images }: { images: Array<{ image: string; caption?: string }> }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const currentImage = images.at(currentIndex) ?? null;
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -21,21 +22,29 @@ export default function ImageCarousel({ images }: { images: Array<{ image: strin
     return () => { window.removeEventListener('keydown', handleKeyDown); };
   }, [images.length]);
 
+  if (!currentImage) {
+    return (
+      <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+        No screenshots available.
+      </div>
+    );
+  }
+
   return (
     <div className="relative group">
       <div className="relative aspect-video rounded-xl overflow-hidden">
 		<ClientImage
-		  src={images[currentIndex].image}
-		  alt={images[currentIndex].caption || 'Project screenshot'}
+		  src={currentImage.image}
+		  alt={currentImage.caption || 'Project screenshot'}
 		  fill
 		  className="object-cover"
 		  fallbackSrc="/fallback-image.jpg"
 		  unoptimized
 		/>
         
-        {images[currentIndex].caption && (
+        {currentImage.caption && (
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-4">
-            <p className="text-white text-sm">{images[currentIndex].caption}</p>
+            <p className="text-white text-sm">{currentImage.caption}</p>
           </div>
         )}
       </div>

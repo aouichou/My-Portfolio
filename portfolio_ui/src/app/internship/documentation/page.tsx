@@ -181,7 +181,11 @@ export default function DocumentationPage() {
                     {categories.map((category) => (
                       <button
                         key={category}
-                        onClick={() => category && setSelectedCategory(category)}
+                        onClick={() => {
+                          if (category) {
+                            setSelectedCategory(category);
+                          }
+                        }}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all capitalize ${
                           selectedCategory === category
                             ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-md'

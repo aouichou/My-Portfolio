@@ -3,30 +3,13 @@
 import axios from "axios";
 import { getMediaUrl, S3_BUCKET_URL } from './s3-config';
 import { Project } from "./types";
+import { buildApiUrl, ensureSafeApiUrl, getConfiguredApiBaseUrl } from './url-security';
 
 // Re-export from s3-config
 export { getMediaUrl, S3_BUCKET_URL };
 
-// Determine API URL based on environment
-// For server-side: use SERVER_API_URL (Docker internal) or NEXT_PUBLIC_API_URL
-// For client-side: use NEXT_PUBLIC_API_URL (accessible from browser)
-const getApiUrl = () => {
-  // Server-side rendering (Node.js)
-  if (typeof window === 'undefined') {
-    const url = (process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api').replace(/\/$/, '');
-    return url;
-  }
-  // Client-side (browser) - detect localhost
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  if (isLocalhost) {
-    return 'http://localhost:8000/api';
-  }
-  const url = (process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api').replace(/\/$/, '');
-  return url;
-};
-
 // Single source of truth for API URL with NO trailing slash
-export const API_URL = getApiUrl();
+export const API_URL = getConfiguredApiBaseUrl();
 
 // Create axios instance
 export const api = axios.create({ 
@@ -116,9 +99,12 @@ export default api;
 export const fetchWithTimeout = async (url: string, options = {}, timeout = 10000) => {
 	const controller = new AbortController();
 	const id = setTimeout(() => controller.abort(), timeout);
+	const safeUrl = url.startsWith('http://') || url.startsWith('https://')
+	  ? ensureSafeApiUrl(url)
+	  : buildApiUrl(url.split('/').filter(Boolean));
 	
 	try {
-	  const response = await fetch(url, {
+	  const response = await fetch(safeUrl, {
 		...options,
 		signal: controller.signal
 	  });

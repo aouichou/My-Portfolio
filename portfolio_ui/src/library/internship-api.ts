@@ -3,6 +3,7 @@
 
 import api from './api-client';
 import { Internship, InternshipProject } from './internship-types';
+import { buildApiUrl } from './url-security';
 
 /**
  * Fetch all internships
@@ -66,9 +67,7 @@ export async function getInternshipProject(
  */
 export async function getAllInternships() {
   try {
-    // Use SERVER_API_URL for server-side (Docker internal) or fallback to NEXT_PUBLIC_API_URL
-    const apiUrl = process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api';
-    const res = await fetch(`${apiUrl}/internships/`, {
+    const res = await fetch(buildApiUrl(['internships']), {
       next: { revalidate: 60 },
       headers: {
         'Accept': 'application/json'
@@ -93,9 +92,7 @@ export async function getAllInternships() {
  */
 export async function fetchInternshipBySlug(slug: string) {
   try {
-    // Use SERVER_API_URL for server-side (Docker internal) or fallback to NEXT_PUBLIC_API_URL
-    const apiUrl = process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api';
-    const res = await fetch(`${apiUrl}/internships/${slug}/`, {
+    const res = await fetch(buildApiUrl(['internships', slug]), {
       next: { revalidate: 60 },
       headers: {
         'Accept': 'application/json'
@@ -120,9 +117,7 @@ export async function fetchInternshipBySlug(slug: string) {
  */
 export async function fetchInternshipProject(internshipSlug: string, projectSlug: string) {
   try {
-    // Use SERVER_API_URL for server-side (Docker internal) or fallback to NEXT_PUBLIC_API_URL
-    const apiUrl = process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.aouichou.me/api';
-    const res = await fetch(`${apiUrl}/internships/${internshipSlug}/projects/${projectSlug}/`, {
+    const res = await fetch(buildApiUrl(['internships', internshipSlug, 'projects', projectSlug]), {
       next: { revalidate: 60 },
       headers: {
         'Accept': 'application/json'

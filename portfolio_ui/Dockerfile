@@ -1,6 +1,6 @@
 # portfolio_ui/Dockerfile
 
-FROM node:25-alpine AS builder
+FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
 # Accept build arguments
@@ -16,7 +16,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:25-alpine AS runner
+FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -27,5 +27,10 @@ COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/src/middleware.ts ./src/middleware.ts
 
 RUN npm ci --omit=dev
+
+RUN groupadd --system app && useradd --system --gid app --create-home --home-dir /home/app app && \
+	chown -R app:app /app
+
+USER app
 
 CMD ["npm", "start"]

@@ -3,6 +3,7 @@
 'use client';
 
 import mermaid from 'mermaid';
+import { parseSanitizedSvg } from '@/library/svg-sanitizer';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface MermaidProps {
@@ -61,7 +62,8 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
     let cancelled = false;
 
     const renderDiagram = async () => {
-      if (!containerRef.current) return;
+      const container = containerRef.current;
+      if (!container) return;
 
       try {
         // Ensure mermaid is initialized
@@ -89,21 +91,21 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
         setRendered(true);
         resetView();
 
-        // Inject SVG into container
-        if (containerRef.current) {
-          const wrapper = containerRef.current.querySelector('.mermaid-svg-wrapper');
-          if (wrapper) {
-            wrapper.innerHTML = svg;
+        const wrapper = container.querySelector('.mermaid-svg-wrapper');
+        const sanitizedSvg = parseSanitizedSvg(svg);
 
-            // Make SVG responsive within the zoom container
-            const svgEl = wrapper.querySelector('svg');
-            if (svgEl) {
-              svgEl.style.maxWidth = 'none';
-              svgEl.style.height = 'auto';
-              svgEl.removeAttribute('height');
-            }
-          }
+        if (!(wrapper instanceof HTMLDivElement) || !sanitizedSvg) {
+          throw new Error('Invalid Mermaid SVG output');
         }
+
+        wrapper.replaceChildren(sanitizedSvg);
+
+        const svgEl = wrapper.querySelector('svg');
+        if (svgEl) {
+          svgEl.style.maxWidth = 'none';
+          svgEl.style.height = 'auto';
+          svgEl.removeAttribute('height');
+          }
       } catch (err: unknown) {
         if (cancelled) return;
         // Extract meaningful error message

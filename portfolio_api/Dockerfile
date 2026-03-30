@@ -17,11 +17,15 @@ RUN apt-get update && \
 
 COPY . .
 
-# Build-time secret (will be overridden by Render's env vars)
-ENV SECRET_KEY=build-key-123
+ENV DJANGO_ALLOW_BUILD=true
 RUN python manage.py collectstatic --noinput
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+RUN groupadd --system app && useradd --system --gid app --create-home --home-dir /home/app app && \
+    chown -R app:app /app /entrypoint.sh
+
+USER app
 
 CMD ["/entrypoint.sh"]

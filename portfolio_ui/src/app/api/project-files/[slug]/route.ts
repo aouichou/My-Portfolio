@@ -1,6 +1,7 @@
 // src/app/api/project-files/[slug]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { buildApiUrl } from '@/library/url-security';
 
 export async function GET(
   _request: NextRequest,
@@ -9,9 +10,7 @@ export async function GET(
   const { slug } = await params;
   
   try {
-    // Get the file URL from the Django backend
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/projects/${slug}/files/`;
-    const response = await fetch(apiUrl);
+    const response = await fetch(buildApiUrl(['projects', slug, 'files']));
     
     if (!response.ok) {
       const errorData = await response.json();

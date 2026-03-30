@@ -24,7 +24,7 @@ export default function CheckMermaid() {
       if (!testContainerRef.current) return;
       
       const testId = 'test-mermaid-diagram';
-      testContainerRef.current.innerHTML = '';
+      testContainerRef.current.replaceChildren();
       
       const testDiv = document.createElement('div');
       testDiv.className = 'mermaid';

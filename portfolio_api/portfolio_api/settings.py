@@ -1,6 +1,7 @@
 # portfolio_api/settings.py
 
 import os
+import secrets
 from pathlib import Path
 
 import dj_database_url
@@ -18,7 +19,7 @@ if not SECRET_KEY:
     # Allow builds/static collection to proceed, but fail at runtime
     if os.getenv('DJANGO_ALLOW_BUILD', 'false').lower() != 'true':
         raise ValueError('SECRET_KEY environment variable must be set')
-    SECRET_KEY = 'build-time-only-key-not-for-production'
+	SECRET_KEY = secrets.token_urlsafe(64)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 # Enable proxy header handling

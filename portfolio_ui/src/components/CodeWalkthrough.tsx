@@ -20,6 +20,14 @@ interface CodeWalkthroughProps {
   steps: CodeSnippet[];
 }
 
+function compareMatchIndexes(firstIndex: number | undefined, secondIndex: number | undefined): boolean {
+  if (firstIndex === undefined) {
+    return false;
+  }
+
+  return secondIndex === undefined || firstIndex <= secondIndex;
+}
+
 // Custom syntax highlighting colors - gray/blue palette
 const createCustomStyle = (isDark: boolean) => ({
   'code[class*="language-"]': {
@@ -76,16 +84,13 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
   const [currentStep, setCurrentStep] = useState(0);
   const { theme } = useTheme();
   
-  // Ensure steps is an array with valid items
-  const validSteps = Array.isArray(steps) ? steps.filter(s => 
-    s && typeof s === 'object' && 'code' in s && typeof s.code === 'string'
-  ) as CodeSnippet[] : [];
-  
-  if (validSteps.length === 0) {
+  const validSteps = Array.isArray(steps) ? steps : [];
+  const step = validSteps.at(currentStep);
+
+  if (!step) {
     return <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">No code examples available</div>;
   }
-  
-  const step = validSteps[currentStep];
+
   const customStyle = createCustomStyle(theme === 'dark');
   
   // Function to sanitize code by replacing escape sequences
@@ -154,8 +159,10 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
 				  while (remaining.length > 0) {
 					const boldMatch = remaining.match(/^(.*?)\*\*(.*?)\*\*/);
 					const italicMatch = remaining.match(/^(.*?)\*([^\*]+?)\*/);
+          const boldIndex = boldMatch?.index;
+          const italicIndex = italicMatch?.index;
 					
-					if (boldMatch && (!italicMatch || boldMatch.index! <= italicMatch.index!)) {
+          if (boldMatch && compareMatchIndexes(boldIndex, italicIndex)) {
 					  if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
 					  parts.push(<strong key={key++}>{boldMatch[2]}</strong>);
 					  remaining = remaining.slice(boldMatch[0].length);

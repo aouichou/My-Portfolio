@@ -21,7 +21,7 @@ import CodeWalkthrough from '@/components/CodeWalkthrough';
 import { Icons } from '@/components/Icons';
 import { MermaidComponent } from '@/components/MermaidComponent';
 import ScrollToTop from '@/components/ScrollToTop';
-import DOMPurify from 'dompurify';
+import { parseSanitizedSvg } from '@/library/svg-sanitizer';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
@@ -36,7 +36,24 @@ type ProjectFeature = string | {
 };
 
 function isProjectFeatureObject(feature: ProjectFeature): feature is Exclude<ProjectFeature, string> {
-  return typeof feature === 'object' && feature !== null && typeof feature.text === 'string';
+  return typeof feature !== 'string';
+}
+
+function renderInstructionText(instruction: string) {
+  return instruction.split(/(`[^`]+`)/g).filter(Boolean).map((part, index) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code
+          key={index}
+          className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-red-600 dark:text-red-400 font-mono text-sm"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  });
 }
 
 const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) => {
@@ -73,20 +90,16 @@ const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) =
   }
   
   if (type === 'SVG') {
-    // Use DOMPurify to sanitize SVG content
     const SvgComponent = () => {
       const divRef = React.useRef<HTMLDivElement>(null);
       React.useEffect(() => {
         if (divRef.current && diagram) {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(diagram, 'image/svg+xml');
-          const svgElement = doc.documentElement;
-          if (svgElement.tagName === 'svg') {
-            const sanitized = DOMPurify.sanitize(svgElement.outerHTML, { USE_PROFILES: { svg: true, svgFilters: true } });
-            divRef.current.innerHTML = sanitized;
+          const sanitizedSvg = parseSanitizedSvg(diagram);
+          if (sanitizedSvg) {
+            divRef.current.replaceChildren(sanitizedSvg);
           }
         }
-      }, []);
+      }, [diagram]);
       return <div ref={divRef} />;
     };
     return <SvgComponent />;
@@ -405,9 +418,7 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
 						{/* Don't show the number if it's numeric - let the <ol> handle numbering */}
 						{isNaN(Number(step)) ? <span className="font-medium">{step}:</span> : ""}{" "}
 						{typeof instruction === 'string' 
-						  ? <span dangerouslySetInnerHTML={{ 
-							  __html: instruction.replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-red-600 dark:text-red-400 font-mono text-sm">$1</code>') 
-							}} />
+              ? <span>{renderInstructionText(instruction)}</span>
 						  : String(instruction)}
 					  </li>
 					));
