@@ -93,7 +93,7 @@ export default function DocumentationPage() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   // Filter documents by category
@@ -136,7 +136,9 @@ export default function DocumentationPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto flex justify-center gap-4">
             <button
-              onClick={() => setActiveTab('documents')}
+              onClick={() => {
+                setActiveTab('documents');
+              }}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 activeTab === 'documents'
                   ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg'
@@ -147,7 +149,9 @@ export default function DocumentationPage() {
               Documents ({documents.length})
             </button>
             <button
-              onClick={() => setActiveTab('code')}
+              onClick={() => {
+                setActiveTab('code');
+              }}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 activeTab === 'code'
                   ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg'

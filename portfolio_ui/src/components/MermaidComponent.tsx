@@ -185,14 +185,18 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
       {rendered && (
         <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md border border-gray-200 dark:border-gray-600 p-1">
           <button
-            onClick={() => setScale((s) => Math.min(s + 0.25, 4))}
+            onClick={() => {
+              setScale((s) => Math.min(s + 0.25, 4));
+            }}
             className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold"
             title="Zoom in"
           >
             +
           </button>
           <button
-            onClick={() => setScale((s) => Math.max(s - 0.25, 0.2))}
+            onClick={() => {
+              setScale((s) => Math.max(s - 0.25, 0.2));
+            }}
             className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold"
             title="Zoom out"
           >

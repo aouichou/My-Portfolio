@@ -30,6 +30,15 @@ interface ProjectDetailProps {
   initialProject?: Project;
 }
 
+type ProjectFeature = string | {
+  text: string;
+  completionPercentage?: number;
+};
+
+function isProjectFeatureObject(feature: ProjectFeature): feature is Exclude<ProjectFeature, string> {
+  return typeof feature === 'object' && feature !== null && typeof feature.text === 'string';
+}
+
 const DiagramRenderer = ({ diagram, type }: { diagram: string; type: string }) => {
   const divRef = React.useRef<HTMLDivElement>(null);
   
@@ -292,11 +301,11 @@ export function ProjectDetail({ slug, initialProject }: ProjectDetailProps) {
     <section className="my-12">
       <h2 className="text-3xl font-bold mb-8">Key Features</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {project.features.map((feature: any, index: number) => {
+        {(project.features as ProjectFeature[]).map((feature, index: number) => {
           // Handle both string and object formats
-          const featureText = typeof feature === 'string' ? feature : feature.text;
+          const featureText = isProjectFeatureObject(feature) ? feature.text : feature;
           const completionPercentage = 
-            typeof feature === 'object' && 'completionPercentage' in feature
+            isProjectFeatureObject(feature) && typeof feature.completionPercentage === 'number'
               ? feature.completionPercentage
               : (index + 1) * 25;  // Fallback to original calculation
           

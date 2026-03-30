@@ -169,7 +169,9 @@ export default function Navbar() {
               <Link 
                 href="/#contact" 
                 className="px-3 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                }}
               >
                 Contact
               </Link>

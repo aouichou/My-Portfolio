@@ -33,7 +33,9 @@ function useCounter(end: number, duration: number = 2000) {
     };
 
     animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+    };
   }, [end, duration, hasStarted]);
 
   return [count, setHasStarted] as const;

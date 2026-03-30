@@ -29,7 +29,7 @@ export default function ArchitectureDiagram({
       if (typeof window !== 'undefined' && window.renderMermaidDiagrams) {
         // Small delay to ensure DOM is ready
         setTimeout(() => {
-          window.renderMermaidDiagrams?.();
+          void window.renderMermaidDiagrams?.();
         }, 100);
       } else {
         // Retry if renderMermaidDiagrams is not yet available

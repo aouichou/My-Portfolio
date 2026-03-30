@@ -179,7 +179,7 @@ export default function CodeWalkthrough({ projectTitle, steps }: CodeWalkthrough
 		)}
           
           <div className="mt-6 text-sm bg-gray-50 dark:bg-gray-800/50 p-3 rounded border border-gray-200 dark:border-gray-700">
-            <span className="font-semibold">Language:</span> {step.language?.toUpperCase() || 'CODE'}
+            <span className="font-semibold">Language:</span> {step.language.toUpperCase() || 'CODE'}
           </div>
         </div>
         
