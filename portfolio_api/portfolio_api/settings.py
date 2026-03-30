@@ -16,9 +16,9 @@ load_dotenv(os.path.join(BASE_DIR, '..', '..', '.env'))
 # Secret key must be set in environment variables
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
-    # Allow builds/static collection to proceed, but fail at runtime
-    if os.getenv('DJANGO_ALLOW_BUILD', 'false').lower() != 'true':
-        raise ValueError('SECRET_KEY environment variable must be set')
+	# Allow builds/static collection to proceed, but fail at runtime
+	if os.getenv('DJANGO_ALLOW_BUILD', 'false').lower() != 'true':
+		raise ValueError('SECRET_KEY environment variable must be set')
 	SECRET_KEY = secrets.token_urlsafe(64)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')

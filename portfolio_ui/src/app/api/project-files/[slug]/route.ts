@@ -1,7 +1,7 @@
 // src/app/api/project-files/[slug]/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
 import { buildApiUrl } from '@/library/url-security';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   _request: NextRequest,

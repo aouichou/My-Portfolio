@@ -2,8 +2,8 @@
 
 'use client';
 
-import mermaid from 'mermaid';
 import { parseSanitizedSvg } from '@/library/svg-sanitizer';
+import mermaid from 'mermaid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface MermaidProps {
