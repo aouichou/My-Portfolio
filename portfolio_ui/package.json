@@ -79,7 +79,7 @@
     "jest-environment-jsdom": "^30.3.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.1.17",
-    "typescript": "6.0.2"
+    "typescript": "5.9.3"
   },
   "overrides": {
     "prismjs": "^1.30.0",
