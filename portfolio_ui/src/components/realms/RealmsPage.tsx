@@ -669,7 +669,7 @@ function DiagramSection({ diagram, isVisible }: { diagram: MermaidDiagram; isVis
           /* Fallback: SVG image with click-to-lightbox */
           <div className="relative group">
             <button
-              onClick={() => setLightboxOpen(true)}
+              onClick={() => { setLightboxOpen(true); }}
               className="w-full cursor-zoom-in"
               aria-label={`View ${diagram.title} full size`}
             >
@@ -703,7 +703,7 @@ function DiagramSection({ diagram, isVisible }: { diagram: MermaidDiagram; isVis
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-            onClick={() => setLightboxOpen(false)}
+            onClick={() => { setLightboxOpen(false); }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}

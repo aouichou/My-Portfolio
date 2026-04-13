@@ -156,7 +156,7 @@ export default function CodeSamples({ samples }: CodeSamplesProps) {
                       {sample.title}
                     </h3>
                     <span className="text-xs font-mono bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full">
-                      {sample.language?.toUpperCase() || 'CODE'}
+                      {sample.language.toUpperCase() || 'CODE'}
                     </span>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400">

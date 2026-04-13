@@ -248,7 +248,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           });
           
           // Set up resize handling
-          const handleResize = () => resizeTerminal(term, fitAddon, socket);
+          const handleResize = () => { resizeTerminal(term, fitAddon, socket); };
           resizeHandlerRef.current = handleResize;
           
           window.addEventListener('resize', handleResize);
