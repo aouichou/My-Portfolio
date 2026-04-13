@@ -101,25 +101,11 @@ export default function CodeSamples({ samples }: CodeSamplesProps) {
   const { theme } = useTheme();
   const customStyle = createCustomStyle(theme === 'dark');
 
-  // Handle both old object format and new array format
-  let samplesArray: CodeSample[] = [];
-  
-  if (Array.isArray(samples)) {
-    // New format: already an array
-    samplesArray = samples;
-  } else if (samples && typeof samples === 'object') {
-    // Old format: object with keys as titles and values as code
-    samplesArray = Object.entries(samples).map(([key, code]) => ({
-      title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      description: `${key.replace(/_/g, ' ')} implementation`,
-      code: typeof code === 'string' ? code : '',
-      language: detectLanguage(typeof code === 'string' ? code : '')
-    }));
-  }
+  // Handle array format
+  const samplesArray: CodeSample[] = Array.isArray(samples) ? samples : [];
   
   // Filter out samples without code content and ensure proper structure
   const validSamples = samplesArray.filter(sample => 
-    sample && 
     typeof sample === 'object' && 
     sample.code && 
     typeof sample.code === 'string' && 
@@ -129,7 +115,7 @@ export default function CodeSamples({ samples }: CodeSamplesProps) {
     language: sample.language || detectLanguage(sample.code)
   }));
 
-  if (!validSamples || validSamples.length === 0) {
+  if (validSamples.length === 0) {
     return null;
   }
 

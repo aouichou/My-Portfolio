@@ -162,15 +162,21 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
             {gifImages.length > 0 && (
               <div className="relative rounded-xl overflow-hidden shadow-xl mb-6">
                 <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
-                  <img
-                    src={gifImages[currentGif].image}
-                    alt={gifImages[currentGif].caption || `Transcendence Demo ${currentGif + 1}`}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/fallback-image.jpg';
-                    }}
-                  />
+                  {(() => {
+                    const safeIndex = Math.min(Math.max(0, currentGif), gifImages.length - 1);
+                    const currentImage = gifImages[safeIndex];
+                    return (
+                      <img
+                        src={currentImage.image}
+                        alt={currentImage.caption || `Transcendence Demo ${safeIndex + 1}`}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          const imgElement = e.target as HTMLImageElement;
+                          imgElement.src = '/fallback-image.jpg';
+                        }}
+                      />
+                    );
+                  })()}
                 </div>
                 
                 {/* Pagination dots */}

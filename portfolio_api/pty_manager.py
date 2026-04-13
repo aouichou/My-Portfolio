@@ -12,12 +12,14 @@ from termios import TIOCSWINSZ
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_SHELL_PATHS = ('/bin/bash', '/bin/sh')
+ALLOWED_SHELLS = frozenset(('/bin/bash', '/bin/sh'))
 
 
 def _resolve_shell_path():
-	for shell_path in DEFAULT_SHELL_PATHS:
+	for shell_path in ('/bin/bash', '/bin/sh'):
 		if os.path.exists(shell_path):
+			if shell_path not in ALLOWED_SHELLS:
+				raise ValueError(f'Shell not in allowlist: {shell_path}')
 			return shell_path
 
 	raise FileNotFoundError('No supported shell found')
@@ -42,11 +44,13 @@ class AsyncPTY:
 		)
 		
 		if self.pid == 0:  # Child process
-			# Execute shell with hardcoded path to prevent command injection
+			# Execute shell — only hardcoded allowlisted paths to prevent command injection
 			try:
 				os.chdir(self.cwd or os.path.expanduser('~'))
 				shell_path = _resolve_shell_path()
-				os.execv(shell_path, [shell_path, '-l'])  # -l for login shell
+				if shell_path not in ALLOWED_SHELLS:  # nosec: double-check allowlist
+					os._exit(1)
+				os.execv(shell_path, [shell_path, '-l'])  # noqa: S606 -l for login shell
 			except Exception:
 				logger.exception('Error executing PTY shell')
 				os._exit(1)

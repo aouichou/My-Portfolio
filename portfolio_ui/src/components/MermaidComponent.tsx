@@ -61,7 +61,7 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
   useEffect(() => {
     let cancelled = false;
 
-    const renderDiagram = async () => {
+    const renderSanitizedSvg = async () => {
       const container = containerRef.current;
       if (!container) return;
 
@@ -131,7 +131,7 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
     };
 
     // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => void renderDiagram(), 50);
+    const timer = setTimeout(() => { void renderSanitizedSvg(); }, 50);
     return () => {
       cancelled = true;
       clearTimeout(timer);

@@ -12,9 +12,8 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  
   try {
+    const { slug } = await params;
     const project = await fetchInternshipProject('qynapse-healthcare', slug);
 
     if (!project) {

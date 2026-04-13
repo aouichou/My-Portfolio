@@ -96,12 +96,20 @@ export default api;
 
 
 // Helper for better error handling in network requests
+// SECURITY: All URLs are validated against allowed API origins before fetching
 export const fetchWithTimeout = async (url: string, options = {}, timeout = 10000) => {
 	const controller = new AbortController();
-	const id = setTimeout(() => controller.abort(), timeout);
-	const safeUrl = url.startsWith('http://') || url.startsWith('https://')
-	  ? ensureSafeApiUrl(url)
-	  : buildApiUrl(url.split('/').filter(Boolean));
+	const timeoutId = setTimeout(() => { controller.abort(); }, timeout);
+
+	// Validate and normalize URL to prevent SSRF
+	let safeUrl: string;
+	if (url.startsWith('http://') || url.startsWith('https://')) {
+	  safeUrl = ensureSafeApiUrl(url); // throws if origin/path mismatch
+	} else {
+	  // Relative path — build from trusted base URL
+	  const segments = url.split('/').filter(Boolean);
+	  safeUrl = buildApiUrl(segments);
+	}
 	
 	try {
 	  const response = await fetch(safeUrl, {
@@ -109,7 +117,7 @@ export const fetchWithTimeout = async (url: string, options = {}, timeout = 1000
 		signal: controller.signal
 	  });
 	  
-	  clearTimeout(id);
+	  clearTimeout(timeoutId);
 	  
 	  if (!response.ok) {
 		throw new Error(`Network response was not ok: ${response.status}`);
@@ -117,7 +125,7 @@ export const fetchWithTimeout = async (url: string, options = {}, timeout = 1000
 	  
 	  return response;
 	} catch (error) {
-	  clearTimeout(id);
+	  clearTimeout(timeoutId);
 	  throw error;
 	}
   };

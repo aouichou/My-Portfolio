@@ -119,8 +119,7 @@ export default function WasmTerminal({
     const command = commandsMap.current.get(trimmedCmd);
     if (command !== undefined) {
       const output = typeof command === 'function' ? command() : command;
-      const outputStr = output == null ? '' : String(output);
-      term.writeln(outputStr);
+      term.writeln(String(output));
     } else if (trimmedCmd) {
       term.writeln(`Command not found: ${trimmedCmd}. Type 'help' for available commands.`);
     }

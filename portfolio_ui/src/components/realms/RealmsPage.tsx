@@ -9,23 +9,23 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from '../../context/ThemeContext';
 import type { CodeSnippet, MermaidDiagram } from '../../data/realms-content';
 import {
-  AI_ENGINE_SNIPPET,
-  ARCHITECTURE_DIAGRAM,
-  DM_SUPERVISOR_PATTERNS,
-  DOCKER_SERVICES,
-  INFRA_DIAGRAM,
-  INFRASTRUCTURE_FEATURES,
-  KNOWLEDGE_STATS,
-  MEMORY_PIPELINE,
-  MEMORY_SNIPPET,
-  METRICS_CATEGORIES,
-  OBSERVABILITY_DIAGRAM,
-  OVERVIEW_FEATURES,
-  PROVIDER_SNIPPET,
-  REALMS_TABS,
-  TECH_STACK_GROUPS,
-  TOOL_CALLING_FLOW,
-  TOOL_FUNCTIONS,
+    AI_ENGINE_SNIPPET,
+    ARCHITECTURE_DIAGRAM,
+    DM_SUPERVISOR_PATTERNS,
+    DOCKER_SERVICES,
+    INFRA_DIAGRAM,
+    INFRASTRUCTURE_FEATURES,
+    KNOWLEDGE_STATS,
+    MEMORY_PIPELINE,
+    MEMORY_SNIPPET,
+    METRICS_CATEGORIES,
+    OBSERVABILITY_DIAGRAM,
+    OVERVIEW_FEATURES,
+    PROVIDER_SNIPPET,
+    REALMS_TABS,
+    TECH_STACK_GROUPS,
+    TOOL_CALLING_FLOW,
+    TOOL_FUNCTIONS,
 } from '../../data/realms-content';
 import { MermaidComponent } from '../MermaidComponent';
 import RealmsHero from './RealmsHero';
@@ -711,10 +711,10 @@ function DiagramSection({ diagram, isVisible }: { diagram: MermaidDiagram; isVis
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="relative max-w-[95vw] max-h-[95vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-4 overflow-auto"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); }}
             >
               <button
-                onClick={() => setLightboxOpen(false)}
+                onClick={() => { setLightboxOpen(false); }}
                 className="sticky top-0 float-right ml-2 mb-2 z-10 p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
                 aria-label="Close"
               >

@@ -5,6 +5,14 @@ import api from './api-client';
 import { Internship, InternshipProject } from './internship-types';
 import { buildApiUrl } from './url-security';
 
+const SAFE_SLUG = /^[a-zA-Z0-9_-]+$/;
+
+function assertSafeSlug(slug: string): void {
+  if (!SAFE_SLUG.test(slug)) {
+    throw new Error(`Invalid slug: ${slug}`);
+  }
+}
+
 /**
  * Fetch all internships
  */
@@ -91,6 +99,7 @@ export async function getAllInternships() {
  * Server-side fetch for single internship (Next.js Server Components)
  */
 export async function fetchInternshipBySlug(slug: string) {
+  assertSafeSlug(slug);
   try {
     const res = await fetch(buildApiUrl(['internships', slug]), {
       next: { revalidate: 60 },
@@ -116,6 +125,8 @@ export async function fetchInternshipBySlug(slug: string) {
  * Server-side fetch for single internship project (Next.js Server Components)
  */
 export async function fetchInternshipProject(internshipSlug: string, projectSlug: string) {
+  assertSafeSlug(internshipSlug);
+  assertSafeSlug(projectSlug);
   try {
     const res = await fetch(buildApiUrl(['internships', internshipSlug, 'projects', projectSlug]), {
       next: { revalidate: 60 },
