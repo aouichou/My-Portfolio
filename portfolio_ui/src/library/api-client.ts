@@ -111,8 +111,15 @@ export const fetchWithTimeout = async (url: string, options = {}, timeout = 1000
 	  safeUrl = buildApiUrl(segments);
 	}
 	
+	// Inline origin verification for SSRF protection
+	const parsedSafeUrl = new URL(safeUrl);
+	const trustedOrigin = new URL(getConfiguredApiBaseUrl()).origin;
+	if (parsedSafeUrl.origin !== trustedOrigin) {
+	  throw new Error('SSRF: URL origin mismatch');
+	}
+
 	try {
-	  const response = await fetch(safeUrl, {
+	  const response = await fetch(parsedSafeUrl.href, {
 		...options,
 		signal: controller.signal
 	  });

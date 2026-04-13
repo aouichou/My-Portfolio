@@ -3,7 +3,7 @@
 
 import api from './api-client';
 import { Internship, InternshipProject } from './internship-types';
-import { buildApiUrl } from './url-security';
+import { buildApiUrl, getConfiguredApiBaseUrl } from './url-security';
 
 const SAFE_SLUG = /^[a-zA-Z0-9_-]+$/;
 
@@ -127,8 +127,14 @@ export async function fetchInternshipBySlug(slug: string) {
 export async function fetchInternshipProject(internshipSlug: string, projectSlug: string) {
   assertSafeSlug(internshipSlug);
   assertSafeSlug(projectSlug);
+  // Build URL from trusted base and encode path segments, then verify origin
+  const endpoint = new URL(buildApiUrl(['internships', internshipSlug, 'projects', projectSlug]));
+  const trustedOrigin = new URL(getConfiguredApiBaseUrl()).origin;
+  if (endpoint.origin !== trustedOrigin) {
+    throw new Error('Untrusted API origin');
+  }
   try {
-    const res = await fetch(buildApiUrl(['internships', internshipSlug, 'projects', projectSlug]), {
+    const res = await fetch(endpoint.href, {
       next: { revalidate: 60 },
       headers: {
         'Accept': 'application/json'

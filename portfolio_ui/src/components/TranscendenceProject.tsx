@@ -164,15 +164,14 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                 <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
                   {(() => {
                     const safeIndex = Math.min(Math.max(0, currentGif), gifImages.length - 1);
-                    const currentImage = gifImages[safeIndex];
+                    const currentImage = gifImages.at(safeIndex) ?? gifImages[0];
                     return (
                       <img
                         src={currentImage.image}
                         alt={currentImage.caption || `Transcendence Demo ${safeIndex + 1}`}
                         className="w-full h-full object-contain"
                         onError={(e) => {
-                          const imgElement = e.target as HTMLImageElement;
-                          imgElement.src = '/fallback-image.jpg';
+                          e.currentTarget.src = '/fallback-image.jpg';
                         }}
                       />
                     );
@@ -218,8 +217,7 @@ export function TranscendenceProject({ initialProject }: { initialProject?: Proj
                           alt={img.caption || `Transcendence Screenshot ${index + 1}`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/fallback-image.jpg';
+                            e.currentTarget.src = '/fallback-image.jpg';
                           }}
                         />
                       </div>

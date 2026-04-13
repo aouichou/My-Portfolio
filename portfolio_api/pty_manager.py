@@ -12,18 +12,6 @@ from termios import TIOCSWINSZ
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_SHELLS = frozenset(('/bin/bash', '/bin/sh'))
-
-
-def _resolve_shell_path():
-	for shell_path in ('/bin/bash', '/bin/sh'):
-		if os.path.exists(shell_path):
-			if shell_path not in ALLOWED_SHELLS:
-				raise ValueError(f'Shell not in allowlist: {shell_path}')
-			return shell_path
-
-	raise FileNotFoundError('No supported shell found')
-
 
 class AsyncPTY:
 	def __init__(self, command, cwd=None, env=None, timeout=15):
@@ -44,13 +32,16 @@ class AsyncPTY:
 		)
 		
 		if self.pid == 0:  # Child process
-			# Execute shell — only hardcoded allowlisted paths to prevent command injection
+			# Execute shell — only hardcoded literal paths (no variables) for Semgrep safety
 			try:
 				os.chdir(self.cwd or os.path.expanduser('~'))
-				shell_path = _resolve_shell_path()
-				if shell_path not in ALLOWED_SHELLS:  # nosec: double-check allowlist
+				if os.path.exists('/bin/bash'):
+					os.execv('/bin/bash', ['/bin/bash', '-l'])
+				elif os.path.exists('/bin/sh'):
+					os.execv('/bin/sh', ['/bin/sh', '-l'])
+				else:
+					logger.error('No supported shell found')
 					os._exit(1)
-				os.execv(shell_path, [shell_path, '-l'])  # noqa: S606 -l for login shell
 			except Exception:
 				logger.exception('Error executing PTY shell')
 				os._exit(1)
@@ -62,8 +53,11 @@ class AsyncPTY:
 		return self.fd
 		
 	async def write(self, data):
+		fd = self.fd
+		if fd is None:
+			raise RuntimeError('PTY not started')
 		loop = asyncio.get_event_loop()
-		await loop.run_in_executor(None, lambda: os.write(self.fd, data.encode()))
+		await loop.run_in_executor(None, lambda: os.write(fd, data.encode()))
 		
 	async def read(self, timeout=None):
 		timeout = timeout or self.timeout
@@ -83,13 +77,16 @@ class AsyncPTY:
 			return b"Command timed out\r\n"
 
 	def _read_data(self):
+		fd = self.fd
+		if fd is None:
+			return b""
 		output = b""
 		max_attempts = 10
 		attempts = 0
 		
 		try:
 			while attempts < max_attempts:
-				r, w, e = select.select([self.fd], [], [], 0.2)
+				r, w, e = select.select([fd], [], [], 0.2)
 				if not r:
 					# No data available, but first check if we've already read something
 					if output:
@@ -98,7 +95,7 @@ class AsyncPTY:
 					continue
 					
 				try:
-					data = os.read(self.fd, 1024)
+					data = os.read(fd, 1024)
 					if not data:
 						break
 					output += data
@@ -135,9 +132,8 @@ class AsyncPTY:
 	async def disconnect(self, close_code):
 		print(f"WebSocket disconnecting with code: {close_code}")
 		# Clean up the PTY when WebSocket closes
-		if hasattr(self, 'pty'):
-			try:
-				self.pty.terminate()
-				print("PTY terminated successfully")
-			except Exception as e:
-				print(f"Error terminating PTY: {e}")
+		try:
+			self.terminate()
+			print("PTY terminated successfully")
+		except Exception as e:
+			print(f"Error terminating PTY: {e}")

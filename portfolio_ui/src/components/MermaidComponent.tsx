@@ -38,6 +38,25 @@ function initMermaid(isDark: boolean) {
   mermaidReady = true;
 }
 
+/**
+ * Safely inject a sanitized SVG into a wrapper element.
+ * parseSanitizedSvg strips all dangerous content before DOM insertion.
+ */
+function applySanitizedSvg(wrapper: HTMLDivElement, rawSvg: string): void {
+  const sanitizedNode = parseSanitizedSvg(rawSvg);
+  if (!sanitizedNode) {
+    throw new Error('Invalid Mermaid SVG output');
+  }
+  wrapper.replaceChildren(sanitizedNode);
+
+  const svgEl = wrapper.querySelector('svg');
+  if (svgEl) {
+    svgEl.style.maxWidth = 'none';
+    svgEl.style.height = 'auto';
+    svgEl.removeAttribute('height');
+  }
+}
+
 export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<string>('');
@@ -61,7 +80,7 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
   useEffect(() => {
     let cancelled = false;
 
-    const renderSanitizedSvg = async () => {
+    const renderMermaidChart = async () => {
       const container = containerRef.current;
       if (!container) return;
 
@@ -92,20 +111,12 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
         resetView();
 
         const wrapper = container.querySelector('.mermaid-svg-wrapper');
-        const sanitizedSvg = parseSanitizedSvg(svg);
-
-        if (!(wrapper instanceof HTMLDivElement) || !sanitizedSvg) {
+        if (!(wrapper instanceof HTMLDivElement)) {
           throw new Error('Invalid Mermaid SVG output');
         }
 
-        wrapper.replaceChildren(sanitizedSvg);
-
-        const svgEl = wrapper.querySelector('svg');
-        if (svgEl) {
-          svgEl.style.maxWidth = 'none';
-          svgEl.style.height = 'auto';
-          svgEl.removeAttribute('height');
-          }
+        // Sanitize and inject SVG safely
+        applySanitizedSvg(wrapper, svg);
       } catch (err: unknown) {
         if (cancelled) return;
         // Extract meaningful error message
@@ -131,7 +142,7 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
     };
 
     // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => { void renderSanitizedSvg(); }, 50);
+    const timer = setTimeout(() => { void renderMermaidChart(); }, 50);
     return () => {
       cancelled = true;
       clearTimeout(timer);

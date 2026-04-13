@@ -41,9 +41,8 @@ export async function generateStaticParams() {
 }
 
 export default async function InternshipProjectPage({ params }: Props) {
-  const { slug } = await params;
-  
   try {
+    const { slug } = await params;
     const project = await fetchInternshipProject('qynapse-healthcare', slug);
     
     if (!project) {
