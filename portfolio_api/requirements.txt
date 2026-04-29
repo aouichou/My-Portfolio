@@ -1,20 +1,20 @@
 # portfolio_api/requirements.txt
 
-Django>=5.1.15
-djangorestframework>=3.15.2
+Django>=6.0.4
+djangorestframework>=3.17.1
 django-ratelimit>=4.1.0
 gunicorn>=23.0.0
 Pillow>=12.1.1
-python-dotenv>=1.0.1
+python-dotenv>=1.2.2
 psycopg2-binary>=2.9.10
-dj_database_url>=2.3.0
-whitenoise>=6.9.0
-django-storages>=1.14.5
+dj_database_url>=3.1.2
+whitenoise>=6.12.0
+django-storages>=1.14.6
 boto3>=1.37.6
 djangorestframework-simplejwt>=5.5.1
-django-cors-headers>=4.7.0
-dnspython>=2.7.0
-channels>=4.2.0
+django-cors-headers>=4.9.0
+dnspython>=2.8.0
+channels>=4.3.2
 channels-redis>=4.2.1
 daphne>=4.1.2
 docker>=7.1.0
@@ -22,4 +22,4 @@ guacamole>=0.9.2
 websockets>=15.0.1
 APScheduler>=3.11.0
 tqdm>=4.67.1
-django-redis>=5.4.0 
+django-redis>=6.0.0 
