@@ -76,10 +76,14 @@ CACHES = {
 		'OPTIONS': {
 			'CLIENT_CLASS': 'django_redis.client.DefaultClient',
 		}
+	},
+	'rate_limit': {
+		'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+		'LOCATION': 'rate-limit-cache',
 	}
 }
 
-RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_USE_CACHE = 'rate_limit'
 RATELIMIT_ENABLE = True
 RATELIMIT_FAIL_OPEN = False
 
