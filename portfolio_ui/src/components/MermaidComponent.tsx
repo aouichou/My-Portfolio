@@ -59,6 +59,7 @@ function applySanitizedSvg(wrapper: HTMLDivElement, rawSvg: string): void {
 
 export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<string>('');
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -76,6 +77,30 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
   }, []);
+
+  // Auto-fit large diagrams to container width on first render
+  useEffect(() => {
+    if (!rendered) return;
+    const container = containerRef.current;
+    const wrapper = wrapperRef.current;
+    if (!container || !wrapper) return;
+
+    const svg = wrapper.querySelector('svg');
+    if (!svg) return;
+
+    // Small delay to let the SVG layout settle
+    const raf = requestAnimationFrame(() => {
+      const containerWidth = container.clientWidth;
+      const svgWidth = svg.getBoundingClientRect().width;
+
+      if (svgWidth > containerWidth) {
+        const fitScale = (containerWidth - 32) / svgWidth; // 32px for padding
+        setScale(Math.min(fitScale, 1));
+      }
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [rendered]);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,15 +174,21 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
     };
   }, [chart, isDark, onError, resetView]);
 
-  // Mouse wheel zoom
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
+  // Mouse wheel zoom — use native listener with { passive: false } to
+  // prevent the page from scrolling when zooming the diagram
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const delta = e.deltaY > 0 ? -0.1 : 0.1;
       setScale((s) => Math.min(Math.max(0.2, s + delta), 4));
-    },
-    []
-  );
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => container.removeEventListener('wheel', onWheel);
+  }, []);
 
   // Pan handlers
   const handleMouseDown = useCallback(
@@ -233,7 +264,6 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
         ref={containerRef}
         className="overflow-hidden rounded-lg"
         style={{ cursor: isDragging ? 'grabbing' : 'grab', minHeight: 120 }}
-        onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -249,6 +279,7 @@ export const MermaidComponent = ({ chart, onError }: MermaidProps) => {
           </div>
         )}
         <div
+          ref={wrapperRef}
           className="mermaid-svg-wrapper transition-transform duration-75 origin-center"
           style={{
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
