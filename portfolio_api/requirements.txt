@@ -1,6 +1,6 @@
 # portfolio_api/requirements.txt
 
-Django>=6.0.7
+Django>=6.0.7,<6.1
 djangorestframework>=3.17.1
 django-ratelimit>=4.1.0
 gunicorn>=26.0.0
