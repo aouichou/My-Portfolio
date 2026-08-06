@@ -65,7 +65,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/jszip": "^3.4.1",
-    "@types/node": "26.1.1",
+    "@types/node": "26.1.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
@@ -76,7 +76,7 @@
     "eslint-config-next": ">=16.2.12",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
-    "postcss": "^8.5.23",
+    "postcss": "^8.5.25",
     "tailwindcss": "^4.1.17",
     "typescript": "6.0.3"
   },
