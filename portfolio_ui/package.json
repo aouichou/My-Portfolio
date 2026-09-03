@@ -34,7 +34,7 @@
     "clsx": "^2.1.1",
     "critters": "^0.0.25",
     "dompurify": "^3.4.12",
-    "framer-motion": "^12.43.0",
+    "framer-motion": "^13.0.0",
     "js-yaml": "^5.2.2",
     "jszip": "^3.10.1",
     "lucide-react": "^1.28.0",
