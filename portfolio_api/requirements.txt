@@ -3,7 +3,7 @@
 Django>=6.1,<6.2
 djangorestframework>=3.17.2
 django-ratelimit>=4.1.0
-gunicorn>=26.0.0
+gunicorn>=26.2.0
 Pillow>=12.3.0
 python-dotenv>=1.2.2
 psycopg2-binary>=2.9.12
