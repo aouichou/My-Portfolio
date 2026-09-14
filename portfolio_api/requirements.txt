@@ -23,5 +23,5 @@ docker>=7.2.0
 guacamole>=0.9.2
 websockets>=17.1
 APScheduler>=3.11.3
-tqdm>=4.70.0
+tqdm>=4.70.1
 django-redis>=7.0.0 
