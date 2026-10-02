@@ -21,6 +21,7 @@ if not SECRET_KEY:
 		raise ValueError('SECRET_KEY environment variable must be set')
 	SECRET_KEY = secrets.token_urlsafe(64)
 # SECURITY WARNING: don't run with debug turned on in production!
+# Single source of truth: the DEBUG env var (docker-compose.dev sets it True).
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 # Enable proxy header handling
 USE_X_FORWARDED_HOST = True
@@ -41,7 +42,13 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_
 	'*.onrender.com'  # Wildcard for Render
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://aouichou.me', 'https://www.aouichou.me']
+# CSRF trusted origins -- authoritative list (previously defined 3x with
+# conflicting values; the last-wins rule silently dropped all but one).
+CSRF_TRUSTED_ORIGINS = [
+	'https://aouichou.me',
+	'https://www.aouichou.me',
+	'https://*.aouichou.me',
+]
 MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 MEDIA_ROOT = '/app/media'
 
@@ -121,12 +128,6 @@ SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-
-
-CSRF_TRUSTED_ORIGINS = [
-	"https://portfolio-frontend.herokuapp.com",
-	"https://*.aouichou.me"
-]
 
 # Rate limiting configuration
 RATELIMIT_ENABLE = True
@@ -254,8 +255,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = ['https://aouichou.me']
-
 
 # Email Configuration for SMTP2GO
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -326,6 +325,13 @@ TERMINAL_SETTINGS = {
 	'MAX_OUTPUT_LENGTH': 10000,   # 10KB per command
 	'CONCURRENT_SESSIONS': 3,     # Max 3 sessions per IP
 }
+
+# Shared secret for the Django -> terminal-service WebSocket hop. When set
+# (env: TERMINAL_PROXY_SECRET), TerminalConsumer sends it as the
+# X-Proxy-Secret header on the upstream dial and the terminal service
+# rejects connections without it. Production should always set it; unset in
+# development is tolerated by the terminal service when it runs in DEBUG.
+TERMINAL_PROXY_SECRET = os.environ.get('TERMINAL_PROXY_SECRET')
 
 # Set Content Security Policy
 CSP_DEFAULT_SRC = ["'self'"]

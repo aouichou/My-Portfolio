@@ -26,6 +26,9 @@ services:
     env_file: portfolio_api/.env
     environment:
       - DJANGO_SETTINGS_MODULE=portfolio_api.settings
+      # Shared secret for the Django -> terminal WS hop (set in root .env or
+      # shell; unset = consumer refuses to dial outside DEBUG)
+      - TERMINAL_PROXY_SECRET=${TERMINAL_PROXY_SECRET:-}
     networks:
       - app-network
     restart: unless-stopped
@@ -70,6 +73,9 @@ services:
     restart: unless-stopped
     environment:
       - PORT=8000
+      # Must match the backend's TERMINAL_PROXY_SECRET; unset + DEBUG off
+      # = terminal rejects every WS connection (fail closed)
+      - TERMINAL_PROXY_SECRET=${TERMINAL_PROXY_SECRET:-}
     depends_on: [redis]
 
   db:
