@@ -27,11 +27,7 @@ def app_client():
         except asyncio.CancelledError:
             pass
 
-    with patch('main.periodic_health_checks', new=_idle), \
-         patch('main.redis_client') as mock_redis:
-        mock_redis.setex.return_value = True
-        mock_redis.get.return_value = None
-
+    with patch('main.periodic_health_checks', new=_idle):
         from fastapi.testclient import TestClient
         from main import app
         with TestClient(app) as client:
