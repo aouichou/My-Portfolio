@@ -11,3 +11,7 @@ services:
     envVars:
       - key: PORT
         value: 8000
+      # Secret shared with the Django API; set via dashboard/CLI only,
+      # never committed. sync: false keeps blueprint sync from managing it.
+      - key: TERMINAL_PROXY_SECRET
+        sync: false

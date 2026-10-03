@@ -3,9 +3,9 @@
 > A modern, production-grade portfolio with interactive terminal demos, running on a distributed cloud architecture
 
 [![Codacy Badge](https://img.shields.io/codacy/grade/db3f1b73496040b39030c8c45c54e5a9?style=for-the-badge&logo=codacy&label=Code%20Quality)](https://app.codacy.com/gh/aouichou/My-Portfolio?utm_source=github.com&utm_medium=referral&utm_content=aouichou/My-Portfolio&utm_campaign=Badge_Grade)
-[![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=digitalocean)](https://aouichou.me)
+[![Deploy Status](https://img.shields.io/badge/status-live-brightgreen?style=for-the-badge&logo=render)](https://aouichou.me)
 [![WebSocket Status](https://img.shields.io/badge/WebSockets-active-4BC51D?style=for-the-badge&logo=websocket)](https://api.aouichou.me/ws)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/My-Portfolio/render+heriku.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/aouichou/My-Portfolio/deploy.yml?style=for-the-badge&label=CI%2FCD)](https://github.com/aouichou/My-Portfolio/actions)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?style=for-the-badge&logo=dependabot)](https://github.com/aouichou/My-Portfolio/network/updates)
 
 ## Quick Start
@@ -93,15 +93,15 @@ graph TD
 graph TD
     User("User") -->|HTTPS| CF("Cloudflare CDN")
     CF --> Heroku("Heroku<br/>Next.js 16")
-    CF --> DO("DigitalOcean<br/>Django 5 + FastAPI")
+    CF --> Render("Render<br/>Django 5 + FastAPI")
     
     subgraph "Frontend - Heroku"
         Heroku
     end
     
-    subgraph "Backend - DigitalOcean"
-        DO --> API("Django API")
-        DO --> Terminal("Terminal Service")
+    subgraph "Backend - Render"
+        Render --> API("Django API")
+        Render --> Terminal("Terminal Service")
         API --> Redis[("Redis Cache")]
     end
     
@@ -120,7 +120,7 @@ graph TD
     style User fill:#4A90E2,stroke:#2E5C8A,color:#fff
     style CF fill:#F6821F,stroke:#C5681A,color:#fff
     style Heroku fill:#430098,stroke:#2E0066,color:#fff
-    style DO fill:#0080FF,stroke:#0059B3,color:#fff
+    style Render fill:#46E3B7,stroke:#000,color:#000
     style DB fill:#336791,stroke:#22496B,color:#fff
     style R2 fill:#F6821F,stroke:#C5681A,color:#fff
     style Redis fill:#DC382D,stroke:#A02A22,color:#fff
@@ -131,10 +131,10 @@ graph TD
 | Service | Technology | Provider | Purpose |
 |---------|------------|----------|---------|  
 | Frontend | Next.js 16 + React 19, TypeScript, Tailwind CSS 3 | Heroku | User interface with Turbopack |
-| Backend API | Django 5.1 + Channels 4, DRF 3.15, Python 3.14 | DigitalOcean | Data, auth & WebSocket proxy |
-| Terminal Service | FastAPI 0.122, Python 3.14, pexpect, PTY | DigitalOcean | Terminal execution service |
+| Backend API | Django 5.1 + Channels 4, DRF 3.15, Python 3.14 | Render | Data, auth & WebSocket proxy |
+| Terminal Service | FastAPI 0.122, Python 3.14, pexpect, PTY | Render | Terminal execution service |
 | Database | Neon PostgreSQL (Serverless) | Neon | Persistent storage |
-| Cache | Redis 7 | DigitalOcean | Django Channels layer |
+| Cache | Redis 7 | Render | Django Channels layer |
 | Storage | Cloudflare R2 (S3-compatible) | Cloudflare | Project files, assets |
 | CDN | Cloudflare | Cloudflare | Edge caching, WAF |
 | CI/CD | GitHub Actions | GitHub | Automated deployment |
@@ -198,8 +198,8 @@ Bundle Size: 128kb              Cache Hit Rate: 92%
 - **React 19 Early Adoption**: Upgraded to React 19 for improved concurrent rendering and automatic batching
 - **Tailwind CSS v3 over v4**: Stayed on v3 for production stability; v4 requires significant migration effort
 - **Next.js 16 with Turbopack**: Leveraging Turbopack for faster development builds and improved HMR
-- **Split Deployment Strategy**: Heroku for frontend (simple Docker deployment), DigitalOcean for backend services (superior App Platform, integrated Redis)
-- **Multi-Provider Backup**: Render and Neon as backup providers for database and backend services
+- **Split Deployment Strategy**: Heroku for frontend (simple Docker deployment), Render for backend services (API + terminal, blueprint-managed via `render.yaml` / `render_terminal.yaml`)
+- **Multi-Provider Posture**: Heroku (UI) + Render (API/terminal) + Neon (database); Cloudflare fronts everything
 - **Custom R2 Integration**: Built custom Cloudflare R2 storage class to handle delayed file processing and zip extraction
 
 ## Getting Started
