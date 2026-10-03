@@ -1,8 +1,23 @@
-name: Heroku + DigitalOcean Deploy
+name: Deploy — Render + Heroku
 on:
   push:
     branches:
       - main
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Required GitHub secrets (Repo → Settings → Secrets and variables → Actions):
+#
+#   RENDER_API_KEY         Render API key — Render dashboard → Account Settings
+#                          → API Keys → Create. Scoped to the account.
+#   RENDER_API_SERVICE_ID  Service ID of the API (portfolio-backend) — Render
+#                          dashboard → the service → Settings → Service ID
+#                          (starts with "svc-").
+#   RENDER_TERMINAL_SERVICE_ID  Service ID of the terminal service
+#                               (portfolio-terminal-4t9w) — same place.
+#
+# The legacy DigitalOcean secrets (DIGITALOCEAN_API_TOKEN,
+# DIGITALOCEAN_APP_ID) are no longer referenced and can be deleted.
+# ─────────────────────────────────────────────────────────────────────────────
 
 # Set minimal permissions at workflow level (least privilege principle)
 permissions:
@@ -61,7 +76,7 @@ jobs:
           echo "Shared config changes: ${{ steps.filter.outputs.shared }}"
           echo "Force deploy: ${{ steps.check-commit-msg.outputs.force_deploy }}"
 
-  # Backend deployment job - DigitalOcean App Platform
+  # Backend deployment job - Render (portfolio-backend)
   deploy-backend:
     needs: [check-changes]
     if: |
@@ -85,25 +100,32 @@ jobs:
       - name: Deploy reason
         run: |
           if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
-            echo "🚀 Deploying backend to DigitalOcean because force deploy was requested"
+            echo "🚀 Deploying backend to Render because force deploy was requested"
           else
-            echo "🚀 Deploying backend to DigitalOcean because backend files changed"
+            echo "🚀 Deploying backend to Render because backend files changed"
           fi
 
-      - name: Trigger DigitalOcean Deployment
+      # Render deploys are asynchronous: this POST only queues a build.
+      # Render auto-deploy is ON for the service, so this trigger is the
+      # belt-and-braces path; build status is verifiable in the Render
+      # dashboard / logs.
+      - name: Trigger Render Deployment
         if: steps.check-dependabot.outputs.is_dependabot != 'true'
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_API_SERVICE_ID: ${{ secrets.RENDER_API_SERVICE_ID }}
         run: |
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.DIGITALOCEAN_API_TOKEN }}" \
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            https://api.digitalocean.com/v2/apps/${{ secrets.DIGITALOCEAN_APP_ID }}/deployments
+            "https://api.render.com/v1/services/$RENDER_API_SERVICE_ID/deploys"
       
-      - name: Wait for Deployment
+      - name: Note on async build
         if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: |
-          echo "⏳ Waiting for DigitalOcean deployment to complete (2-3 minutes)..."
-          sleep 180
-          echo "✅ Deployment should be complete. Check DigitalOcean dashboard for status."
+          echo "⏳ Render builds asynchronously (~2-5 min for a free-tier API rebuild)."
+          sleep 30
+          echo "✅ Deploy queued. Verify build status in the Render dashboard or logs."
       
       - name: Dependabot PR Check Passed
         if: steps.check-dependabot.outputs.is_dependabot == 'true'
@@ -166,7 +188,7 @@ jobs:
           echo "✅ Dependabot PR validated - deployment skipped intentionally"
           echo "This PR can be safely merged if all other checks pass"
 
-  # Terminal service deployment job - DigitalOcean App Platform
+  # Terminal service deployment job - Render (portfolio-terminal)
   deploy-terminal:
     needs: [check-changes]
     if: |
@@ -190,28 +212,34 @@ jobs:
       - name: Deploy reason
         run: |
           if [[ "${{ needs.check-changes.outputs.force_deploy }}" == "true" ]]; then
-            echo "🚀 Deploying terminal service to DigitalOcean because force deploy was requested"
+            echo "🚀 Deploying terminal service to Render because force deploy was requested"
           elif [[ "${{ needs.check-changes.outputs.shared }}" == "true" ]]; then
-            echo "🚀 Deploying terminal service to DigitalOcean because shared configs changed"
+            echo "🚀 Deploying terminal service to Render because shared configs changed"
           else
-            echo "🚀 Deploying terminal service to DigitalOcean because terminal files changed"
+            echo "🚀 Deploying terminal service to Render because terminal files changed"
           fi
 
-      - name: Trigger DigitalOcean Deployment
+      # Render deploys are asynchronous: this POST only queues a build.
+      # Render auto-deploy is ON for the service, so this trigger is the
+      # belt-and-braces path; build status is verifiable in the Render
+      # dashboard / logs.
+      - name: Trigger Render Deployment
         if: steps.check-dependabot.outputs.is_dependabot != 'true'
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_TERMINAL_SERVICE_ID: ${{ secrets.RENDER_TERMINAL_SERVICE_ID }}
         run: |
-          # Same app ID - DigitalOcean deploys all components together
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.DIGITALOCEAN_API_TOKEN }}" \
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            https://api.digitalocean.com/v2/apps/${{ secrets.DIGITALOCEAN_APP_ID }}/deployments
+            "https://api.render.com/v1/services/$RENDER_TERMINAL_SERVICE_ID/deploys"
       
-      - name: Wait for Deployment
+      - name: Note on async build
         if: steps.check-dependabot.outputs.is_dependabot != 'true'
         run: |
-          echo "⏳ Waiting for DigitalOcean deployment to complete..."
-          sleep 180
-          echo "✅ Terminal service deployment triggered. Check DigitalOcean dashboard."
+          echo "⏳ Render builds asynchronously."
+          sleep 30
+          echo "✅ Terminal deploy queued. Verify build status in the Render dashboard or logs."
       
       - name: Dependabot PR Check Passed
         if: steps.check-dependabot.outputs.is_dependabot == 'true'

@@ -37,8 +37,6 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_
 	'www.aouichou.me',
 	'portfolio-backend-dytv.onrender.com',  # Old Render host
 	'portfolio-frontend.herokuapp.com',
-	'squid-app-i2je9.ondigitalocean.app',  # DigitalOcean default domain
-	'*.ondigitalocean.app',  # Wildcard for DigitalOcean
 	'*.onrender.com'  # Wildcard for Render
 ]
 

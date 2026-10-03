@@ -14,4 +14,8 @@ services:
         value: 3.10.0
       - key: WEB_CONCURRENCY
         value: 2
+      # Secret shared with the terminal service; set via dashboard/CLI only,
+      # never committed. sync: false keeps blueprint sync from managing it.
+      - key: TERMINAL_PROXY_SECRET
+        sync: false
       - fromGroup: portfolio-env
