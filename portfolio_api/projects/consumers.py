@@ -72,6 +72,33 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		
 		logger.info("Connecting to terminal service at: %s", self.terminal_url)
 		
+		# Shared-secret auth for the Django -> terminal hop. The old code dialed
+		# the upstream with no credentials, so anyone who could reach the
+		# terminal service directly got a shell. Fail-closed in production:
+		# refuse to dial without the secret unless DEBUG is on (dev-compose
+		# intentionally runs without it; the terminal service logs a loud
+		# warning on its side and still accepts in DEBUG).
+		proxy_secret = getattr(settings, 'TERMINAL_PROXY_SECRET', None)
+		if not proxy_secret:
+			if settings.DEBUG:
+				logger.warning(
+					"TERMINAL_PROXY_SECRET is not set - dialing terminal service "
+					"without proxy authentication (DEBUG mode only). Set "
+					"TERMINAL_PROXY_SECRET in production."
+				)
+			else:
+				logger.error(
+					"TERMINAL_PROXY_SECRET is not set and DEBUG is off - refusing "
+					"to connect to terminal service (fail closed)."
+				)
+				await self.send(text_data=json.dumps({
+					'output': "Terminal service is not configured (missing proxy secret). Contact the administrator.\r\n"
+				}))
+				await self.close()
+				return
+		
+		upstream_headers = {'X-Proxy-Secret': proxy_secret} if proxy_secret else None
+		
 		try:
 			# Connect to terminal service with increased timeout for S3 downloads
 			# Timeout increased to account for:
@@ -79,7 +106,12 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			# - S3 file download for large projects (30-60s)
 			# - ZIP extraction and bash initialization (10-20s)
 			self.terminal_ws = await asyncio.wait_for(
-				websockets.connect(self.terminal_url, ping_interval=30, ping_timeout=120),
+				websockets.connect(
+					self.terminal_url,
+					ping_interval=30,
+					ping_timeout=120,
+					additional_headers=upstream_headers,
+				),
 				timeout=180  # Increased from 60s to 180s (3 minutes)
 			)
 			

@@ -1,6 +1,7 @@
 # portfolio-terminal/main.py
 
 import asyncio
+import hmac
 import json
 import logging
 import os
@@ -16,7 +17,6 @@ from pathlib import Path
 import aiohttp
 import boto3
 import psutil
-import redis
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from pexpect import EOF, spawn
@@ -28,6 +28,23 @@ ALLOWED_PROJECTS = {
 	'minishell', 'push_swap', 'philosophers', 'minitalk', 
 	'fdf', 'ft_irc', 'minirt', 'cub3d', 'ft_transcendence'
 }
+
+# Service mode (env-driven; tests and docker-compose.dev run with DEBUG=True)
+DEBUG_MODE = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
+
+# Session hardening (env-tunable):
+#   TERMINAL_MAX_SESSIONS - hard cap on concurrent bash sessions
+#   TERMINAL_IDLE_TIMEOUT - seconds without client input before disconnect
+#   TERMINAL_MAX_LIFETIME - hard per-session lifetime cap in seconds
+TERMINAL_MAX_SESSIONS = int(os.getenv('TERMINAL_MAX_SESSIONS', '10'))
+TERMINAL_IDLE_TIMEOUT = float(os.getenv('TERMINAL_IDLE_TIMEOUT', '300'))
+TERMINAL_MAX_LIFETIME = float(os.getenv('TERMINAL_MAX_LIFETIME', '900'))
+
+# Shared secret for the Django->terminal proxy hop. When set, every WS
+# connection must carry a matching X-Proxy-Secret header. Unset + DEBUG is
+# allowed with a loud warning (dev-compose); unset in production fails closed.
+PROXY_SECRET = os.getenv('TERMINAL_PROXY_SECRET')
+PROXY_SECRET_HEADER = 'x-proxy-secret'
 
 def sanitize_project_slug(project_slug: str) -> str:
 	"""
@@ -74,31 +91,37 @@ def safe_join_path(base_dir: str, *paths: str) -> str:
 	
 	return str(full_path)
 
-def apply_security_restrictions(child_process):
-	"""Apply security restrictions to spawned processes"""
-	try:
-		# NOTE: Resource limits should NOT be applied here as they affect the parent process
-		# They should be applied in the child process after fork but before exec
-		# For now, we rely on container-level resource limits set by Docker/Render
-		
-		# Configure environment for security
-		env = os.environ.copy()
-		env['SHELL'] = '/bin/bash'
-		env['PATH'] = '/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin'
-		# Remove potentially dangerous environment variables
-		for var in ['LD_PRELOAD', 'LD_LIBRARY_PATH']:
-			if var in env:
-				del env[var]
+# The ONLY environment the bash child may ever see. This is an explicit
+# allowlist -- never os.environ.copy(): the service environment carries the
+# Cloudflare R2 credentials (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) and
+# other deploy secrets, and an inherited env leaks them to any
+# `echo $AWS_SECRET_ACCESS_KEY` typed into the demo terminal.
+CHILD_ENV_ALLOWLIST = {
+	'SHELL': '/bin/bash',
+	'HOME': '/home/coder',
+	'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+	'TERM': 'xterm-256color',
+	'LANG': 'C.UTF-8',
+	'PS1': '\\[\\033[1;32m\\]\\u@\\h:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ ',
+}
 
-		# Set secure umask for file creation
-		os.umask(0o022)  # Files created with 644, directories with 755
+_LANG_RE = re.compile(r'^[A-Za-z0-9_.@+-]+$')
 
-		# Log security application
-		logger.info("Security restrictions applied to process")
-		return env, None
-	except Exception as e:
-		logger.error("Failed to apply security restrictions: %s", e)
-		raise
+def build_child_env():
+	"""Return the exact environment dict for the bash child process.
+
+	Hotfix (C2/N1): the previous code copied os.environ into the child and ran
+	a "scrub" AFTER spawn whose result was discarded (dead code), exposing
+	every service secret to the shell. The child now gets ONLY the values
+	above. LANG is the single value read from the service environment --
+	sanitized to a locale-shaped string -- because bash needs it for sane
+	behavior; it cannot carry credentials.
+	"""
+	env = dict(CHILD_ENV_ALLOWLIST)
+	lang = os.environ.get('LANG', '')
+	if lang and _LANG_RE.match(lang):
+		env['LANG'] = lang
+	return env
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -109,12 +132,11 @@ async def lifespan(app: FastAPI):
 	health_check_task = asyncio.create_task(periodic_health_checks())
 
 	# Check terminal security (skip in development mode)
-	is_dev = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
-	if not is_dev and not check_terminal_security():
+	if not DEBUG_MODE and not check_terminal_security():
 		print("Security check failed. Shutting down...")
 		yield
 		return
-	elif is_dev:
+	elif DEBUG_MODE:
 		print("Running in development mode - security checks skipped")
 
 	yield
@@ -129,11 +151,12 @@ async def lifespan(app: FastAPI):
 	except asyncio.CancelledError:
 		pass
 
-	# Terminate all active terminals
-	for session_id, child in active_terminals.items():
+	# Terminate all active terminals (reserved-but-unspawned slots hold None)
+	for session_id, child in list(active_terminals.items()):
 		try:
-			child.close()
-			print(f"Terminated terminal session {session_id}")
+			if child is not None:
+				child.close()
+				print(f"Terminated terminal session {session_id}")
 		except Exception as e:
 			print(f"Error terminating session {session_id}: {e}")
 
@@ -168,12 +191,6 @@ error_counter = 0
 last_error_message = ""
 last_error_timestamp = None
 
-
-redis_client = redis.Redis.from_url(
-	os.environ.get('REDIS_URL', 'redis://localhost:6379'),
-	decode_responses=True
-)
-
 @app.get("/metrics")
 async def metrics():
 	memory = psutil.virtual_memory()
@@ -189,6 +206,115 @@ app_start_time = time.time()
 async def health_check():
 	return {"status": "healthy"}
 
+def proxy_authorized(websocket: WebSocket) -> bool:
+	"""Enforce the shared proxy secret on the Django->terminal hop.
+
+	Fail-closed: when TERMINAL_PROXY_SECRET is set, every connection must
+	carry a matching X-Proxy-Secret header (constant-time compare). When the
+	secret is unset we allow only in development (DEBUG) with a loud warning
+	-- production without the secret is a misconfiguration and is refused.
+	NOTE: dev-compose intentionally runs without the secret because the dev
+	UI connects DIRECTLY to :8001 (browsers cannot send custom WS headers),
+	so an unset secret in DEBUG keeps the documented current dev behavior.
+	"""
+	if PROXY_SECRET:
+		provided = websocket.headers.get(PROXY_SECRET_HEADER, '')
+		return hmac.compare_digest(provided.encode('utf-8'), PROXY_SECRET.encode('utf-8'))
+	if DEBUG_MODE:
+		logger.warning(
+			"TERMINAL_PROXY_SECRET is not set -- accepting unauthenticated "
+			"terminal connections (DEBUG mode only). Set TERMINAL_PROXY_SECRET "
+			"in production."
+		)
+		return True
+	logger.error("TERMINAL_PROXY_SECRET is not set and DEBUG is off -- failing closed")
+	return False
+
+class InputLineBuffer:
+	"""Accumulate per-session keystrokes into logical lines for validation.
+
+	Fixes the split-frame bypass: the official xterm.js client sends every
+	keystroke as its own frame, so validating only frames that contain
+\t\r/\n let normally-typed commands reach bash unvalidated. Validation must
+	run on the line assembled ACROSS frames, at the moment Enter arrives.
+
+	Handling:
+	- printable characters: accumulated AND forwarded
+	- Enter (\r/\n): completes the line -> ('enter', line) action
+	- Backspace (\x7f/\x08): edits the buffer AND is forwarded
+	- Ctrl+C (\x03), Ctrl+D (\x04), Ctrl+U (\x15): clear the buffer AND are
+	  forwarded (they interrupt/clear the shell line too)
+	- every other control character, Tab, and escape sequence (arrow keys,
+	  history recall, etc.): DROPPED -- bash-side line editing or history
+	  recall would desync this buffer from what bash actually executes.
+	  Known UX trade-off (no arrows/Tab in the demo), accepted for the hotfix.
+
+	feed() returns ordered actions:
+	  ('forward', str)  -- bytes to write to the shell
+	  ('enter', line)   -- Enter pressed; validate `line` before forwarding '\r'
+	"""
+
+	MAX_LINE_LENGTH = 512
+	_FORWARDED_CONTROLS = {'\x03', '\x04', '\x15'}  # Ctrl+C, Ctrl+D, Ctrl+U
+
+	def __init__(self):
+		self._line = ''
+		self._escape_state = 0  # 0: none, 1: saw ESC, 2: inside CSI/SS3
+
+	def feed(self, text):
+		"""Consume one client input frame; return ordered (action, payload) tuples."""
+		actions = []
+		forward = []
+
+		def flush_forward():
+			if forward:
+				actions.append(('forward', ''.join(forward)))
+				forward.clear()
+
+		for ch in text:
+			if self._escape_state == 1:
+				# Second byte of an escape sequence: CSI/SS3 introducer or single-char seq
+				self._escape_state = 2 if ch in ('[', 'O') else 0
+				continue
+			if self._escape_state == 2:
+				# CSI/SS3 sequences terminate on a byte in 0x40-0x7E
+				if '@' <= ch <= '~':
+					self._escape_state = 0
+				continue
+			if ch == '\x1b':
+				flush_forward()
+				self._escape_state = 1
+				continue
+			if ch in ('\r', '\n'):
+				flush_forward()
+				line = self._line
+				self._line = ''
+				actions.append(('enter', line))
+				continue
+			if ch in ('\x7f', '\x08'):
+				self._line = self._line[:-1]
+				forward.append(ch)
+				continue
+			if ch in self._FORWARDED_CONTROLS:
+				self._line = ''
+				forward.append(ch)
+				continue
+			if ch < ' ' or '\x80' <= ch <= '\x9f':
+				# Any other control character (Tab, Ctrl+whatever, C1): drop
+				continue
+			if len(self._line) >= self.MAX_LINE_LENGTH:
+				# Over-cap characters are dropped, never forwarded
+				continue
+			self._line += ch
+			forward.append(ch)
+		flush_forward()
+		return actions
+
+	@property
+	def line(self):
+		"""Current (incomplete) accumulated line -- for tests/introspection."""
+		return self._line
+
 @app.websocket("/terminal/{project_slug}/")
 async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	await websocket.accept()
@@ -196,6 +322,24 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	
 	# Initialize variables that might be used in finally block
 	read_task = None
+
+	# Proxy shared secret gate -- cheapest check first
+	if not proxy_authorized(websocket):
+		await websocket.send_json({'error': 'unauthorized: missing or invalid proxy secret'})
+		await websocket.close(code=4401)
+		return
+
+	# Hard cap on concurrent sessions -- reject before doing any work
+	if len(active_terminals) >= TERMINAL_MAX_SESSIONS:
+		logger.warning(
+			"Rejecting connection: session cap reached (%d active >= %d max)",
+			len(active_terminals), TERMINAL_MAX_SESSIONS
+		)
+		await websocket.send_json({
+			'error': f'Server busy: all {TERMINAL_MAX_SESSIONS} terminal sessions are in use. Please try again in a few minutes.'
+		})
+		await websocket.close(code=1013)
+		return
 
 	try:
 		# Validate and sanitize project slug
@@ -205,22 +349,12 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		await websocket.close()
 		return
 
-	# Create unique session ID
+	# Create unique session ID and reserve its slot immediately (before the
+	# potentially slow project download) so concurrent connects cannot
+	# overshoot the session cap. The slot holds None until bash is spawned.
 	session_id = str(uuid.uuid4())
 	logger.info("Generated session ID: %s", session_id)
-	
-	# Store terminal session in Redis
-	session_info = {
-		'id': session_id,
-		'project': project_slug,
-		'created': time.time(),
-		'client_ip': websocket.client.host
-	}
-	
-	try:
-		redis_client.setex(f"terminal_session:{session_id}", 3600, json.dumps(session_info))
-	except Exception as e:
-		logger.error("Redis error: %s", e)
+	active_terminals[session_id] = None
 	
 	try:
 		# Check for project directory and download files if needed
@@ -263,11 +397,8 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		else:
 			logger.info("Using existing project directory: %s, contains: %s", project_dir, os.listdir(project_dir))
 		
-		env = os.environ.copy()
-		env['TERM'] = 'xterm-256color'
-		env['PS1'] = '\\[\\033[1;32m\\]\\u@\\h:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ '
-		env['HOME'] = '/home/coder'
-		env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+		# Explicit env allowlist -- the child must NOT inherit service secrets
+		env = build_child_env()
 
 		# Initialize terminal with bash instead of zsh - more reliable
 		await websocket.send_json({
@@ -276,7 +407,6 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		
 		# Use bash instead of zsh for more reliable prompt detection
 		child = spawn('/bin/bash', ['--login'], cwd=project_dir, env=env, encoding='utf-8', timeout=300)
-		env, _ = apply_security_restrictions(child)
 		child.setwinsize(40, 120)  # Initial size
 
 		
@@ -324,12 +454,48 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		# Read from terminal in background task
 		read_task = asyncio.create_task(read_terminal_output(websocket, child))
 		
-		# Process client messages
+		# Per-session line accumulator: validation must see the whole command
+		# assembled across frames, not whatever single frame carries Enter.
+		line_buffer = InputLineBuffer()
+		
+		# Process client messages under idle + hard-lifetime budgets
+		session_started = time.monotonic()
 		while True:
-			data = await websocket.receive_text()
+			elapsed = time.monotonic() - session_started
+			if elapsed >= TERMINAL_MAX_LIFETIME:
+				await websocket.send_json({
+					'output': f"\r\n⏱ Maximum session duration ({int(TERMINAL_MAX_LIFETIME)}s) reached — disconnecting. Refresh for a new session.\r\n"
+				})
+				await websocket.close(code=1000)
+				break
+			budget = min(TERMINAL_IDLE_TIMEOUT, TERMINAL_MAX_LIFETIME - elapsed)
+			try:
+				data = await asyncio.wait_for(websocket.receive_text(), timeout=budget)
+			except asyncio.TimeoutError:
+				if time.monotonic() - session_started >= TERMINAL_MAX_LIFETIME:
+					await websocket.send_json({
+						'output': f"\r\n⏱ Maximum session duration ({int(TERMINAL_MAX_LIFETIME)}s) reached — disconnecting. Refresh for a new session.\r\n"
+					})
+				else:
+					await websocket.send_json({
+						'output': f"\r\n⏱ Disconnected after {int(TERMINAL_IDLE_TIMEOUT)}s of inactivity. Refresh to reconnect.\r\n"
+					})
+				await websocket.close(code=1000)
+				break
+			
+			# Protocol gate: every frame must be a JSON object. The old code
+			# wrote non-JSON frames straight to bash, bypassing all validation.
 			try:
 				message = json.loads(data)
-				
+				if not isinstance(message, dict):
+					raise ValueError('frame is not a JSON object')
+			except (json.JSONDecodeError, ValueError):
+				logger.warning("Protocol violation: non-JSON frame received — closing connection")
+				await websocket.send_json({'error': 'protocol violation: frames must be JSON objects'})
+				await websocket.close(code=1002)
+				break
+			
+			try:
 				# Handle resize commands
 				if 'resize' in message and isinstance(message['resize'], dict):
 					rows = message['resize'].get('rows', 24)
@@ -337,33 +503,35 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 					logger.info("Resizing terminal to %sx%s", rows, cols)
 					child.setwinsize(rows, cols)
 				
-				# Handle input with command validation
+				# Handle input with line-accumulating validation
 				elif 'input' in message:
 					user_input = message['input']
+					if not isinstance(user_input, str):
+						await websocket.send_json({'error': "invalid 'input' frame: expected a string"})
+						continue
 					
-					# Check if this looks like a command (ends with enter/newline)
-					if '\r' in user_input or '\n' in user_input:
-						# Extract the command (everything before the newline)
-						command = user_input.replace('\r', '').replace('\n', '').strip()
-						
-						# Validate command before sending to shell
-						if command and not validate_command(command):
-							# Command blocked - notify user
-							await websocket.send_json({
-								'output': f"\r\n❌ Command blocked by security policy: '{command}'\r\n"
-							})
-							await websocket.send_json({
-								'output': "Only basic file inspection and compilation commands are allowed.\r\n"
-							})
-							# Don't send to the shell
-							continue
-					
-					# Command is allowed or is just keystrokes - send to shell
-					child.write(user_input)
-					
-			except json.JSONDecodeError:
-				# Treat as raw input
-				child.write(data)
+					for action, payload in line_buffer.feed(user_input):
+						if action == 'forward':
+							child.write(payload)
+						elif action == 'enter':
+							# Validate the ACCUMULATED line before Enter reaches bash
+							if validate_command(payload):
+								child.write('\r')
+							else:
+								# Kill bash's copy of the rejected line (Ctrl+U);
+								# never forward the Enter keystroke itself.
+								child.write('\x15')
+								await websocket.send_json({
+									'output': f"\r\n❌ Command blocked by security policy: '{payload}'\r\n"
+								})
+								await websocket.send_json({
+									'output': "Only basic file inspection and compilation commands are allowed.\r\n"
+								})
+				
+				else:
+					# Unknown frame keys (mfa_code etc.) are ignored, not forwarded
+					logger.debug("Ignoring frame with unknown keys: %s", sorted(message.keys()))
+				
 			except Exception as e:
 				logger.error("Error processing message: %s", e)
 				await websocket.send_json({
@@ -387,14 +555,16 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				await read_task
 			except asyncio.CancelledError:
 				pass
-		# Cleanup on disconnect
-		if session_id in active_terminals:
+		# Cleanup on disconnect (slot may still hold None if spawn never happened)
+		child = active_terminals.pop(session_id, None)
+		if child is not None:
 			try:
-				active_terminals[session_id].terminate()
-				del active_terminals[session_id]
+				child.terminate()
 				logger.info("Terminated session %s", session_id)
 			except Exception as cleanup_error:
 				logger.error("Failed to terminate session %s: %s", session_id, cleanup_error)
+		else:
+			logger.info("Released reserved session slot %s", session_id)
 
 async def read_terminal_output(websocket, child):
 	while True:
@@ -511,9 +681,7 @@ def download_project_files(project_slug, project_dir):
 	"""Download project files from S3 if they exist, or copy from local backend in DEBUG mode"""
 	try:
 		# Check if running in DEBUG mode (local development)
-		is_dev = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
-		
-		if is_dev:
+		if DEBUG_MODE:
 			# Local development: copy from backend media directory
 			local_zip_path = f'/backend-media/project-files/{project_slug}.zip'
 			if os.path.exists(local_zip_path):

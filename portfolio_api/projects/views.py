@@ -139,8 +139,12 @@ class ContactSubmissionView(APIView):
 			# If verification fails, just continue - don't block submission
 			return True, "Verification error, allowing submission"
 	
-	@method_decorator(ratelimit(key='ip', rate='5/m', method=['POST']))
+	@method_decorator(ratelimit(key='ip', rate='5/m', method=['POST'], block=False))
 	def post(self, request):
+		# block=False: let this manual check return the 429 instead of raising
+		# Ratelimited (a PermissionDenied subclass), which DRF's exception
+		# handler would convert to a 403 before the ratelimit middleware's
+		# RATELIMIT_VIEW could render the proper response.
 		was_limited = getattr(request, 'limited', False)
 		if was_limited:
 			return Response(
@@ -209,17 +213,13 @@ Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S'
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-def debug_view(request):
+def api_root(request):
+	"""Minimal static API root -- no request reflection.
+
+	Replaces the old debug view that echoed all request headers and query
+	params back to any caller (proxy internals/edge headers leak).
 	"""
-	Debug view to help identify routing issues
-	"""
-	return Response({
-		'message': 'API is working',
-		'path': request.path,
-		'method': request.method,
-		'headers': dict(request.headers),
-		'query_params': dict(request.query_params)
-	})
+	return Response({'status': 'ok', 'service': 'portfolio-api'})
 
 class RateLimitedTokenObtainPairView(TokenObtainPairView):
 	permission_classes = [AllowAny]
@@ -228,19 +228,6 @@ class RateLimitedTokenObtainPairView(TokenObtainPairView):
 	def post(self, request, *args, **kwargs):
 		return super().post(request, *args, **kwargs)
 	
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def trigger_import(request):
-	from django.core.management import call_command
-	try:
-		call_command('import_projects', 'projects.json')
-		return Response({'status': 'Import started'})
-	except Exception as e:
-		# Log the actual error for debugging
-		logger.error(f"Project import failed: {str(e)}")
-		# Don't expose internal error details to users
-		return Response({'error': 'Import failed. Please check server logs.'}, status=500)
-
 @api_view(['GET'])
 def project_files(request, slug):
 	"""Serve project demo files from S3"""
