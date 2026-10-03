@@ -297,6 +297,13 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 	def get_queryset(self):
 		queryset = Project.objects.all().order_by('-is_featured', '-score')
 		
+		# Detail (retrieve) must resolve ANY slug regardless of featured
+		# status -- featuring curates listings, not retrieval. The old
+		# shared filter 404'd every unfeatured project's detail page
+		# (React #441 "something went wrong" on /projects/<slug>).
+		if self.action == 'retrieve':
+			return queryset
+		
 		# Filter by project_type if specified
 		project_type = self.request.query_params.get('project_type')
 		if project_type in ['school', 'internship']:
