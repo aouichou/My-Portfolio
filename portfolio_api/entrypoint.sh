@@ -7,14 +7,29 @@ mkdir -p /app/media
 cp -r /app/prepopulated_media/* /app/media/ 2>/dev/null || true
 echo "Media files copied."
 
-# Wait for external PostgreSQL
-echo "Waiting for database at $DB_HOST:$DB_PORT..."
-while ! python -c "import socket; s = socket.socket(); s.settimeout(5); s.connect(('$DB_HOST', $DB_PORT))" 2>/dev/null; do
+# Wait for external PostgreSQL (parse host/port from DATABASE_URL, the single
+# source of truth per settings.py — the old DB_HOST/DB_PORT wait never fired
+# on Render/DO because those vars were unset there)
+echo "Waiting for database from DATABASE_URL..."
+DB_WAIT_HOST=$(python -c "
+import os, urllib.parse
+u = urllib.parse.urlparse(os.environ.get('DATABASE_URL', ''))
+print(u.hostname or '')
+")
+DB_WAIT_PORT=$(python -c "
+import os, urllib.parse
+u = urllib.parse.urlparse(os.environ.get('DATABASE_URL', ''))
+print(u.port or 5432)
+")
+while ! python -c "import socket; s = socket.socket(); s.settimeout(5); s.connect(('$DB_WAIT_HOST', $DB_WAIT_PORT))" 2>/dev/null; do
+  echo "Database not ready, retrying in 2s..."
   sleep 2
 done
+echo "Database is reachable."
 
-# Run database operations
-python manage.py makemigrations
+# Run database migrations ONLY — never makemigrations in prod: prod once
+# recorded a ghost migration (0008_alter_project_thumbnail) created by a
+# boot-time makemigrations against a stale model state (see data audit).
 python manage.py migrate
 
 # import projects from JSON file
