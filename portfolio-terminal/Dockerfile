@@ -52,8 +52,11 @@ RUN echo "export TERM=xterm-256color" >> /home/coder/.zshrc && \
 	echo "setopt prompt_subst" >> /home/coder/.zshrc
 
 # Install Python dependencies
+# --break-system-packages: required on ubuntu:24.04+/26.04 (PEP 668 marks the
+# system interpreter externally managed; bare pip3 install fails the build).
+# Acceptable here: disposable demo container, no system tooling depends on pip.
 COPY requirements.txt .
-RUN pip3 install --timeout=300 --retries=5 -r requirements.txt
+RUN pip3 install --break-system-packages --timeout=300 --retries=5 -r requirements.txt
 
 # Copy application files
 COPY --chown=coder:coder . /app
