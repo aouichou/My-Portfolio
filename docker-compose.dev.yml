@@ -2,9 +2,11 @@
 # Usage: docker-compose -f docker-compose.dev.yml up
 
 services:
-  # PostgreSQL Database (local)
+  # PostgreSQL Database (local) — must stay 17.x: the frozen Neon dump
+  # (backups/neon-pre-rework-20261002.dump, PG 17) is restored into this
+  # container by scripts/rehearse_dump_restore.sh, which enforces the version.
   db:
-    image: postgres:14-alpine
+    image: postgres:17-alpine
     container_name: portfolio-db-dev
     environment:
       POSTGRES_DB: portfolio_dev
