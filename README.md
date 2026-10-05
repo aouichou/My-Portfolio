@@ -154,8 +154,7 @@ graph TD
   - WAF protection against common attacks
 
 - **Infrastructure Security**
-  - Content Security Policy (CSP) headers
-  - Rate limiting on all API endpoints
+  - Rate limiting on write/token endpoints (Redis-backed counters)
   - TLS 1.3 enforced throughout
   - Database connection pooling and timeouts
 
@@ -170,8 +169,8 @@ graph TD
 - **Dependabot Automation**
   - Multi-ecosystem support: npm, pip, Docker, GitHub Actions
   - Grouped dependency updates (production/development)
-  - All PRs target dev branch for safe testing
-  - Weekly schedule with security priority
+  - **FROZEN during the v2 rework** (PRs closed, `open-pull-requests-limit: 0`);
+    the baseline is re-enabled and re-baselined at the end of Phase 5
   - Recent achievement: Python 3.14, Node 25, Ubuntu 24.04, Next.js 16, React 19
 
 - **Development Workflow**
@@ -206,17 +205,19 @@ Bundle Size: 128kb              Cache Hit Rate: 92%
 
 ```bash
 # Clone the repository
-git clone https://github.com/aouichou/MyPortfolio.git
-cd MyPortfolio
+git clone https://github.com/aouichou/My-Portfolio.git
+cd My-Portfolio
 
-# Set up environment variables (copy from example)
-cp .env.example .env
-
-# Start the development environment
+# Start the development environment (backend env vars are read from
+# the container environment / an env_file — no committed .env.example)
 docker-compose up -d
 
 # Visit http://localhost:3000
 ```
+
+For day-to-day development prefer the dev compose
+(`docker-compose -f docker-compose.dev.yml up -d`) — see
+`docs/DOCKER_DEV_GUIDE.md`.
 
 ### Repository Structure
 

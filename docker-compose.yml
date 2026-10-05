@@ -53,6 +53,11 @@ services:
     build: 
       context: ./portfolio-terminal
     security_opt:
+      # Root seccomp-profile.json (identical copy of portfolio-terminal/'s) is
+      # intentionally KEPT until Phase 4 (F4-07 owns seccomp: default-DENY
+      # conversion + consolidation to the single portfolio-terminal/ copy).
+      # The path is relative to the compose file's directory — it cannot live
+      # inside the ./portfolio-terminal build context it already duplicates.
       - seccomp:seccomp-profile.json
       - no-new-privileges:true
     cap_drop:

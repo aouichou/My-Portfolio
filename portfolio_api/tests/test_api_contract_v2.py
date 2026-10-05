@@ -25,7 +25,13 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.test import override_settings
 from django.urls import reverse
-from projects.models import Experience, Gallery, GalleryImage, Project
+from projects.models import (
+    ContactSubmission,
+    Experience,
+    Gallery,
+    GalleryImage,
+    Project,
+)
 
 from tests.conftest import make_project
 
@@ -690,10 +696,29 @@ class TestContactEndpoint:
         assert set(body) == {'detail'}
         assert 'error' not in body
 
+    def test_smtp_failure_does_not_500_submission_persisted(self, api_client):
+        """F2-06 tail: SMTP down must never fail the request. §3.6 response
+        contract is 201 + record — delivery is fire-and-forget (background
+        thread whose exceptions are logged, never propagated to the response)."""
+        with mock.patch('projects.views.send_mail',
+                        side_effect=Exception('SMTP connection refused')):
+            response = api_client.post('/api/contact/', data=VALID_CONTACT,
+                                       format='json')
+        assert response.status_code == 201
+        assert response.json()['email'] == VALID_CONTACT['email']
+        assert ContactSubmission.objects.filter(
+            email=VALID_CONTACT['email']).exists()
 
-# ═════════════════════════════════════════════════════════════════════════════
-# #9 GET /api/auth/terminal-token/ (§3.7 — 30/min/IP is NEW)
-# ═════════════════════════════════════════════════════════════════════════════
+    def test_mx_flag_on_disposable_domain_400(self, api_client):
+        """§3.6: MX verification is a server-side config flag. When on,
+        disposable domains are rejected — checked before any DNS lookup,
+        so this path is deterministic (no network in tests)."""
+        payload = {**VALID_CONTACT, 'email': 'alice@mailinator.com'}
+        with override_settings(VERIFY_EMAIL_DOMAINS=True):
+            response = api_client.post('/api/contact/', data=payload,
+                                       format='json')
+        assert response.status_code == 400
+        assert set(response.json()) == {'email'}
 
 @pytest.mark.django_db
 class TestTerminalTokenEndpoint:
