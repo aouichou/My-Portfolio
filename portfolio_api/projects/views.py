@@ -2,25 +2,20 @@
 
 import datetime
 import logging
-import os
-import tempfile
 import threading
-import zipfile
 
-import boto3
 import dns.resolver
 import jwt
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import validate_email
-from django.db.models import Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
-from rest_framework import generics, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import ValidationError as ApiValidationError
@@ -29,7 +24,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Experience, Gallery, Project
+from .models import Experience, Project
 from .serializers import (
 	ContactSubmissionSerializer,
 	ExperienceListSerializer,
@@ -40,43 +35,6 @@ from .serializers import (
 from .storage import CustomS3Storage
 
 logger = logging.getLogger(__name__)
-
-class ProjectList(generics.ListAPIView):
-	"""UNROUTED legacy generic (contract §7 kill-list → F2-05 purge)."""
-	queryset = Project.objects.prefetch_related(
-		Prefetch('galleries', queryset=Gallery.objects.prefetch_related('images').order_by('order'))
-	).filter(is_featured=True)
-	serializer_class = ProjectSerializer
-	filterset_fields = ['is_featured']
-
-class ProjectDetail(generics.RetrieveAPIView):
-	"""UNROUTED legacy generic (contract §7 kill-list → F2-05 purge). The
-	routed detail is ProjectViewSet.retrieve; the ft_transcendence
-	debug-logging block that lived here is DELETED per contract §7."""
-	queryset = Project.objects.prefetch_related(
-		Prefetch('galleries', 
-				 queryset=Gallery.objects.prefetch_related('images').order_by('order'))
-	)
-	lookup_field = 'slug'
-	serializer_class = ProjectSerializer
-
-@api_view(['GET', 'POST'])
-@ratelimit(key='ip', rate='60/m')
-def project_by_slug(request):
-	if request.method == 'POST':
-		slug = request.data.get('slug')
-	else:
-		slug = request.GET.get('slug')
-	
-	if not slug:
-		return Response({'error': 'Slug is required'}, status=400)
-	
-	project = get_object_or_404(
-		Project.objects.prefetch_related('galleries__images'),
-		slug=slug
-	)
-	serializer = ProjectSerializer(project, context={'request': request})
-	return Response(serializer.data)
 
 class ContactSubmissionView(APIView):
 	permission_classes = [AllowAny]
@@ -223,51 +181,6 @@ def project_files(request, slug):
 	except Exception as e:
 		logger.error(f"Error getting S3 URL for {project.demo_files_path}: {str(e)}")
 		return Response({'error': 'Could not retrieve project files'}, status=500)
-
-def download_project_files(project_slug):
-	"""Download project files from S3 and extract to temp directory"""
-	try:
-		project = Project.objects.get(slug=project_slug)
-		if not project.demo_files_path:
-			return None
-		
-		# Create temp directory
-		temp_dir = tempfile.mkdtemp(prefix=f"project-{project_slug}-")
-		
-		# Download zip from S3
-		s3 = boto3.client(
-			's3',
-			aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-			aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-			region_name=settings.AWS_S3_REGION_NAME
-		)
-		
-		zip_path = os.path.join(temp_dir, 'project.zip')
-		s3.download_file(
-			settings.AWS_STORAGE_BUCKET_NAME,
-			project.demo_files_path,
-			zip_path
-		)
-		
-		# Extract zip
-		with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-			zip_ref.extractall(temp_dir)
-		
-		# Remove zip file
-		os.remove(zip_path)
-		
-		return temp_dir
-	except Exception as e:
-		print(f"Error downloading project files: {e}")
-		return None
-
-@api_view(['GET'])
-def health_check(request):
-	"""UNROUTED after F2-03 (contract §7 kill-list: /api/health/ duplicates
-	/healthz, endpoint #2). The view body stays until the F2-05 purge — the
-	route is what dies here."""
-	return Response({'status': 'healthy'}, status=200)
-
 
 class LedgerPagination(LimitOffsetPagination):
 	"""Contract §4.3 — limit/offset on the projects list only: default 24,

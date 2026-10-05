@@ -318,20 +318,9 @@ CHANNEL_LAYERS = {
 	}
 }
 
-TERMINAL_SETTINGS = {
-	'MAX_SESSION_DURATION': 900,  # 15 minutes
-	'MAX_OUTPUT_LENGTH': 10000,   # 10KB per command
-	'CONCURRENT_SESSIONS': 3,     # Max 3 sessions per IP
-}
-
 # Shared secret for the Django -> terminal-service WebSocket hop. When set
 # (env: TERMINAL_PROXY_SECRET), TerminalConsumer sends it as the
 # X-Proxy-Secret header on the upstream dial and the terminal service
 # rejects connections without it. Production should always set it; unset in
 # development is tolerated by the terminal service when it runs in DEBUG.
 TERMINAL_PROXY_SECRET = os.environ.get('TERMINAL_PROXY_SECRET')
-
-# Set Content Security Policy
-CSP_DEFAULT_SRC = ["'self'"]
-CSP_CONNECT_SRC = ["'self'", "wss://api.aouichou.me"]
-CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]  # Consider stricter settings if possible

@@ -10,8 +10,6 @@ urlpatterns = [
     path('projects/<slug:slug>/', views.ProjectViewSet.as_view({'get': 'retrieve'}), name='project-detail'),
     path('contact/', views.ContactSubmissionView.as_view(), name='contact-submission'),
 	path('projects/<slug:slug>/files/', views.project_files, name='project-files'),
-	# /api/health/ is KILLED (contract §7 kill-list — duplicates /healthz,
-	# endpoint #2, served root-level by portfolio_api/urls.py for Render).
 	path('auth/terminal-token/', views.generate_terminal_token, name='terminal_token'),
 
 	# Experience endpoints (contract v2 §1 routes #6/#7 — successor of the

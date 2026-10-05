@@ -4,7 +4,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-# from .healthcheck import health_check
 from django.http import JsonResponse
 
 def health_check(request):
