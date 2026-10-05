@@ -82,7 +82,10 @@ class TestRateLimitView:
 
         assert response.status_code == 429
         data = json.loads(response.content)
-        assert data['error'] == 'rate_limited'
+        # Contract v2 §4.1: 429 body is {"detail": ...} — the legacy "error"
+        # key was renamed in F2-03 so v2 has ONE error type.
+        assert 'too many' in data['detail'].lower()
+        assert 'error' not in data
 
     def test_ratelimited_contact_returns_429_not_500(self, api_client):
         """End-to-end: a tripped contact-form limit must yield a clean 429 —
@@ -97,7 +100,8 @@ class TestRateLimitView:
                 format='json',
             )
         assert response.status_code == 429
-        assert 'too many' in str(response.json().get('error', '')).lower()
+        # Contract v2 §4.1: the 429 detail key (legacy "error" is killed).
+        assert 'too many' in str(response.json().get('detail', '')).lower()
 
 
 class TestTerminalProxySecret:

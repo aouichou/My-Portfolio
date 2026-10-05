@@ -1,5 +1,12 @@
 # tests/integration/test_projects_api.py
-"""Integration tests for the Projects REST API endpoints."""
+"""Integration tests for the Projects REST API endpoints.
+
+Aligned to the frozen contract v2 (docs/designs/2026-10-05-api-contract-v2.md,
+F2-03): the list is the full ledger (Q1 countersigned YES — featured gate
+and include_all param are killed; is_featured stays a field), responses are
+paginated {count, next, previous, results} (§3.2/§4.3), ordering is the
+ledger (order, title). The exhaustive clause-by-clause suite lives in
+tests/test_api_contract_v2.py; these are the per-route integration rails."""
 
 import pytest
 from django.urls import reverse
@@ -18,58 +25,57 @@ class TestProjectListEndpoint:
         response = api_client.get(url)
         assert response.status_code == 200
 
-    def test_returns_only_featured_projects_by_default(self, api_client, db):
+    def test_returns_full_ledger_by_default(self, api_client, db):
+        """Q1: featured and unfeatured rows are ALL ledger rows now."""
         make_project(title='Featured', is_featured=True)
         make_project(title='Not Featured', is_featured=False)
         url = reverse('project-list')
         response = api_client.get(url)
         data = response.json()
-        # Default = featured only
-        assert len(data) == 1
-        assert data[0]['title'] == 'Featured'
+        assert data['count'] == 2
+        assert len(data['results']) == 2
 
-    def test_include_all_param_returns_all(self, api_client, db):
-        make_project(title='Featured', is_featured=True)
-        make_project(title='Regular', is_featured=False)
+    def test_response_is_paginated_envelope(self, api_client, db):
+        make_project(title='P')
         url = reverse('project-list')
-        response = api_client.get(url, {'include_all': 'true'})
-        assert len(response.json()) == 2
+        data = api_client.get(url).json()
+        assert set(data) == {'count', 'next', 'previous', 'results'}
 
     def test_filter_by_project_type_school(self, api_client, db):
-        make_project(title='School P', project_type='school', is_featured=True)
-        make_project(title='Internship P', project_type='internship', is_featured=True)
+        make_project(title='School P', project_type='school')
+        make_project(title='Internship P', project_type='internship')
         url = reverse('project-list')
-        response = api_client.get(url, {'project_type': 'school', 'include_all': 'true'})
+        response = api_client.get(url, {'project_type': 'school'})
         data = response.json()
-        assert all(p['project_type'] == 'school' for p in data)
+        assert data['count'] == 1
+        assert all(p['project_type'] == 'school' for p in data['results'])
 
     def test_filter_by_project_type_internship(self, api_client, db):
-        make_project(title='School P', project_type='school', is_featured=True)
-        make_project(title='Internship P', project_type='internship', is_featured=True)
+        make_project(title='School P', project_type='school')
+        make_project(title='Internship P', project_type='internship')
         url = reverse('project-list')
-        response = api_client.get(url, {'project_type': 'internship', 'include_all': 'true'})
+        response = api_client.get(url, {'project_type': 'internship'})
         data = response.json()
-        assert all(p['project_type'] == 'internship' for p in data)
+        assert data['count'] == 1
+        assert all(p['project_type'] == 'internship' for p in data['results'])
 
     def test_response_contains_expected_fields(self, api_client, db):
-        make_project(title='Rich Project', is_featured=True)
+        make_project(title='Rich Project')
         url = reverse('project-list')
         response = api_client.get(url)
-        item = response.json()[0]
+        item = response.json()['results'][0]
         assert 'title' in item
         assert 'slug' in item
         assert 'description' in item
 
-    def test_featured_projects_ordered_first(self, api_client, db):
-        make_project(title='Z Regular', is_featured=False)
-        make_project(title='A Featured', is_featured=True)
+    def test_ledger_order_not_featured_hoisted(self, api_client, db):
+        """§1: fixed server-side ordering (order, title) — featured is NOT
+        hoisted (curation moved client-side per Q1)."""
+        make_project(title='Z Regular', is_featured=False, order=1)
+        make_project(title='A Featured', is_featured=True, order=2)
         url = reverse('project-list')
-        response = api_client.get(url, {'include_all': 'true'})
-        titles = [p['title'] for p in response.json()]
-        # Featured project should come before regular regardless of alphabetical order
-        featured_index = titles.index('A Featured')
-        regular_index = titles.index('Z Regular')
-        assert featured_index < regular_index
+        titles = [p['title'] for p in api_client.get(url).json()['results']]
+        assert titles == ['Z Regular', 'A Featured']
 
 
 # ═════════════════════════════════════════════════════════════════════════════

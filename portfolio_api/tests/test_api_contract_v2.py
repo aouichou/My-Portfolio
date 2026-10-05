@@ -17,6 +17,7 @@ here until F2-03 lands.
 """
 
 import datetime
+from unittest import mock
 
 import jwt as pyjwt
 import pytest
@@ -24,9 +25,8 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.test import override_settings
 from django.urls import reverse
-from unittest import mock
-
 from projects.models import Experience, Gallery, GalleryImage, Project
+
 from tests.conftest import make_project
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -39,7 +39,7 @@ CARD_KEYS = {
     'has_demo', 'thumbnail_url', 'tech_stack', 'order',
 }
 
-# §3.3 ProjectDetail — 31 fields (id and raw thumbnail path are DROPPED)
+# §3.3 ProjectDetail — 32 fields (id and raw thumbnail path are DROPPED)
 DETAIL_KEYS = {
     'slug', 'title', 'project_type', 'description', 'readme',
     'thumbnail_url', 'is_featured', 'score', 'tech_stack', 'features',
@@ -50,6 +50,10 @@ DETAIL_KEYS = {
     'demo_commands', 'demo_files_path', 'galleries', 'experience', 'order',
     'created_at', 'updated_at',
 }
+
+# §3.3 note: live payload has 32 keys because `score` is present in the
+# frozen example (null for internship rows) — the key set above IS the
+# contract surface.
 
 # §3.4 ExperienceList — 11 fields (no id; overview is detail-only)
 EXPERIENCE_LIST_KEYS = {

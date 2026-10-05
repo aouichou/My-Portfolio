@@ -20,6 +20,9 @@ def rate_limit_response(request, exception=None):
 
 	Called by ``django_ratelimit.middleware.RatelimitMiddleware.process_exception``
 	with the ``Ratelimited`` exception. Signature: ``(request, exception)``.
+
+	Contract v2 §4.1 (F2-03): the 429 body is {"detail": ...} — the legacy
+	"error" key is killed so v2 has ONE error type.
 	"""
 	logger.warning(
 		"Rate limit exceeded for %s on %s",
@@ -27,6 +30,6 @@ def rate_limit_response(request, exception=None):
 		request.path,
 	)
 	return JsonResponse(
-		{'error': 'rate_limited', 'detail': _('Too many requests. Please try again later.')},
+		{'detail': _('Too many requests, please try again later.')},
 		status=429,
 	)

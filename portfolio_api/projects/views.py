@@ -15,28 +15,34 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.db.models import Prefetch
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import ValidationError as ApiValidationError
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Experience, Gallery, Project
 from .serializers import (
 	ContactSubmissionSerializer,
 	ExperienceListSerializer,
 	ExperienceSerializer,
+	ProjectCardSerializer,
 	ProjectSerializer,
 )
 from .storage import CustomS3Storage
 
 logger = logging.getLogger(__name__)
+
 class ProjectList(generics.ListAPIView):
+	"""UNROUTED legacy generic (contract §7 kill-list → F2-05 purge)."""
 	queryset = Project.objects.prefetch_related(
 		Prefetch('galleries', queryset=Gallery.objects.prefetch_related('images').order_by('order'))
 	).filter(is_featured=True)
@@ -44,43 +50,15 @@ class ProjectList(generics.ListAPIView):
 	filterset_fields = ['is_featured']
 
 class ProjectDetail(generics.RetrieveAPIView):
+	"""UNROUTED legacy generic (contract §7 kill-list → F2-05 purge). The
+	routed detail is ProjectViewSet.retrieve; the ft_transcendence
+	debug-logging block that lived here is DELETED per contract §7."""
 	queryset = Project.objects.prefetch_related(
 		Prefetch('galleries', 
 				 queryset=Gallery.objects.prefetch_related('images').order_by('order'))
 	)
 	lookup_field = 'slug'
 	serializer_class = ProjectSerializer
-
-	def retrieve(self, request, *args, **kwargs):
-		instance = self.get_object()
-		
-		# Detailed logging for the ft_transcendence project specifically
-		if instance.slug == 'ft_transcendence':
-			logger.info("============ FT_TRANSCENDENCE PROJECT DATA ============")
-			logger.info("Title: %s", instance.title)
-			logger.info("Slug: %s", instance.slug)
-			logger.info("Thumbnail: %s", instance.thumbnail)
-
-			# Log galleries and their images
-			galleries = instance.galleries.all().prefetch_related('images')
-			logger.info("Number of galleries: %d", galleries.count())
-
-			for i, gallery in enumerate(galleries):
-				logger.info("Gallery %d: %s", i+1, gallery.name)
-				logger.info("Gallery images count: %d", gallery.images.count())
-
-				for j, image in enumerate(gallery.images.all()):
-					logger.info("  Image %d: %s", j+1, image.image)
-					logger.info("  Image URL: %s", image.image.url)
-					logger.info("  Image path: %s", image.image.name)
-
-			# Log live URL which should contain a valid link
-			logger.info("Live URL: %s", instance.live_url)
-			logger.info("Has demo: %s", instance.has_demo)
-			logger.info("============ END PROJECT DATA ============")
-		
-		serializer = self.get_serializer(instance)
-		return Response(serializer.data)
 
 @api_view(['GET', 'POST'])
 @ratelimit(key='ip', rate='60/m')
@@ -146,8 +124,9 @@ class ContactSubmissionView(APIView):
 		# RATELIMIT_VIEW could render the proper response.
 		was_limited = getattr(request, 'limited', False)
 		if was_limited:
+			# Contract §4.1: ONE error type — 429 uses the `detail` key.
 			return Response(
-				{'error': 'Too many requests, please try again later.'}, 
+				{'detail': 'Too many requests, please try again later.'},
 				status=status.HTTP_429_TOO_MANY_REQUESTS
 			)
 
@@ -164,7 +143,7 @@ class ContactSubmissionView(APIView):
 				return Response({'email': ['Enter a valid email address']}, status=status.HTTP_400_BAD_REQUEST)
 			
 			# Domain validation (optional - MX record check)
-			if settings.VERIFY_EMAIL_DOMAINS:  # Add this to settings.py
+			if settings.VERIFY_EMAIL_DOMAINS:
 				is_valid, message = self.validate_domain(email)
 				if not is_valid:
 					return Response({'email': [message]}, status=status.HTTP_400_BAD_REQUEST)
@@ -213,27 +192,25 @@ Sent from portfolio contact form at {timezone.now().strftime('%Y-%m-%d %H:%M:%S'
 
 @api_view(['GET'])
 def api_root(request):
-	"""Minimal static API root -- no request reflection.
+	"""Contract §3.9 #1 — static meta root; no request reflection.
 
 	Replaces the old debug view that echoed all request headers and query
 	params back to any caller (proxy internals/edge headers leak).
 	"""
 	return Response({'status': 'ok', 'service': 'portfolio-api'})
 
-class RateLimitedTokenObtainPairView(TokenObtainPairView):
-	permission_classes = [AllowAny]
-	
-	@method_decorator(ratelimit(key='ip', rate='5/m', method='POST'))
-	def post(self, request, *args, **kwargs):
-		return super().post(request, *args, **kwargs)
-	
 @api_view(['GET'])
 def project_files(request, slug):
-	"""Serve project demo files from S3"""
-	project = get_object_or_404(Project, slug=slug)
+	"""Contract §3.8 — R2 demo-zip URL (public-by-design, sec C13)."""
+	try:
+		project = get_object_or_404(Project, slug=slug)
+	except Http404:
+		# §4.1: uniform 404 body
+		raise NotFound()
 	
 	if not project.demo_files_path:
-		return Response({'error': 'No demo files available for this project'}, status=404)
+		return Response(
+			{'detail': 'No demo files available for this project'}, status=404)
 	
 	# Get the S3 URL for the file
 	s3_storage = CustomS3Storage()
@@ -286,50 +263,100 @@ def download_project_files(project_slug):
 
 @api_view(['GET'])
 def health_check(request):
+	"""UNROUTED after F2-03 (contract §7 kill-list: /api/health/ duplicates
+	/healthz, endpoint #2). The view body stays until the F2-05 purge — the
+	route is what dies here."""
 	return Response({'status': 'healthy'}, status=200)
 
-class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
-	"""Unified Project listing/detail (schema v2).
 
-	Ordering note: featured-first curation lives here in the queryset (map
-	§3.5) — the model's Meta.ordering is the neutral ledger order
-	(order, title).
+class LedgerPagination(LimitOffsetPagination):
+	"""Contract §4.3 — limit/offset on the projects list only: default 24,
+	max 100 (over-limit clamps via DRF's cutoff — the contract names the
+	DRF mechanism, not a 400; 400s are for invalid param VALUES, §4.2)."""
+
+	default_limit = 24
+	max_limit = 100
+
+
+class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
+	"""Unified Project list/detail — contract v2 (FROZEN 2026-10-05).
+
+	Q1 (countersigned YES): the list is the FULL LEDGER — no featured gate,
+	no include_all param. is_featured survives as a curation FIELD the
+	homepage client-sorts by, never as a filter. Detail resolves any slug
+	regardless of featured status (that bug class died with PR #447 and
+	stays dead).
+
+	Ordering (§1): fixed server-side — order ASC, title ASC (the ledger;
+	Project.Meta.ordering). No client sort params; featured-first curation
+	moved client-side (trivial at ≤100 rows).
+
+	Params (§1 table — the complete list): project_type, has_demo (strict
+	value validation → 400 per §4.2; unknown param NAMES are ignored),
+	limit/offset (§4.3).
 	"""
+
 	serializer_class = ProjectSerializer
 	lookup_field = 'slug'
-	filterset_fields = ['is_featured', 'project_type']
+	pagination_class = LedgerPagination
+	permission_classes = [AllowAny]
 
 	def get_queryset(self):
-		# Featured-first, then ledger order (map §3.5)
+		# The ledger order (order, title) — featured hoisting is client-side
+		# curation now (Q1).
 		queryset = Project.objects.select_related('experience').order_by(
-			'-is_featured', 'order', 'title'
+			'order', 'title'
 		)
 
-		# Detail (retrieve) must resolve ANY slug regardless of featured
-		# status -- featuring curates listings, not retrieval. The old
-		# shared filter 404'd every unfeatured project's detail page
-		# (React #441 "something went wrong" on /projects/<slug>).
-		if self.action == 'retrieve':
+		if self.action != 'list':
 			return queryset
 
-		# Filter by project_type if specified (schema v2 adds 'personal')
+		# Strict value validation (§4.2): unknown VALUES are loud 400s.
 		project_type = self.request.query_params.get('project_type')
-		if project_type in ['school', 'internship', 'personal']:
+		if project_type is not None:
+			if project_type not in ('school', 'internship', 'personal'):
+				raise ApiValidationError({'project_type': [f"invalid choice: '{project_type}'"]})
 			queryset = queryset.filter(project_type=project_type)
 
-		# By default, only return featured projects unless include_all=true is specified
-		include_all_param = self.request.query_params.get('include_all', 'false')
-		include_all = include_all_param.lower() == 'true'
-
-		if not include_all:
-			queryset = queryset.filter(is_featured=True)
+		has_demo = self.request.query_params.get('has_demo')
+		if has_demo is not None:
+			if has_demo not in ('true', 'false'):
+				raise ApiValidationError({'has_demo': [f"invalid choice: '{has_demo}'"]})
+			queryset = queryset.filter(has_demo=(has_demo == 'true'))
 
 		return queryset
 
+	def get_serializer_class(self):
+		"""§3.1 cards on the list; §3.3 full detail on retrieve."""
+		if self.action == 'list':
+			return ProjectCardSerializer
+		return ProjectSerializer
+
+	def get_object(self):
+		"""§4.1: 404 body is {"detail": "Not found."} — Django's
+		get_object_or_404 message would leak through NotFound(*args)."""
+		try:
+			return super().get_object()
+		except Http404:
+			raise NotFound()
+
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow anonymous access for demo terminal
+@ratelimit(key='ip', rate='30/m', method=['GET'], block=False)
 def generate_terminal_token(request):
-	"""Generate a JWT token for terminal access"""
+	"""Contract §3.7 — guest JWT mint (HS256, 5-min, purpose-scoped).
+
+	30/min/IP is NEW (security review C7 — previously unthrottled).
+	block=False: the manual check below returns the §4.1 429 shape
+	({detail: ...}) instead of raising Ratelimited (which the middleware
+	would route through RATELIMIT_VIEW with the legacy error shape).
+	"""
+	was_limited = getattr(request, 'limited', False)
+	if was_limited:
+		return Response(
+			{'detail': 'Too many requests, please try again later.'},
+			status=status.HTTP_429_TOO_MANY_REQUESTS
+		)
 	
 	# Set expiration time (5 minutes)
 	expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
@@ -360,6 +387,11 @@ def generate_terminal_token(request):
 	
 	return Response({'token': token})
 
+
+# ── Contract §7 kill-list (executed in F2-03) ────────────────────────────────
+# GET /api/health/ — DELETED: duplicates /healthz (endpoint #2). The route is
+# gone from urls.py; portfolio_api/urls.py serves /healthz for Render.
+
 class ExperienceViewSet(viewsets.ReadOnlyModelViewSet):
 	"""
 	ViewSet for experiences (schema v2 successor of the internship surface).
@@ -385,3 +417,10 @@ class ExperienceViewSet(viewsets.ReadOnlyModelViewSet):
 		if self.action == 'list':
 			return ExperienceListSerializer
 		return ExperienceSerializer
+
+	def get_object(self):
+		"""§4.1: 404 body is {"detail": "Not found."}."""
+		try:
+			return super().get_object()
+		except Http404:
+			raise NotFound()

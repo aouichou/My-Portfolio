@@ -28,6 +28,12 @@ RATELIMIT_FAIL_OPEN = True
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
 # ── Storage — use local FS so tests don't need S3 credentials ─────────────────
+# The prod settings hardcode MEDIA_ROOT='/app/media' (a container path);
+# on a host run that path is unwritable, so tests point it at a temp dir.
+import tempfile as _tempfile
+
+MEDIA_ROOT = _tempfile.mkdtemp(prefix='portfolio-test-media-')
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
