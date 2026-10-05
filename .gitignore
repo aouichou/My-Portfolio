@@ -117,3 +117,16 @@ docs/*
 .github/scripts/*
 portfolio_api/media/*
 scripts/*
+LESSONS.md
+SESSION.md
+STRUCTURE.md
+TODO.md
+.github/.workflow-kit
+.github/.workflow-kit-manifest.json
+.github/agent-reports/*
+
+.github/agents/*
+.github/overlays/*
+.github/prompts/*
+.github/skills/*
+.github/adr/*
