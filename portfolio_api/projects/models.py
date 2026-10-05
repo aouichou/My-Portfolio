@@ -187,7 +187,11 @@ class Project(models.Model):
 	)
 	related_documentation = models.JSONField(
 		default=list, blank=True,
-		help_text='Canonical: [{"title": str, "description"?: str, "category"?: str}]',
+		help_text=(
+			'Canonical: [{"title": str, "description"?: str, "category"?: str}] — '
+			'NOTE: the 3 internship rows currently hold rescued placeholder content '
+			'("...") pending real documentation (F1-07 flag) — replace in admin'
+		),
 	)
 
 	# Demo block (formalized, map §2.1) — feeds the Phase 4 DB-driven whitelist
@@ -198,7 +202,11 @@ class Project(models.Model):
 	)
 	demo_files_path = models.CharField(
 		blank=True, null=True, max_length=255,
-		help_text="R2 key of the demo zip (under project-files/)",
+		help_text=(
+			'R2 key of the demo zip (under project-files/) — verified keys: '
+			'see demo_files_manifest in fixtures/stale_internship_content.json '
+			'(currently only project-files/minishell.zip; Phase 4 uploads more)'
+		),
 	)
 
 	# Code walkthrough (rescued shapes, map §2.1/§3.4)

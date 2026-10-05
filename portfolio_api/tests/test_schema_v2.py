@@ -646,3 +646,52 @@ class TestAdminV2:
                     f'projects.models.{name} must be unregistered from admin '
                     f'(field map §2.1/§2.3/§3.6)'
                 )
+
+    def test_project_admin_demo_block_grouped(self):
+        """Field map §3.6: has_demo/demo_commands/demo_files_path in ONE fieldset."""
+        project_admin = django_admin.site._registry[Project]
+        demo_fieldsets = [
+            fs for _, fs in project_admin.fieldsets
+            if 'has_demo' in fs.get('fields', ())
+        ]
+        assert demo_fieldsets, 'no fieldset groups has_demo'
+        demo_fields = demo_fieldsets[0]['fields']
+        for field in ('has_demo', 'demo_commands', 'demo_files_path'):
+            assert field in demo_fields, f'{field} missing from the demo block'
+
+    def test_related_documentation_placeholder_flag_visible(self):
+        """F1-07 flag surfaced in admin: related_documentation help notes the
+        rescued '...' placeholders pending real content."""
+        project_admin = django_admin.site._registry[Project]
+        help_sources = []
+        field = Project._meta.get_field('related_documentation')
+        if field.help_text:
+            help_sources.append(field.help_text)
+        arch_fs = [
+            fs for _, fs in project_admin.fieldsets
+            if 'related_documentation' in fs.get('fields', ())
+        ]
+        if arch_fs and arch_fs[0].get('description'):
+            help_sources.append(arch_fs[0]['description'])
+        assert any('placeholder' in src.lower() for src in help_sources), (
+            'no admin surface mentions the related_documentation placeholders'
+        )
+
+    def test_demo_files_path_help_points_at_manifest(self):
+        """F1-07 flag: demo_files_path help references the verified manifest."""
+        field = Project._meta.get_field('demo_files_path')
+        assert 'manifest' in (field.help_text or '').lower()
+
+    def test_experience_admin_has_readonly_project_view(self):
+        """Field map §3.6: ExperienceAdmin shows linked projects read-only."""
+        Experience = get_experience_model()
+        experience_admin = django_admin.site._registry[Experience]
+        inline_models = [
+            getattr(inline, 'model', None)
+            for inline in (experience_admin.inlines or [])
+        ]
+        assert Project in inline_models
+        for inline in experience_admin.inlines:
+            if getattr(inline, 'model', None) is Project:
+                assert inline.can_delete is False
+                assert inline.has_add_permission(None, None) is False

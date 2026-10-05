@@ -160,6 +160,26 @@ class ProjectAdminForm(forms.ModelForm):
 			instance.save()
 
 		return instance
+
+
+class ExperienceProjectInline(admin.TabularInline):
+	"""Read-only view of the projects linked to this Experience (map §3.6).
+
+	Editing happens on the Project rows (the FK points here) — PROTECT makes
+	casual unlinking impossible, so the admin only shows the relationship.
+	"""
+	model = Project
+	extra = 0
+	max_num = 0
+	can_delete = False
+	verbose_name_plural = 'Linked projects (edit on their own rows)'
+	fields = ('title', 'slug', 'project_type', 'order', 'has_demo', 'is_featured')
+	readonly_fields = fields
+
+	def has_add_permission(self, request, obj=None):
+		return False
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
 	form = ProjectAdminForm
@@ -180,7 +200,14 @@ class ProjectAdmin(admin.ModelAdmin):
 		}),
 		('Architecture', {
 			'fields': ('architecture_description', 'architecture_diagrams', 'related_documentation'),
-			'classes': ('wide',)
+			'classes': ('wide',),
+			'description': (
+				'Canonical shapes (field map §3.4): '
+				'architecture_diagrams = [{title, type, content, description?}], '
+				'related_documentation = [{title, description?, category?}] — '
+				'WARNING: the 3 internship rows hold rescued placeholder content '
+				'("...") pending real documentation (F1-07) — replace here'
+			),
 		}),
 		('Code Examples', {
 			'fields': ('code_steps', 'code_snippets'),
@@ -188,9 +215,13 @@ class ProjectAdmin(admin.ModelAdmin):
 			'description': 'Canonical shapes (field map §3.4): code_steps = [str], code_snippets = [{title?, description?, language?, code}]'
 		}),
 		('Interactive Terminal Demo', {
-			'fields': ('has_demo', 'demo_commands', 'demo_files'),
+			'fields': ('has_demo', 'demo_commands', 'demo_files_path', 'demo_files'),
 			'classes': ('wide',),
-			'description': 'Canonical shape (field map §3.4): demo_commands = [{"label": str, "command": str}]'
+			'description': (
+				'Canonical shape (field map §3.4): demo_commands = [{"label": str, "command": str}]. '
+				'has_demo feeds the Phase 4 DB-driven terminal whitelist — every row currently '
+				'stored False; curate deliberately.'
+			),
 		}),
 		('Internship Content', {
 			'fields': ('role_description', 'stats', 'badges', 'impact_metrics'),
@@ -207,6 +238,7 @@ class ExperienceAdmin(admin.ModelAdmin):
 	list_filter = ('is_active', 'start_date')
 	prepopulated_fields = {'slug': ('company',)}
 	search_fields = ('company', 'role', 'subtitle', 'overview')
+	inlines = [ExperienceProjectInline]
 
 	fieldsets = (
 		('Basic Information', {
