@@ -85,11 +85,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     docker-compose -f docker-compose.dev.yml exec backend python manage.py createsuperuser
 fi
 
-# Import projects data if exists
-if [ -f portfolio_api/projects.json ]; then
-    echo -e "\n${GREEN}📥 Importing projects data...${NC}"
-    docker-compose -f docker-compose.dev.yml exec backend python manage.py import_projects projects.json
-fi
+# Seed the database (schema v2 minimal seed — F1-09; the v1 projects.json
+# import path is dead)
+echo -e "\n${GREEN}🌱 Seeding database (seed_v2)...${NC}"
+docker-compose -f docker-compose.dev.yml exec backend python manage.py loaddata seed_v2
 
 echo -e "\n${GREEN}✅ Development environment is ready!${NC}\n"
 echo -e "Services:"

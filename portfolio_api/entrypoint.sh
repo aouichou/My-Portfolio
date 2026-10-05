@@ -28,19 +28,15 @@ done
 echo "Database is reachable."
 
 # Run database migrations ONLY — never makemigrations in prod: prod once
-# recorded a ghost migration (0008_alter_project_thumbnail) created by a
+# recorded a ghost migration (0008_alter_project_thumbnail shorthand, exactly
+# 0008_alter_galleryimage_image_alter_project_thumbnail) created by a
 # boot-time makemigrations against a stale model state (see data audit).
 python manage.py migrate
 
-# import projects from JSON file
-# echo "Importing projects from projects.json..."
-# if [ -f "/app/projects.json" ]; then
-#   # Run the import_projects management command
-#   python manage.py import_projects /app/projects.json --media-dir /app/media --update
-#   echo "Projects imported successfully."
-# else
-#   echo "Warning: projects.json file not found. Skipping project import."
-# fi
+# NOTE (F1-09): the projects.json import block that lived here is deleted —
+# the v1 import path is dead (import_projects command removed with the v1
+# seed strategy). Fresh installs seed via:
+#   python manage.py loaddata seed_v2
 
 # Create a superuser if it doesn't exist
 # python -c "

@@ -48,7 +48,8 @@ SEMANTICS (map §5.8):
 """
 
 import json
-from dataclasses import dataclass, field as dc_field
+from dataclasses import dataclass
+from dataclasses import field as dc_field
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
