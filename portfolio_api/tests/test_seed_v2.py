@@ -14,11 +14,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import projects
 import pytest
 from django.core.management import call_command
 from django.test.utils import isolate_apps
-
-import projects
 
 APP_DIR = Path(projects.__file__).parent
 FIXTURES_DIR = APP_DIR / 'fixtures'
