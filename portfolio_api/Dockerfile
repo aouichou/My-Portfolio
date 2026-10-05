@@ -17,8 +17,11 @@ RUN apt-get update && \
 
 COPY . .
 
-ENV DJANGO_ALLOW_BUILD=true
-RUN python manage.py collectstatic --noinput
+# Build-time collectstatic needs a SECRET_KEY but must NOT have real secrets:
+# the flag allows the throwaway-key fallback ONLY for this step. Scoped to the
+# RUN (not ENV) so it does not persist into the running container — at runtime
+# an unset SECRET_KEY fails loud per settings.py (F2-07 fail-loud posture).
+RUN DJANGO_ALLOW_BUILD=true python manage.py collectstatic --noinput
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

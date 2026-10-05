@@ -61,15 +61,27 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		# Accept WebSocket connection from browser
 		await self.accept()
 
-		# Get terminal service URL from environment
-		terminal_base_url = os.environ.get('TERMINAL_SERVICE_URL', 'wss://portfolio-terminal-4t9w.onrender.com')
-		if terminal_base_url.startswith('wss://'):
-			# For production
+		# Get terminal service URL from environment. No baked-in default:
+		# a hardcoded Render URL in code (the pre-F2-07 state) silently
+		# routes prod traffic to a specific deployment even when the env
+		# var is missing — env-only fails loud at connect time instead.
+		terminal_base_url = getattr(
+			settings, 'TERMINAL_SERVICE_URL', None
+		) or os.environ.get('TERMINAL_SERVICE_URL')
+		if not terminal_base_url:
+			logger.error(
+				'TERMINAL_SERVICE_URL is not set — cannot dial the terminal '
+				'service. Set it to the terminal service base URL (e.g. '
+				'wss://terminal.example.com).'
+			)
+			await self.close(code=1011)
+			return
+		if terminal_base_url.startswith(('wss://', 'ws://')):
 			self.terminal_url = f"{terminal_base_url}/terminal/{self.project_slug}/"
 		else:
 			# For development or if base URL doesn't include protocol
 			self.terminal_url = f"wss://{terminal_base_url}/terminal/{self.project_slug}/"
-		
+
 		logger.info("Connecting to terminal service at: %s", self.terminal_url)
 		
 		# Shared-secret auth for the Django -> terminal hop. The old code dialed

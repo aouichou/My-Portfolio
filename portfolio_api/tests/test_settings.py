@@ -53,4 +53,10 @@ CHANNEL_LAYERS = {
 # ── Misc tweaks ───────────────────────────────────────────────────────────────
 DEBUG = True
 ALLOWED_HOSTS = ['*']
+# The prod module now enables SECURE_SSL_REDIRECT whenever DEBUG is off
+# (F2-07: unconditional-in-prod, not RENDER-gated). Tests run DEBUG=True
+# but the redirect flag was already computed at import of the prod module
+# (env DEBUG unset there) — neutralize explicitly: the test client speaks
+# plain http and would otherwise get 301s on every request.
+SECURE_SSL_REDIRECT = False
 VERIFY_EMAIL_DOMAINS = False
