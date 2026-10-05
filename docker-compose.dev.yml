@@ -80,6 +80,12 @@ services:
       dockerfile: Dockerfile.dev
     container_name: portfolio-frontend-dev
     command: npm run dev
+    # Run as the host user's uid:gid — the whole portfolio_ui/ tree is
+    # bind-mounted, and the image default (uid 999 'app') cannot write
+    # package-lock.json / .next / new files owned by uid 1000 on the host
+    # (EACCES on npm/next TypeScript auto-install). Frontend volumes must be
+    # re-initialized once after this change (they cached uid-999 content).
+    user: "1000:1000"
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api
