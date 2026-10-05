@@ -1,4 +1,16 @@
 # portfolio_api/projects/models.py
+"""
+Schema v2 models (field map: docs/designs/2026-10-05-schema-v2-field-map.md).
+
+- Project: the unified table (school | internship | personal), formalized demo
+  block, rescued rich-content fields, canonical JSON (NOT NULL, list defaults).
+- Experience: thin grouping table replacing the deprecated Internship twin —
+  experience-level truth (company/role/dates/hero content) lives once here and
+  Projects point at it via a nullable PROTECT FK.
+- The deprecated Internship/InternshipProject twins are GONE (F1-06); their
+  prod content is rescued by the F1-07 etl_v2 command before 0012 drops the
+  tables (migration 0011 adds, 0012 drops — flip-window order, map §5.10).
+"""
 
 from django.core.exceptions import ValidationError
 from django.core.validators import (
@@ -10,26 +22,128 @@ from django.db import models
 from django.utils.text import slugify
 
 
+class Experience(models.Model):
+	"""
+	Experience-level grouping (replaces the deprecated Internship model).
+
+	Holds the shared truth for a professional experience — company, role,
+	dates, hero stats/technologies/impact, architecture prose, code samples,
+	documentation — so linked internship Projects don't triplicate it.
+	"""
+
+	# Basic Information
+	company = models.CharField(max_length=255, help_text="Company name (e.g. 'Qynapse')")
+	role = models.CharField(max_length=255, help_text="Role/position title")
+	subtitle = models.CharField(max_length=500, help_text="Hero one-liner for the experience section")
+	slug = models.SlugField(unique=True, max_length=100, help_text="URL slug (keys the F5-04 redirects)")
+
+	# Period
+	start_date = models.DateField(help_text="Start date")
+	end_date = models.DateField(
+		blank=True, null=True, help_text="End date (null = current)"
+	)
+
+	# Overview Content
+	overview = models.TextField(help_text="Long-form overview of the experience")
+
+	# Hero content — canonical shapes per field map §3.4
+	stats = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"label": str, "value": str}]',
+	)
+	technologies = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"name": str, "category"?: str}]',
+	)
+	impact_metrics = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"label": str, "value": str, "description"?: str}]',
+	)
+
+	# Architecture
+	architecture_description = models.TextField(
+		blank=True, null=True, help_text="Architecture prose (e.g. the ZTA layers)"
+	)
+	architecture_diagrams = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"title": str, "type": str, "content": str, "description"?: str}]',
+	)
+
+	# Code & docs — canonical shapes per field map §3.4
+	code_samples = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"title": str, "description"?: str, "language"?: str, "code": str, "category"?: str}]',
+	)
+	documentation = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"title": str, "description"?: str, "category"?: str}]',
+	)
+
+	# Display Settings
+	is_active = models.BooleanField(default=True, help_text="Display toggle")
+	order = models.PositiveIntegerField(default=0, help_text="Display order (lower first)")
+
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['order', '-start_date']
+		indexes = [
+			models.Index(fields=['is_active', 'order'], name='experience_active_order_idx'),
+		]
+
+	def save(self, *args, **kwargs):
+		# Auto-generate slug if missing
+		if not self.slug:
+			self.slug = slugify(self.company)
+
+		# Handle duplicate slugs
+		counter = 1
+		original_slug = self.slug
+		while Experience.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+			self.slug = f"{original_slug}-{counter}"
+			counter += 1
+
+		super().save(*args, **kwargs)
+
+	def clean(self):
+		super().clean()
+		if (
+			self.end_date is not None
+			and self.start_date is not None
+			and self.end_date < self.start_date
+		):
+			raise ValidationError("End date must be after start date")
+
+	def __str__(self):
+		return f"{self.role} @ {self.company}"
+
+
 class Project(models.Model):
 	PROJECT_TYPE_CHOICES = [
 		('school', 'School Project'),
 		('internship', 'Internship Project'),
+		('personal', 'Personal Project'),
 	]
-	
-	DIAGRAM_CHOICES = [
-		('mermaid', 'Mermaid.js'),
-		('flowchart', 'Flowchart.js'),
-		('custom', 'Custom SVG/Image')
-	]
-	
-	# Project Type & Classification
+	DIAGRAM_TYPE_CHOICES = ['mermaid', 'flowchart', 'custom']
+
+	# Project Type & Classification — no default: a conscious admin choice (map §3.1)
 	project_type = models.CharField(
 		max_length=20,
 		choices=PROJECT_TYPE_CHOICES,
-		default='school',
-		help_text="Type of project: school or internship"
+		help_text="Type of project: school, internship or personal",
 	)
-	
+
+	# Grouping link — experience-level truth lives on Experience (map §2.1/§2.2)
+	experience = models.ForeignKey(
+		Experience,
+		on_delete=models.PROTECT,
+		null=True,
+		blank=True,
+		related_name='projects',
+		help_text="Linked experience (internship projects); PROTECT prevents orphaning",
+	)
+
 	# Basic Information
 	title = models.CharField(max_length=255)
 	slug = models.SlugField(unique=True, max_length=100)
@@ -37,146 +151,167 @@ class Project(models.Model):
 	thumbnail = models.ImageField(
 		upload_to='projects/',
 		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])],
-		blank=True, 
+		blank=True,
 		null=True,
-		help_text="Project thumbnail image"
+		help_text="Project thumbnail image (required when featured)",
 	)
-	thumbnail_url = models.URLField(blank=True, null=True, help_text="Alternative URL for thumbnail")
+	thumbnail_url = models.URLField(blank=True, null=True, help_text="External thumbnail URL (escape hatch)")
 	is_featured = models.BooleanField(default=False)
 	score = models.IntegerField(
+		null=True,
+		blank=True,
+		default=None,
 		validators=[MinValueValidator(0), MaxValueValidator(125)],
-		default=0,
-		help_text="Project score (0-125)"
+		help_text="School-context score (0-125); null when not applicable (internship/personal)",
 	)
-	readme = models.TextField(blank=True, null=True, help_text="Full README content in Markdown format")
-	tech_stack = models.JSONField(blank=True, null=True, help_text="List of technologies used in the project")
-	features = models.JSONField(blank=True, null=True, help_text="List of project features with completion percentages")
-	challenges = models.TextField(blank=True, null=True, help_text="Challenges faced during development")
-	lessons = models.TextField(blank=True, null=True, help_text="Lessons learned from the project")
-	live_url = models.URLField(blank=True, null=True, help_text="Link to live demo")
-	code_url = models.URLField(blank=True, null=True, help_text="Link to source code")
-	video_url = models.URLField(blank=True, null=True, help_text="Link to project video demonstration")
-	diagram_type = models.CharField(
-		max_length=20,
-		choices=DIAGRAM_CHOICES,
-		default='mermaid',
-		help_text="Type of architecture diagram"
+	readme = models.TextField(blank=True, null=True, help_text="Single long-form body (Markdown)")
+	tech_stack = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"name": str, "category"?: str}]',
 	)
-	architecture_diagram = models.TextField(blank=True, null=True, help_text="Architecture diagram code (for Mermaid/Flowchart) or image URL")
-	has_interactive_demo = models.BooleanField(default=False, help_text="Whether this project has an interactive terminal demo")
-	demo_commands = models.JSONField(blank=True, null=True, help_text="Demo commands for interactive terminal")
-	demo_files_path = models.CharField(blank=True, null=True, max_length=255, help_text="Path to demo files in S3")
-	
-	code_steps = models.JSONField(blank=True, null=True, help_text="List of steps to run the code")
-	code_snippets = models.JSONField(blank=True, null=True, help_text="List of code snippets")
-	
-	# Internship-specific fields
-	company = models.CharField(
-		max_length=255,
-		blank=True,
-		null=True,
-		help_text="Company name (for internship projects)"
+	features = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [str] — plain feature strings',
 	)
-	role = models.CharField(
-		max_length=255,
-		blank=True,
-		null=True,
-		help_text="Role/position (for internship projects)"
+	challenges = models.TextField(blank=True, null=True)
+	lessons = models.TextField(blank=True, null=True)
+	live_url = models.URLField(blank=True, null=True)
+	code_url = models.URLField(blank=True, null=True)
+	video_url = models.URLField(blank=True, null=True)
+
+	# Architecture (rescued from InternshipProject, map §2.1/§2.3)
+	architecture_description = models.TextField(blank=True, null=True)
+	architecture_diagrams = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"title": str, "type": str, "content": str, "description"?: str}] — type in mermaid|flowchart|custom',
 	)
-	start_date = models.DateField(
-		blank=True,
-		null=True,
-		help_text="Project start date (for internship projects)"
+	related_documentation = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"title": str, "description"?: str, "category"?: str}]',
 	)
-	end_date = models.DateField(
-		blank=True,
-		null=True,
-		help_text="Project end date (for internship projects)"
+
+	# Demo block (formalized, map §2.1) — feeds the Phase 4 DB-driven whitelist
+	has_demo = models.BooleanField(default=False, help_text="Whether this project has an interactive terminal demo")
+	demo_commands = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"label": str, "command": str}]',
+	)
+	demo_files_path = models.CharField(
+		blank=True, null=True, max_length=255,
+		help_text="R2 key of the demo zip (under project-files/)",
+	)
+
+	# Code walkthrough (rescued shapes, map §2.1/§3.4)
+	code_steps = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [str] — ordered steps',
+	)
+	code_snippets = models.JSONField(
+		default=list, blank=True,
+		help_text='Canonical: [{"title"?: str, "description"?: str, "language"?: str, "code": str}]',
+	)
+
+	# Internship-project content that is genuinely project-level
+	role_description = models.TextField(
+		blank=True, null=True,
+		help_text="Your specific role and contributions on this project",
 	)
 	stats = models.JSONField(
-		blank=True,
-		null=True,
-		help_text='Project stats: {"coverage": "85%", "endpoints": "15+", ...}'
+		default=list, blank=True,
+		help_text='Canonical: [{"label": str, "value": str}]',
 	)
 	badges = models.JSONField(
-		blank=True,
-		null=True,
-		help_text='Badges: [{"text": "Zero Trust", "color": "blue"}, ...]'
-	)
-	role_description = models.TextField(
-		blank=True,
-		null=True,
-		help_text="Your specific role and contributions (for internship projects)"
+		default=list, blank=True,
+		help_text='Canonical: [{"text": str}] — color/variant keys are gone (brief §2.5)',
 	)
 	impact_metrics = models.JSONField(
-		blank=True,
-		null=True,
-		help_text='Impact metrics: {"security_vulnerabilities_prevented": "15+", ...}'
+		default=list, blank=True,
+		help_text='Canonical: [{"label": str, "value": str, "description"?: str}]',
 	)
-	
+
+	# Ledger ordering (map §3.5)
+	order = models.PositiveIntegerField(default=0, help_text="Ledger ordering (lower first)")
+
+	# Provenance timestamps (map §2.1)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
 	def save(self, *args, **kwargs):
-		# Allow bypassing validation for initial imports
-		bypass_validation = kwargs.pop('bypass_validation', False)
-		
-		if not bypass_validation:
-			self.full_clean()
-			
 		# Auto-generate slug if missing
 		if not self.slug:
 			self.slug = slugify(self.title)
-			
+
 		# Handle duplicate slugs
 		counter = 1
 		original_slug = self.slug
 		while Project.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
 			self.slug = f"{original_slug}-{counter}"
 			counter += 1
-			
+
 		super().save(*args, **kwargs)
 
 	def clean(self):
-		if not self.thumbnail:
+		super().clean()
+		# Thumbnail required IFF featured (map §3.3)
+		if self.is_featured and not self.thumbnail:
 			raise ValidationError("Thumbnail is required")
+
 		if not self.slug:
 			self.slug = slugify(self.title)
-			
+
 		if Project.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
 			raise ValidationError("Slug must be unique")
 
+		# Soft integrity rule (map §3.3): internship => experience set
+		if self.project_type == 'internship' and self.experience_id is None:
+			raise ValidationError("Internship projects must link an experience")
+
 	class Meta:
-		ordering = ['-is_featured', 'title']
+		ordering = ['order', 'title']
 		indexes = [
-			models.Index(fields=['slug'], name='project_slug_idx'),
+			models.Index(fields=['project_type', 'order'], name='project_type_order_idx'),
+			models.Index(
+				fields=['has_demo'],
+				condition=models.Q(has_demo=True),
+				name='project_demo_idx',
+			),
+		]
+		constraints = [
+			models.CheckConstraint(
+				condition=models.Q(project_type__in=['school', 'internship', 'personal']),
+				name='project_type_valid',
+			),
 		]
 
 	def __str__(self):
 		return self.title
 
+
 class Gallery(models.Model):
 	"""Gallery for organizing images within a project"""
 	project = models.ForeignKey(
-		Project, 
+		Project,
 		on_delete=models.CASCADE,
 		related_name='galleries'
 	)
 	name = models.CharField(max_length=200, default='Unnamed Gallery')
 	description = models.TextField(blank=True)
 	order = models.PositiveIntegerField(default=0)
-	
+
 	class Meta:
 		verbose_name_plural = "Galleries"
 		ordering = ['order']
 		indexes = [
 			models.Index(fields=['project', 'order'], name='gallery_order_idx'),
 		]
-		
+
 	def __str__(self):
 		return f"{self.name} - {self.project.title}"
 
 class GalleryImage(models.Model):
 	"""Images belonging to a gallery"""
 	gallery = models.ForeignKey(
-		Gallery, 
+		Gallery,
 		on_delete=models.CASCADE,
 		related_name='images'
 	)
@@ -186,13 +321,13 @@ class GalleryImage(models.Model):
 	)
 	caption = models.CharField(max_length=200, blank=True)
 	order = models.PositiveIntegerField(default=0)
-	
+
 	class Meta:
 		ordering = ['order']
 		indexes = [
 			models.Index(fields=['gallery', 'order'], name='image_order_idx'),
 		]
-		
+
 	def __str__(self):
 		return f"Image {self.order} of {self.gallery}"
 
@@ -204,242 +339,3 @@ class ContactSubmission(models.Model):
 
 	def __str__(self):
 		return f"Message from {self.name}"
-
-
-class Internship(models.Model):
-	"""
-	DEPRECATED: This model is deprecated in favor of unified Project model with project_type='internship'.
-	Use Project model with project_type='internship' for new internship projects.
-	This model will be removed in a future release.
-	
-	Model for internship/professional experience showcase
-	Supports the /internship landing page with overview, stats, and projects
-	"""
-	# Basic Information
-	company = models.CharField(max_length=255, help_text="Company name (e.g., 'Qynapse Healthcare')")
-	role = models.CharField(max_length=255, help_text="Role/position title")
-	subtitle = models.CharField(max_length=500, help_text="Role description/subtitle for hero section")
-	slug = models.SlugField(unique=True, max_length=100, help_text="URL slug (auto-generated from company)")
-	
-	# Period
-	start_date = models.DateField(help_text="Internship start date")
-	end_date = models.DateField(blank=True, null=True, help_text="Internship end date (null if current)")
-	
-	# Overview Content
-	overview = models.TextField(help_text="Overview paragraph describing the experience")
-	
-	# Hero Stats (displayed on landing page)
-	stats = models.JSONField(
-		default=list,
-		help_text='Hero stats as JSON array: [{"value": "10,000+", "label": "Lines of Code", "color": "blue"}, ...]'
-	)
-	
-	# Technologies (for TechStackFilter component)
-	technologies = models.JSONField(
-		default=list,
-		help_text='Technologies array: [{"name": "FastAPI", "icon": "⚡", "category": "backend", "level": 5}, ...]'
-	)
-	
-	# Impact Metrics (for ImpactMetrics component)
-	impact_metrics = models.JSONField(
-		default=list,
-		help_text='Impact metrics: [{"value": "10000", "label": "Lines of Code", "description": "...", "icon": "💻"}, ...]'
-	)
-	
-	# Architecture Content
-	architecture_description = models.TextField(
-		blank=True,
-		null=True,
-		help_text="Description of the architecture/technical approach"
-	)
-	architecture_diagram = models.TextField(
-		blank=True,
-		null=True,
-		help_text="Mermaid diagram code or SVG for Zero Trust architecture"
-	)
-	
-	# Code Samples (for CodeShowcase component)
-	code_samples = models.JSONField(
-		default=list,
-		help_text='Code samples: [{"title": "...", "description": "...", "code": "...", "language": "python"}, ...]'
-	)
-	
-	# Documentation (for DocumentationGallery)
-	documentation = models.JSONField(
-		default=list,
-		help_text='Documentation items: [{"title": "...", "description": "...", "category": "architecture", "icon": "📄"}, ...]'
-	)
-	
-	# Display Settings
-	is_active = models.BooleanField(
-		default=True,
-		help_text="Whether this internship should be displayed on the site"
-	)
-	order = models.PositiveIntegerField(
-		default=0,
-		help_text="Display order (lower numbers appear first)"
-	)
-	
-	created_at = models.DateTimeField(auto_now_add=True)
-	updated_at = models.DateTimeField(auto_now=True)
-	
-	class Meta:
-		ordering = ['order', '-start_date']
-		indexes = [
-			models.Index(fields=['slug'], name='internship_slug_idx'),
-			models.Index(fields=['is_active', 'order'], name='internship_active_order_idx'),
-		]
-	
-	def save(self, *args, **kwargs):
-		# Auto-generate slug if missing
-		if not self.slug:
-			self.slug = slugify(self.company)
-		
-		# Handle duplicate slugs
-		counter = 1
-		original_slug = self.slug
-		while Internship.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
-			self.slug = f"{original_slug}-{counter}"
-			counter += 1
-		
-		super().save(*args, **kwargs)
-	
-	def __str__(self):
-		return f"{self.role} @ {self.company}"
-
-
-class InternshipProject(models.Model):
-	"""
-	Individual projects within an internship
-	Displayed as cards on /internship and detailed pages at /internship/[slug]
-	"""
-	internship = models.ForeignKey(
-		Internship,
-		on_delete=models.CASCADE,
-		related_name='projects'
-	)
-	
-	# Basic Information
-	title = models.CharField(max_length=255, help_text="Project title")
-	slug = models.SlugField(max_length=100, help_text="URL slug for project detail page")
-	description = models.TextField(help_text="Short description for project card")
-	
-	# Visual
-	thumbnail = models.ImageField(
-		upload_to='internship/projects/',
-		validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'svg'])],
-		blank=True,
-		null=True,
-		help_text="Project thumbnail (architecture diagram or screenshot)"
-	)
-	thumbnail_url = models.URLField(
-		blank=True,
-		null=True,
-		help_text="Alternative URL for thumbnail"
-	)
-	
-	# Project Details (for detail page)
-	overview = models.TextField(
-		blank=True,
-		null=True,
-		help_text="Detailed overview for project detail page"
-	)
-	role_description = models.TextField(
-		blank=True,
-		null=True,
-		help_text="Your specific role and contributions"
-	)
-	
-	# Technologies
-	tech_stack = models.JSONField(
-		default=list,
-		help_text='Technologies used: ["FastAPI", "PostgreSQL", "Docker", ...]'
-	)
-	
-	# Stats (displayed on project card)
-	stats = models.JSONField(
-		default=dict,
-		help_text='Project stats: {"ownership": "80%", "linesOfCode": "10,000+", "adoption": "Company-wide"}'
-	)
-	
-	# Badges (for card display)
-	badges = models.JSONField(
-		default=list,
-		help_text='Badges: [{"text": "Primary Project", "variant": "primary"}, ...]'
-	)
-	
-	# Architecture & Implementation
-	architecture_description = models.TextField(
-		blank=True,
-		null=True,
-		help_text="Architecture explanation for detail page"
-	)
-	architecture_diagrams = models.JSONField(
-		default=list,
-		help_text='Architecture diagrams: [{"title": "...", "diagram": "mermaid code or URL", "description": "..."}, ...]'
-	)
-	
-	# Key Features/Achievements
-	key_features = models.JSONField(
-		default=list,
-		help_text='Key features: [{"title": "...", "description": "...", "icon": "🔐"}, ...]'
-	)
-	
-	# Code Walkthrough (reuses CodeWalkthrough component)
-	code_snippets = models.JSONField(
-		default=list,
-		help_text='Code examples: [{"title": "...", "code": "...", "language": "python", "description": "..."}, ...]'
-	)
-	
-	# Impact Metrics (project-specific)
-	impact_metrics = models.JSONField(
-		default=list,
-		help_text='Impact metrics specific to this project'
-	)
-	
-	# Related Documentation
-	related_documentation = models.JSONField(
-		default=list,
-		help_text='Related docs: [{"title": "...", "description": "...", "category": "...", "icon": "..."}, ...]'
-	)
-	
-	# Display Settings
-	order = models.PositiveIntegerField(
-		default=0,
-		help_text="Display order within internship"
-	)
-	is_featured = models.BooleanField(
-		default=False,
-		help_text="Whether to feature this project prominently"
-	)
-	
-	created_at = models.DateTimeField(auto_now_add=True)
-	updated_at = models.DateTimeField(auto_now=True)
-	
-	class Meta:
-		ordering = ['order', 'title']
-		unique_together = [['internship', 'slug']]
-		indexes = [
-			models.Index(fields=['internship', 'slug'], name='int_project_slug_idx'),
-			models.Index(fields=['internship', 'order'], name='int_project_order_idx'),
-		]
-	
-	def save(self, *args, **kwargs):
-		# Auto-generate slug if missing
-		if not self.slug:
-			self.slug = slugify(self.title)
-		
-		# Handle duplicate slugs within the same internship
-		counter = 1
-		original_slug = self.slug
-		while InternshipProject.objects.filter(
-			internship=self.internship,
-			slug=self.slug
-		).exclude(pk=self.pk).exists():
-			self.slug = f"{original_slug}-{counter}"
-			counter += 1
-		
-		super().save(*args, **kwargs)
-	
-	def __str__(self):
-		return f"{self.title} ({self.internship.company})"

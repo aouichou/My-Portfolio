@@ -36,7 +36,7 @@ class TestProjectSlug:
     def test_slug_not_regenerated_on_update(self):
         p = make_project(title='Original', slug='original')
         p.description = 'Updated description'
-        p.save(bypass_validation=True)
+        p.save()
         p.refresh_from_db()
         assert p.slug == 'original'
 
@@ -48,21 +48,16 @@ class TestProjectSlug:
 @pytest.mark.django_db
 class TestProjectValidation:
 
-    def test_clean_raises_if_no_thumbnail(self):
-        p = Project(title='No Thumb', description='desc', slug='no-thumb')
+    def test_clean_raises_if_featured_without_thumbnail(self):
+        """Schema v2 (map §3.3): thumbnail required IFF is_featured."""
+        p = Project(title='Featured No Thumb', description='desc', slug='featured-no-thumb', project_type='school', is_featured=True)
         with pytest.raises(ValidationError, match='Thumbnail is required'):
             p.clean()
 
-    def test_full_clean_raises_if_no_thumbnail(self):
-        p = Project(title='No Thumb', description='desc', slug='no-thumb-fc')
+    def test_full_clean_raises_if_featured_without_thumbnail(self):
+        p = Project(title='Featured No Thumb', description='desc', slug='featured-no-thumb-fc', project_type='school', is_featured=True)
         with pytest.raises(ValidationError):
             p.full_clean()
-
-    def test_bypass_validation_skips_thumbnail_check(self):
-        """Projects can be saved without thumbnail when bypass_validation=True."""
-        p = Project(title='No Thumb Bypass', description='desc', slug='bypass-test')
-        p.save(bypass_validation=True)
-        assert p.pk is not None
 
     def test_score_min_validator(self):
         p = Project(title='Scored', description='d', slug='scored', score=-1)
@@ -92,18 +87,18 @@ class TestProjectMetaAndStr:
         p = make_project(title='Minishell')
         assert str(p) == 'Minishell'
 
-    def test_featured_projects_ordered_first(self):
-        make_project(title='AAA Regular', is_featured=False)
-        make_project(title='ZZZ Featured', is_featured=True)
+    def test_ordering_is_ledger_order(self):
+        """Schema v2 (map §3.5): Meta.ordering = ['order', 'title'] — featured-first
+        curation lives in the API queryset default, not the model."""
+        make_project(title='AAA Order 5', order=5)
+        make_project(title='ZZZ Order 1', order=1)
         titles = list(Project.objects.values_list('title', flat=True))
-        assert titles[0] == 'ZZZ Featured'
+        assert titles == ['ZZZ Order 1', 'AAA Order 5']
 
-    def test_non_featured_ordered_by_title(self):
-        make_project(title='B Project', is_featured=False)
-        make_project(title='A Project', is_featured=False)
-        titles = list(
-            Project.objects.filter(is_featured=False).values_list('title', flat=True)
-        )
+    def test_same_order_falls_back_to_title(self):
+        make_project(title='B Project')
+        make_project(title='A Project')
+        titles = list(Project.objects.values_list('title', flat=True))
         assert titles == ['A Project', 'B Project']
 
 
@@ -115,20 +110,20 @@ class TestProjectMetaAndStr:
 class TestProjectOptionalFields:
 
     def test_tech_stack_json_field(self):
-        tech = ['C', 'Make', 'Bash']
+        tech = [{'name': 'C'}, {'name': 'Make'}, {'name': 'Bash'}]
         p = make_project(tech_stack=tech)
         p.refresh_from_db()
         assert p.tech_stack == tech
 
     def test_features_json_field(self):
-        feats = [{'name': 'Parsing', 'complete': True}]
+        feats = ['Parsing', 'Execution']
         p = make_project(features=feats)
         p.refresh_from_db()
-        assert p.features[0]['name'] == 'Parsing'
+        assert p.features == feats
 
-    def test_has_interactive_demo_defaults_false(self):
+    def test_has_demo_defaults_false(self):
         p = make_project()
-        assert p.has_interactive_demo is False
+        assert p.has_demo is False
 
 
 # ═════════════════════════════════════════════════════════════════════════════

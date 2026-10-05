@@ -12,10 +12,10 @@ urlpatterns = [
 	path('projects/<slug:slug>/files/', views.project_files, name='project-files'),
 	path('health/', views.health_check, name='health-check'),
 	path('auth/terminal-token/', views.generate_terminal_token, name='terminal_token'),
-	
-	# Internship endpoints
-	path('internships/', views.InternshipViewSet.as_view({'get': 'list'}), name='internship-list'),
-	path('internships/<slug:slug>/', views.InternshipViewSet.as_view({'get': 'retrieve'}), name='internship-detail'),
-	path('internships/<slug:internship_slug>/projects/', views.InternshipProjectViewSet.as_view({'get': 'list'}), name='internship-project-list'),
-	path('internships/<slug:internship_slug>/projects/<slug:slug>/', views.InternshipProjectViewSet.as_view({'get': 'retrieve'}), name='internship-project-detail'),
+
+	# Experience endpoints (schema v2 — successor of the deprecated
+	# /api/internships* routes, deleted with their models in F1-06; the
+	# frozen v1 UI's consumption of the old routes is tracked in SESSION.md)
+	path('experiences/', views.ExperienceViewSet.as_view({'get': 'list'}), name='experience-list'),
+	path('experiences/<slug:slug>/', views.ExperienceViewSet.as_view({'get': 'retrieve'}), name='experience-detail'),
 ]

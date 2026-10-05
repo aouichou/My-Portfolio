@@ -26,12 +26,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Gallery, Internship, InternshipProject, Project
+from .models import Experience, Gallery, Project
 from .serializers import (
 	ContactSubmissionSerializer,
-	InternshipListSerializer,
-	InternshipProjectSerializer,
-	InternshipSerializer,
+	ExperienceListSerializer,
+	ExperienceSerializer,
 	ProjectSerializer,
 )
 from .storage import CustomS3Storage
@@ -77,7 +76,7 @@ class ProjectDetail(generics.RetrieveAPIView):
 
 			# Log live URL which should contain a valid link
 			logger.info("Live URL: %s", instance.live_url)
-			logger.info("Has interactive demo: %s", instance.has_interactive_demo)
+			logger.info("Has demo: %s", instance.has_demo)
 			logger.info("============ END PROJECT DATA ============")
 		
 		serializer = self.get_serializer(instance)
@@ -290,32 +289,41 @@ def health_check(request):
 	return Response({'status': 'healthy'}, status=200)
 
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
+	"""Unified Project listing/detail (schema v2).
+
+	Ordering note: featured-first curation lives here in the queryset (map
+	§3.5) — the model's Meta.ordering is the neutral ledger order
+	(order, title).
+	"""
 	serializer_class = ProjectSerializer
 	lookup_field = 'slug'
 	filterset_fields = ['is_featured', 'project_type']
-	
+
 	def get_queryset(self):
-		queryset = Project.objects.all().order_by('-is_featured', '-score')
-		
+		# Featured-first, then ledger order (map §3.5)
+		queryset = Project.objects.select_related('experience').order_by(
+			'-is_featured', 'order', 'title'
+		)
+
 		# Detail (retrieve) must resolve ANY slug regardless of featured
 		# status -- featuring curates listings, not retrieval. The old
 		# shared filter 404'd every unfeatured project's detail page
 		# (React #441 "something went wrong" on /projects/<slug>).
 		if self.action == 'retrieve':
 			return queryset
-		
-		# Filter by project_type if specified
+
+		# Filter by project_type if specified (schema v2 adds 'personal')
 		project_type = self.request.query_params.get('project_type')
-		if project_type in ['school', 'internship']:
+		if project_type in ['school', 'internship', 'personal']:
 			queryset = queryset.filter(project_type=project_type)
-		
+
 		# By default, only return featured projects unless include_all=true is specified
 		include_all_param = self.request.query_params.get('include_all', 'false')
 		include_all = include_all_param.lower() == 'true'
-		
+
 		if not include_all:
 			queryset = queryset.filter(is_featured=True)
-		
+
 		return queryset
 
 @api_view(['GET'])
@@ -352,50 +360,28 @@ def generate_terminal_token(request):
 	
 	return Response({'token': token})
 
+class ExperienceViewSet(viewsets.ReadOnlyModelViewSet):
+	"""
+	ViewSet for experiences (schema v2 successor of the internship surface).
 
-class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
-	"""
-	ViewSet for internship experiences
-	
 	Endpoints:
-	- GET /api/internships/ - List all active internships
-	- GET /api/internships/{slug}/ - Retrieve specific internship with projects
+	- GET /api/experiences/ - List active experiences
+	- GET /api/experiences/{slug}/ - Retrieve an experience with nested projects
+
+	NOTE (F2 handoff): the deprecated /api/internships* routes this replaces
+	are deleted in this commit — the frozen v1 UI still consumes them in prod
+	via main until the flip; that split-brain is tracked in SESSION.md (F2).
 	"""
-	serializer_class = InternshipSerializer
+	serializer_class = ExperienceSerializer
 	lookup_field = 'slug'
 	permission_classes = [AllowAny]
-	
+
 	def get_queryset(self):
-		"""Return only active internships, ordered by order field"""
-		return Internship.objects.filter(is_active=True).prefetch_related('projects')
-	
+		"""Active experiences, ordered, with nested linked projects."""
+		return Experience.objects.filter(is_active=True).prefetch_related('projects')
+
 	def get_serializer_class(self):
-		"""Use lightweight serializer for list, full serializer for detail"""
+		"""Lightweight serializer for list, full serializer for detail."""
 		if self.action == 'list':
-			return InternshipListSerializer
-		return InternshipSerializer
-
-
-class InternshipProjectViewSet(viewsets.ReadOnlyModelViewSet):
-	"""
-	ViewSet for individual internship projects
-	
-	Endpoints:
-	- GET /api/internships/{internship_slug}/projects/ - List projects for internship
-	- GET /api/internships/{internship_slug}/projects/{slug}/ - Project detail
-	
-	Uses dedicated InternshipProject model with overview, role_description, etc.
-	"""
-	serializer_class = InternshipProjectSerializer
-	lookup_field = 'slug'
-	permission_classes = [AllowAny]
-	
-	def get_queryset(self):
-		"""Return internship projects for a specific internship"""
-		internship_slug = self.kwargs.get('internship_slug')
-		if internship_slug:
-			return InternshipProject.objects.filter(
-				internship__slug=internship_slug,
-				internship__is_active=True
-			).select_related('internship').order_by('order', '-is_featured', 'title')
-		return InternshipProject.objects.none()
+			return ExperienceListSerializer
+		return ExperienceSerializer

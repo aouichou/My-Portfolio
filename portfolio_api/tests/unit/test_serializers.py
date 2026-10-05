@@ -1,88 +1,81 @@
 # tests/unit/test_serializers.py
-"""Unit tests for serializer helper functions and serializer field validation."""
+"""
+Unit tests for the schema v2 serializer surface.
 
-from projects.serializers import validate_code_snippets, validate_code_steps
+The v1 read-time shape-mutating validators (validate_code_snippets /
+validate_code_steps) were deleted in F1-06 (field map §5.3 — the
+double-transform hazard); canonicalization happens at ETL/write time (F1-07).
+These tests pin the serializer as a pass-through for canonical JSON content.
+"""
 
-# ═════════════════════════════════════════════════════════════════════════════
-# validate_code_steps
-# ═════════════════════════════════════════════════════════════════════════════
+import pytest
+from projects.serializers import ProjectSerializer
 
-class TestValidateCodeSteps:
-
-    def test_returns_empty_dict_for_non_dict_input(self):
-        assert validate_code_steps([]) == {}
-        assert validate_code_steps('text') == {}
-        assert validate_code_steps(None) == {}
-
-    def test_unwraps_single_key_0_wrapper(self):
-        wrapped = {'0': {'step1': 'compile', 'step2': 'run'}}
-        result = validate_code_steps(wrapped)
-        assert result == {'step1': 'compile', 'step2': 'run'}
-
-    def test_does_not_unwrap_multi_key_dict(self):
-        data = {'0': 'a', '1': 'b'}
-        result = validate_code_steps(data)
-        assert result == {'0': 'a', '1': 'b'}
-
-    def test_converts_dict_values_to_str(self):
-        data = {'step': {'nested': 'value'}}
-        result = validate_code_steps(data)
-        assert isinstance(result['step'], str)
-
-    def test_converts_list_values_to_str(self):
-        data = {'step': ['a', 'b']}
-        result = validate_code_steps(data)
-        assert isinstance(result['step'], str)
-
-    def test_preserves_string_values(self):
-        data = {'step1': 'make re', 'step2': './minishell'}
-        result = validate_code_steps(data)
-        assert result == {'step1': 'make re', 'step2': './minishell'}
-
+from tests.conftest import make_project
 
 # ═════════════════════════════════════════════════════════════════════════════
-# validate_code_snippets
+# ProjectSerializer — pass-through contract (field map §5.3)
 # ═════════════════════════════════════════════════════════════════════════════
 
-class TestValidateCodeSnippets:
+@pytest.mark.django_db
+class TestSerializerPassThrough:
 
-    def test_returns_empty_dict_for_non_dict_input(self):
-        assert validate_code_snippets([]) == {}
-        assert validate_code_snippets('text') == {}
-        assert validate_code_snippets(None) == {}
+    def test_read_returns_model_content_verbatim(self):
+        steps = ['make re', './minishell']
+        snippets = [{'title': 'Main', 'language': 'c', 'code': 'int main(void){}'}]
+        p = make_project(code_steps=steps, code_snippets=snippets)
+        data = ProjectSerializer(p).data
+        assert data['code_steps'] == steps
+        assert data['code_snippets'] == snippets
 
-    def test_converts_old_string_format_to_new(self):
-        data = {'main': '#include <stdio.h>'}
-        result = validate_code_snippets(data)
-        assert result['main']['code'] == '#include <stdio.h>'
-        assert result['main']['language'] == 'c'
-        assert 'title' in result['main']
-
-    def test_preserves_new_format_with_all_fields(self):
-        snippet = {
-            'code': 'int main() {}',
-            'title': 'Main',
-            'description': 'Entry point',
-            'explanation': 'Main function',
-            'language': 'c',
+    def test_write_validates_canonical_to_itself(self):
+        steps = ['make re', './minishell']
+        snippets = [{'title': 'Main', 'language': 'c', 'code': 'int main(void){}'}]
+        payload = {
+            'title': 'Pass Through',
+            'slug': 'pass-through',
+            'description': 'd',
+            'project_type': 'school',
+            'tech_stack': [{'name': 'C'}],
+            'code_steps': steps,
+            'code_snippets': snippets,
         }
-        data = {'main': snippet}
-        result = validate_code_snippets(data)
-        assert result['main'] == snippet
+        serializer = ProjectSerializer(data=payload)
+        assert serializer.is_valid(), serializer.errors
+        assert serializer.validated_data['code_steps'] == steps
+        assert serializer.validated_data['code_snippets'] == snippets
 
-    def test_fills_missing_fields_in_new_format(self):
-        snippet = {'code': 'int x = 0;'}
-        result = validate_code_snippets({'var': snippet})
-        assert result['var']['title'] != ''
-        assert result['var']['language'] == 'c'
+    def test_read_serializes_v2_fields(self):
+        p = make_project(
+            has_demo=True,
+            demo_commands=[{'label': 'Build', 'command': 'make'}],
+            architecture_description='Layers.',
+            order=2,
+        )
+        data = ProjectSerializer(p).data
+        assert data['has_demo'] is True
+        assert data['demo_commands'] == [{'label': 'Build', 'command': 'make'}]
+        assert data['architecture_description'] == 'Layers.'
+        assert data['order'] == 2
 
-    def test_ignores_keys_without_code_in_dict_format(self):
-        data = {'no_code': {'description': 'only description'}}
-        result = validate_code_snippets(data)
-        # Should return empty dict because there's no 'code' key
-        assert result == {}
+    def test_v2_fields_present_in_contract(self):
+        """The serializer surface exposes the schema v2 fields the F2-01
+        contract will freeze (additive vs v1: has_demo, demo block shape,
+        rescued rich-content fields, experience link, timestamps)."""
+        expected = {
+            'has_demo', 'demo_commands', 'demo_files_path',
+            'architecture_description', 'architecture_diagrams',
+            'related_documentation', 'order', 'experience',
+            'role_description', 'stats', 'badges', 'impact_metrics',
+            'created_at', 'updated_at',
+        }
+        assert expected.issubset(set(ProjectSerializer.Meta.fields))
 
-    def test_title_generated_from_key_name(self):
-        data = {'parse_input': 'some code'}
-        result = validate_code_snippets(data)
-        assert result['parse_input']['title'] == 'Parse Input'
+    def test_dropped_fields_absent_from_contract(self):
+        """Fields deleted from the model (map §2.1) must not linger on the
+        serialization surface."""
+        dropped = {
+            'company', 'role', 'start_date', 'end_date',
+            'diagram_type', 'architecture_diagram', 'has_interactive_demo',
+        }
+        assert not dropped & set(ProjectSerializer.Meta.fields)

@@ -31,16 +31,16 @@ import sys
 from datetime import date
 from pathlib import Path
 
+import projects.models as projects_models
 import pytest
 from django.contrib import admin as django_admin
 from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import models as dj_models
 from django.db.models import ProtectedError
 from django.db.models.fields import NOT_PROVIDED
-
-import projects.models as projects_models
 from projects.models import ContactSubmission, Gallery, GalleryImage, Project
 from projects.serializers import ProjectSerializer
+
 from tests.conftest import make_project
 
 # ─────────────────────────── helpers ─────────────────────────────────────────

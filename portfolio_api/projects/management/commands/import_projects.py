@@ -11,7 +11,6 @@ from django.core.management.base import BaseCommand
 from tqdm import tqdm  # For progress bars
 
 from projects.models import Gallery, GalleryImage, Project
-from projects.serializers import validate_code_snippets
 
 
 class Command(BaseCommand):
@@ -79,27 +78,28 @@ class Command(BaseCommand):
 				project = Project(slug=slug)
 				self.stdout.write(f"Creating new project: {slug}")
 			
-			# Update basic fields
+# Update basic fields (schema v2 field names)
 			for field in ['title', 'description', 'readme', 'is_featured', 'score',
 						 'tech_stack', 'features', 'challenges', 'lessons',
-						 'live_url', 'code_url', 'video_url', 'diagram_type',
-						 'architecture_diagram', 'has_interactive_demo', 
-						 'demo_commands', 'demo_files_path', 'code_steps', 'code_snippets']:
+						 'live_url', 'code_url', 'video_url', 'project_type',
+						 'has_demo', 'demo_commands', 'demo_files_path',
+						 'code_steps', 'code_snippets', 'architecture_description',
+						 'architecture_diagrams', 'related_documentation', 'order']:
 				if field in project_data:
 					setattr(project, field, project_data[field])
-					
-			if 'code_snippets' in project_data:
-				# Add validation before saving
-				cleaned_snippets = validate_code_snippets(project_data['code_snippets'])
-				project.code_snippets = cleaned_snippets
+
+			if 'project_type' not in project_data:
+				# No default on project_type (map §3.1): importer requires it.
+				self.stderr.write(f"Project missing project_type: {slug}")
+				continue
 				
 			# Handle thumbnail
 			if 'thumbnail' in project_data and not skip_images:
 				self._process_image(project, 'thumbnail', project_data['thumbnail'], media_dir, s3_client)
 			
-			# Save project with validation bypass for initial save
+			# Save project (schema v2: thumbnail required only when featured)
 			try:
-				project.save(bypass_validation=True)
+				project.save()
 				self.stdout.write(f"Saved project: {slug}")
 			except Exception as e:
 				self.stderr.write(f"Error saving project {slug}: {e}")

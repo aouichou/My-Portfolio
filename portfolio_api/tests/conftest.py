@@ -8,7 +8,9 @@ from rest_framework.test import APIClient
 
 def make_project(**kwargs):
     """
-    Create a Project bypassing thumbnail validation (safe for test environments).
+    Create a Project (schema v2 — no bypass_validation kwarg; thumbnail is
+    required only when is_featured, map §3.3, so a default non-featured row
+    saves clean under real validation).
     Pass keyword arguments to override defaults.
     """
     from projects.models import Project
@@ -25,7 +27,7 @@ def make_project(**kwargs):
     if not project.slug:
         from django.utils.text import slugify
         project.slug = slugify(defaults['title'])
-    project.save(bypass_validation=True)
+    project.save()
     return project
 
 
@@ -57,12 +59,21 @@ def school_project(db):
 
 @pytest.fixture
 def internship_project(db):
-    """An internship-type Project."""
+    """An internship-type Project linked to an experience (schema v2)."""
+    from projects.models import Experience
+
+    experience = Experience.objects.create(
+        company='Acme Corp',
+        role='Backend Engineer',
+        subtitle='Building things',
+        slug='acme-corp',
+        start_date='2025-01-01',
+        overview='An experience.',
+    )
     return make_project(
         title='Internship Project',
         project_type='internship',
-        company='Acme Corp',
-        role='Backend Engineer',
+        experience=experience,
     )
 
 
