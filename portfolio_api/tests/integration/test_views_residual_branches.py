@@ -18,19 +18,19 @@ F2-08 coverage pass (Experience slug dedup, Project.clean branches,
 GalleryImage.__str__, GalleryImageSerializer.image_url None branch).
 """
 
+from unittest import mock
+
 import dns.resolver
 import jwt as pyjwt
 import pytest
-from django.contrib.auth.models import User
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import override_settings
-from unittest import mock
-
 from projects.models import Experience, Gallery, GalleryImage, Project
 from projects.views import ContactSubmissionView, generate_terminal_token
-from tests.conftest import make_project
 
+from tests.conftest import make_project
 
 # ═════════════════════════════════════════════════════════════════════════════
 # validate_domain — the DNS resolver matrix (resolver stubbed)

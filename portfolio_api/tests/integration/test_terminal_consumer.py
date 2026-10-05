@@ -33,12 +33,11 @@ import json
 from unittest import mock
 
 import jwt as pyjwt
+import projects.consumers as consumers
 import pytest
 import websockets
 from django.conf import settings
 from django.test import override_settings
-
-import projects.consumers as consumers
 
 
 def run(coro):

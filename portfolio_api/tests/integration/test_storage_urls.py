@@ -20,9 +20,8 @@ from unittest import mock
 
 from django.core.files.storage import FileSystemStorage
 from django.test import override_settings
-from storages.backends.s3boto3 import S3Boto3Storage
-
 from projects.storage import CustomS3Storage, get_storage
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 def make_storage():
