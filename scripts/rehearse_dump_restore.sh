@@ -39,6 +39,10 @@ EXPECTED_GALLERYIMAGE=56
 EXPECTED_INTERNSHIP=1
 EXPECTED_INTERNSHIPPROJECT=3     # matches the data audit
 EXPECTED_MIGRATIONS_TOTAL=28     # full django_migrations ledger
+# F1-02 (2026-10-05): this constant stays 28 after reconciliation — VERIFIED,
+# not assumed. 0010_ghost_reconciliation deletes the ghost row (-1) but is
+# itself recorded by Django's recorder (+1) => 28. The fresh-restore baseline
+# below is unaffected anyway: the dump is frozen and always contains the ghost.
 
 # The ghost migration: applied in prod (hence in the dump), absent on disk.
 # Its exact applied name — profile §2's "0008_alter_project_thumbnail" is
@@ -198,10 +202,15 @@ if [ "$ghost_applied" -eq 1 ]; then
 else
   fail "projects.$GHOST_MIGRATION expected 1 row in django_migrations, got $ghost_applied"
 fi
+# F1-02 reconciled the ghost on 2026-10-05 via 0010_ghost_reconciliation
+# (RunSQL: DELETE the ledger row; reversible). A freshly restored DB ALWAYS
+# contains the ghost again — that is correct and expected (frozen dump); any
+# `migrate` run then applies 0010 and removes it. The ghost FILE must never
+# reappear on disk: that would be a regression, not a fix.
 if [ -f "$GHOST_FILE" ]; then
-  info "$GHOST_MIGRATION.py now EXISTS on disk — reconciliation (F1-02) has landed"
+  info "$GHOST_MIGRATION.py EXISTS on disk — REGRESSION: the ghost file must never be recreated"
 else
-  info "$GHOST_MIGRATION.py absent on disk — confirmed ghost until F1-02 reconciles it"
+  info "$GHOST_MIGRATION.py absent on disk — correct (F1-02 reconciles via 0010, not by recreating the file)"
 fi
 
 step "User + PII-pending counts"
