@@ -11,7 +11,7 @@ export default function ExperiencePage() {
       <RoutePlaceholder
       overline="Route /experience"
       title="Experience"
-      note="Where the work happened: six months on a neuroimaging platform in clinical research, and the 1337 curriculum before it."
+      note="Where the work happened: six months on a neuroimaging platform in clinical research, and the 42 Paris curriculum before it."
       />
     </PageShell>
   );
