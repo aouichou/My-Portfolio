@@ -1,0 +1,35 @@
+{
+  "name": "portfolio_ui_v2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "My-Portfolio v2 UI library home — five manifest modules ported tests-first (F3-01). Next.js scaffold arrives with F3-06.",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.104.1",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-unicode11": "^0.9.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^5.5.0",
+    "axios": "^1.20.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.3",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
+    "ts-jest": "^29.4.14",
+    "typescript": "^5.9.3"
+  }
+}
