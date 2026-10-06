@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   My-Portfolio v2 — THE TOKEN SYSTEM (F3-06a)
+   Source of truth: docs/designs/2026-10-03-visual-identity-brief.md (APPROVED)
+   Mechanism: brief §7.1 — CSS custom properties (light/dark pairs), then
+   `@theme inline` mapping them into Tailwind namespaces so utilities
+   (bg-canvas, text-ink, border-line, text-accent…) reference the RUNTIME
+   variables and the data-mode swap changes them with zero duplication.
+   BLACKLIST (brief §6): zero gradients, zero glow, zero backdrop-blur.
+   ========================================================================== */
+
+/* --- §7.2 dark mode: data-mode strategy (ThemeProvider sets it) ---------- */
+@custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
+
+/* ============================================================================
+   §2.1 COLOR — near-monochrome base + ONE accent (terminal amber).
+   Light pair on :root (default); dark pair on [data-mode="dark"].
+   Warm-cast neutrals (red+2 hex tail) — the ownable temperature (§9).
+   ========================================================================== */
+:root {
+  --canvas: #ffffff;   /* page background — pure white in light (§9) */
+  --surface: #f6f5f4;  /* raised layer: cards, terminal body, code */
+  --ink: #1a1a18;      /* primary text, headings, icons */
+  --muted: #6f6e6a;    /* secondary text, captions, metadata */
+  --line: #e5e4e0;     /* hairlines (1px), card borders, dividers */
+  --accent: #ad5700;   /* TERMINAL AMBER — the only brand color (light) */
+
+  /* §2.1 semantic status — functional, never decorative; no warning tier */
+  --positive: #17683b; /* live / passing / healthy, exit 0 */
+  --negative: #ba2b2b; /* failure / error / broken build */
+
+  /* §2.1 shadows — neutral, near-invisible; dark mode uses line borders */
+  --shadow-card: 0 1px 2px rgba(26, 26, 24, 0.04), 0 4px 16px rgba(26, 26, 24, 0.06);
+
+  /* §2.3 layout constants — 1120px container, not Apple's 980 (§9) */
+  --container: 1120px;
+}
+
+[data-mode="dark"] {
+  --canvas: #0a0a0b;   /* near-black, never pure black */
+  --surface: #161719;
+  --ink: #ededea;
+  --muted: #9c9b96;
+  --line: #2b2c2f;
+  --accent: #ffb224;   /* TERMINAL AMBER (dark) */
+
+  --positive: #41d189;
+  --negative: #ff7a70;
+
+  /* §2.1 dark builds hierarchy with line borders, not shadow */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================================
+   §2.2 TYPOGRAPHY — type scale. Sizes via clamp() (desktop → mobile floor);
+   weights 400/500/600 only; tracking tightens as size grows.
+   --font-inter / --font-plex-mono are set by next/font (src/app/fonts.ts).
+   ========================================================================== */
+:root {
+  --text-display-lg: clamp(2.5rem, 1.6rem + 4.4vw, 4.5rem); /* 72→40 600 -2.5% 1.05 */
+  --text-display: clamp(2.25rem, 1.7rem + 2.7vw, 3.5rem);   /* 56→36 600 -2% 1.10 */
+  --text-title-1: clamp(1.75rem, 1.4rem + 1.7vw, 2.5rem);   /* 40→28 600 -1.5% 1.15 */
+  --text-title-2: 1.75rem;  /* 28 600 -1% 1.25 */
+  --text-title-3: 1.25rem;  /* 20 600 -0.5% 1.35 */
+  --text-body-lg: 1.125rem; /* 18 400 0 1.60 */
+  --text-body: 1rem;        /* 16 400 0 1.60 */
+  --text-caption: 0.8125rem; /* 13 500 +1% 1.45 */
+  --text-overline: 0.75rem; /* 12 500 +8% uppercase 1.30 — mono face */
+  --text-mono: 0.875rem;    /* 14 400/500 0 1.60 */
+  --text-mono-sm: 0.8125rem; /* 13 400 0 1.50 */
+}
+
+/* ============================================================================
+   §2.3 SPACING & RADIUS — 4/8 grid: 4 8 12 16 24 32 48 64 96 128 px.
+   Radii tight: 6 / 10 / 12 — nothing larger exists; the only full-radius
+   object in the system is the theme-toggle knob.
+   ========================================================================== */
+:root {
+  --radius-sm: 6px;  /* controls, inputs, tags-as-labels */
+  --radius-md: 10px; /* cards, code blocks */
+  --radius-lg: 12px; /* terminal window */
+}
+
+/* ============================================================================
+   §2.4 MOTION — easing + duration scale. --motion-scale is THE dial: every
+   effective duration is calc(var(--dur-*) * var(--motion-scale)); one line
+   to 0 freezes the whole site (§4.1). Banned: springs, parallax, loops
+   (except the 530ms terminal caret blink — CSS, the system's only loop).
+   ========================================================================== */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);      /* scroll reveals, entrances */
+  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1); /* hover/state color, small UI */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);  /* mode cross-fade, pane resize */
+
+  --dur-instant: 80ms;  /* hover color, focus rings */
+  --dur-fast: 160ms;    /* buttons, links, toggles */
+  --dur-base: 240ms;    /* scroll reveals */
+  --dur-slow: 400ms;    /* hero/signature entrances */
+  --dur-ambient: 600ms; /* mode cross-fade (rare) */
+  --motion-scale: 1;    /* THE dial — 0 = the whole site is still */
+}
+
+/* §4.1: prefers-reduced-motion sets the dial to 0 automatically. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+  }
+}
+
+/* ============================================================================
+   §7.1 TAILWIND 4 @theme inline — maps the runtime custom properties into
+   TW namespaces. `inline` makes utilities reference the VARIABLES, so the
+   [data-mode="dark"] swap re-colors every utility with zero duplication.
+   The v1 disease (silently-never-loaded tailwind.config) cannot recur:
+   scripts/check-tokens.mjs asserts every one of these survives compilation.
+   ========================================================================== */
+@theme inline {
+  /* §2.1 color — near-monochrome + amber accent + status */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+
+  /* §2.2 fonts — Inter/Inter Display + IBM Plex Mono, next/font variables */
+  --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* §2.2 type scale → TW text utilities (size; weight/tracking set per role) */
+  --text-display-lg: var(--text-display-lg);
+  --text-display: var(--text-display);
+  --text-title-1: var(--text-title-1);
+  --text-title-2: var(--text-title-2);
+  --text-title-3: var(--text-title-3);
+  --text-body-lg: var(--text-body-lg);
+  --text-body: var(--text-body);
+  --text-caption: var(--text-caption);
+  --text-overline: var(--text-overline);
+  --text-mono: var(--text-mono);
+  --text-mono-sm: var(--text-mono-sm);
+
+  /* §2.3 radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  /* §2.3 spacing — explicit 4/8 grid overrides of the TW default scale */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-12: 3rem;     /* 48px */
+  --spacing-18: 4.5rem;   /* 72px — not on brief grid; card gap helper */
+  --spacing-24: 6rem;     /* 96px */
+  --spacing-32: 8rem;     /* 128px */
+
+  /* §2.4 motion — durations × the dial; utilities like dur-fast resolve to
+     calc() so --motion-scale:0 stills everything with zero component edits */
+  --ease-out: var(--ease-out);
+  --ease-standard: var(--ease-standard);
+  --ease-in-out: var(--ease-in-out);
+  --duration-instant: calc(var(--dur-instant) * var(--motion-scale));
+  --duration-fast: calc(var(--dur-fast) * var(--motion-scale));
+  --duration-base: calc(var(--dur-base) * var(--motion-scale));
+  --duration-slow: calc(var(--dur-slow) * var(--motion-scale));
+  --duration-ambient: calc(var(--dur-ambient) * var(--motion-scale));
+}
+
+/* ============================================================================
+   Base layer — the quiet chassis. §2.2: tabular figures for UI numbers;
+   §7.2: color-scheme follows the mode. No gradients. No glow. No blur.
+   ========================================================================== */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  [data-mode='dark'] {
+    color-scheme: dark;
+  }
+
+  html {
+    background-color: var(--canvas);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* §7.4.3: visible focus everywhere — accent 2px ring, 2px offset. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}

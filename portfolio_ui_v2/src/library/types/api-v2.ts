@@ -228,6 +228,7 @@ export interface ContactPayload {
 }
 
 /** 201 response — echoes the submitted fields. */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- contract §3.6 names this shape; a type alias would lose the interface's documented intent
 export interface ContactCreated extends ContactPayload {}
 
 // ---------------------------------------------------------------------------

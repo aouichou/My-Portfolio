@@ -52,15 +52,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const newTheme: Theme = oldPreference === 'true' ? 'dark' : 'light';
       localStorage.setItem('theme', newTheme);
       localStorage.removeItem('darkMode');
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- v1 parity: stored preference is client-only; the pre-paint script in layout.tsx already painted the right mode, so this sync re-render is invisible.
       setTheme(newTheme);
       return;
     }
 
     const savedTheme =
-      localStorage.getItem('theme' as 'theme') ||
+      localStorage.getItem('theme') ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
-    setTheme(savedTheme === 'dark' ? 'dark' : 'light');
+    setTheme(savedTheme === 'dark' ? 'dark' : 'light'); // covered by the directive above (same effect, same v1-parity rationale)
   }, []);
 
   // Update when theme changes (v1 logic + data-mode)

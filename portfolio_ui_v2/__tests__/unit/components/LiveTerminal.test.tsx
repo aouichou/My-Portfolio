@@ -47,7 +47,9 @@ jest.mock('@xterm/xterm', () => {
 
 jest.mock('@xterm/xterm/css/xterm.css', () => ({}));
 
-jest.mock('@xterm/addon-fit', () => ({ FitAddon: class {} }));
+// F3-06a: fit() must exist as a no-op — resizeTerminal calls fitAddon.fit()
+// before the send; a method-less mock class throws and masks the wire frame.
+jest.mock('@xterm/addon-fit', () => ({ FitAddon: class { fit() {} } }));
 jest.mock('@xterm/addon-unicode11', () => ({ Unicode11Addon: class {} }));
 jest.mock('@xterm/addon-web-links', () => ({ WebLinksAddon: class {} }));
 
@@ -249,11 +251,11 @@ describe('LiveTerminal — wire protocol', () => {
   it('sends {resize: {cols, rows}} frames on window resize (when dims changed)', async () => {
     mount();
     const socket = await advanceToConnected();
-    // Captured truth: resizeTerminal is a useCallback([connected]) — the
-    // handler registered at INIT captures connected=false; the socket-open
-    // setConnected(true) does NOT re-register it. A resize event therefore
-    // sends NO frame post-connection (stale closure — documented finding
-    // for the v2 port). fitAddon.fit() is also a mock no-op here.
+    // F3-06a FIX (was the captured stale-closure truth): resizeTerminal
+    // no longer reads `connected` state (the handler registered at init
+    // captured connected=false and NEVER sent post-connection). The send
+    // now keys on socket.readyState === OPEN — so a resize after the
+    // server accepts the connection emits the frame.
     const term = terminalInstance() as FakeTerminalInstance & { cols: number; rows: number };
     term.cols = 100;
     term.rows = 30;
@@ -266,8 +268,46 @@ describe('LiveTerminal — wire protocol', () => {
     const resizeFrames = socket
       .sentFrames()
       .filter((f) => Object.prototype.hasOwnProperty.call(f, 'resize'));
-    // Stale-closure truth: connected === false in the captured callback.
+    expect(resizeFrames).toContainEqual({ resize: { cols: 100, rows: 30 } });
+  });
+
+  it('does not send resize frames before the socket is open', async () => {
+    mount();
+    // Advance through init but do NOT serverOpen() — socket stays CONNECTING.
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(1100);
+    });
+    const socket = FakeWebSocket.last;
+    if (!socket) throw new Error('no socket');
+    const term = terminalInstance() as FakeTerminalInstance & { cols: number; rows: number };
+    term.cols = 120;
+    term.rows = 40;
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+    const resizeFrames = socket
+      .sentFrames()
+      .filter((f) => Object.prototype.hasOwnProperty.call(f, 'resize'));
     expect(resizeFrames).toHaveLength(0);
+  });
+
+  it('removes the visibilitychange listener on unmount (F3-06a leak fix)', async () => {
+    const view = mount();
+    await advanceToConnected();
+    const spy = jest.spyOn(document, 'removeEventListener');
+    view.unmount();
+    expect(spy).toHaveBeenCalledWith(
+      'visibilitychange',
+      expect.any(Function)
+    );
+    spy.mockRestore();
   });
 
   it('writes {output} frame payloads to the terminal', async () => {

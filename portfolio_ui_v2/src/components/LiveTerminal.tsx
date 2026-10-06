@@ -15,10 +15,17 @@
  *    the existing error state renders. Proof: the capture test
  *    "returns null from fetchAuthToken on mint failure → … loading state
  *    persists" pins the OLD behavior; the ported test asserts the fix.
- *  - the resize stale-closure (captured: no resize frames after connect)
- *    is kept as-is for this port — a behavioral fix would change the wire
- *    traffic the deployed service sees; queued for F3-06 wiring with an
- *    explicit test change.
+ *  - FIX (F3-06a, handed off from F3-01): the resize stale closure —
+ *    v1's resizeTerminal was useCallback([connected]); the handler
+ *    registered at init captured connected=false, so NO resize frame was
+ *    ever sent post-connection (capture suite pinned 0 frames). The fix
+ *    drops the redundant `connected` state read and keys the send on
+ *    socket.readyState === OPEN (the condition `connected &&` was meant to
+ *    approximate). Wire protocol UNCHANGED: {resize:{cols,rows}} frames,
+ *    only while the socket is open — now actually true. The visibilitychange
+ *    listener also gets a stored ref so cleanup removes it (v1 leaked it:
+ *    removeEventListener was passed the resize handler, not the anonymous
+ *    visibility closure).
  */
 
 'use client';
@@ -55,10 +62,14 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   const fitAddonRef = useRef<FitAddon | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const resizeHandlerRef = useRef<(() => void) | null>(null);
+  const visibilityHandlerRef = useRef<(() => void) | null>(null);
   const isInitializingRef = useRef(false); // Prevent double initialization
   const isMountedRef = useRef(true); // Track mount status
 
-  const [connected, setConnected] = useState(false);
+  // F3-06a: the `connected` STATE is gone from the resize path (stale
+  // closure source); the setter stays — the connection-status UI still
+  // derives from it.
+  const [, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authToken, setAuthToken] = useState<string | null>(null);
@@ -89,6 +100,8 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   }, []);
 
   // Terminal resize function
+  // F3-06a FIX: no `connected` state read (stale-closure source) — the
+  // socket's own readyState is the authoritative send condition.
   const resizeTerminal = useCallback(
     (term: Terminal | null, fitAddon: FitAddon | null, socket: WebSocket | null) => {
       if (!term || !fitAddon) return;
@@ -97,7 +110,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         try {
           fitAddon.fit();
 
-          if (connected && socket?.readyState === WebSocket.OPEN) {
+          if (socket?.readyState === WebSocket.OPEN) {
             socket.send(
               JSON.stringify({
                 resize: { cols: term.cols, rows: term.rows },
@@ -109,8 +122,20 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         }
       }, 100);
     },
-    [connected]
+    []
   );
+
+  // Function to prompt user for MFA code if needed
+  // F3-06a: hoisted above the init effect — eslint v16's TDZ rule flagged
+  // the old position (referenced at line ~274 before declaration).
+  const promptForMFA = (socket: WebSocket) => {
+    const code = prompt('Please enter your MFA code:');
+    if (code) {
+      socket.send(JSON.stringify({ mfa_code: code }));
+    } else {
+      setError('MFA verification required');
+    }
+  };
 
   // Initialize terminal and WebSocket
   useEffect(() => {
@@ -283,12 +308,18 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
           };
           resizeHandlerRef.current = handleResize;
 
-          window.addEventListener('resize', handleResize);
-          document.addEventListener('visibilitychange', () => {
+          // F3-06a: named + stored — v1 registered an anonymous closure and
+          // then removed a DIFFERENT function (the resize handler), leaking
+          // the visibility listener on unmount.
+          const handleVisibilityChange = () => {
             if (!document.hidden) {
               handleResize();
             }
-          });
+          };
+          visibilityHandlerRef.current = handleVisibilityChange;
+
+          window.addEventListener('resize', handleResize);
+          document.addEventListener('visibilitychange', handleVisibilityChange);
 
           // Initial terminal resize
           handleResize();
@@ -312,7 +343,10 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
       // Clean up event listeners
       if (resizeHandlerRef.current) {
         window.removeEventListener('resize', resizeHandlerRef.current);
-        document.removeEventListener('visibilitychange', resizeHandlerRef.current);
+      }
+      if (visibilityHandlerRef.current) {
+        document.removeEventListener('visibilitychange', visibilityHandlerRef.current);
+        visibilityHandlerRef.current = null;
       }
 
       // Clean up socket
@@ -329,16 +363,6 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- v1 parity: resizeTerminal deliberately excluded to prevent the effect re-running (and tearing down the socket) when `connected` flips its identity. Capture suite depends on this lifecycle.
   }, [slug, authToken]);
-
-  // Function to prompt user for MFA code if needed
-  const promptForMFA = (socket: WebSocket) => {
-    const code = prompt('Please enter your MFA code:');
-    if (code) {
-      socket.send(JSON.stringify({ mfa_code: code }));
-    } else {
-      setError('MFA verification required');
-    }
-  };
 
   void project; // project fields arrive with the page; slug keys the session
 

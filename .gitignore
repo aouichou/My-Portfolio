@@ -131,3 +131,5 @@ TODO.md
 .github/prompts/*
 .github/skills/*
 .github/adr/*
+# Font binaries — never committed; placeholders generated via portfolio_ui_v2/scripts/make-font-placeholders.py
+portfolio_ui_v2/public/fonts/*.woff2

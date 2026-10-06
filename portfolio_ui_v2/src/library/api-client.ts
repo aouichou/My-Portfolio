@@ -60,6 +60,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (typeof window !== 'undefined' && error.response?.status === 404) {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- v1 parity: axios interceptor (outside React), full-document 404 redirect; useRouter is unreachable here.
       window.location.href = '/404';
     }
     return Promise.reject(error);
