@@ -17,16 +17,16 @@
 
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import type {
-  ApiError,
-  ContactCreated,
-  ContactPayload,
-  ExperienceDetail,
-  ExperienceListItem,
-  PaginatedProjects,
-  ProjectDetail,
-  ProjectFilesResponse,
-  ProjectsListParams,
-  TerminalTokenResponse,
+    ApiError,
+    ContactCreated,
+    ContactPayload,
+    ExperienceDetail,
+    ExperienceListItem,
+    PaginatedProjects,
+    ProjectDetail,
+    ProjectFilesResponse,
+    ProjectsListParams,
+    TerminalTokenResponse,
 } from './types/api-v2';
 import { getConfiguredApiBaseUrl } from './url-security';
 

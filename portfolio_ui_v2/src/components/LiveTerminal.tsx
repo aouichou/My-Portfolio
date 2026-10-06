@@ -23,14 +23,14 @@
 
 'use client';
 
+import { mintTerminalToken } from '@/library/api-client';
+import type { ProjectDetail } from '@/library/types/api-v2';
 import { FitAddon } from '@xterm/addon-fit';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { mintTerminalToken } from '@/library/api-client';
-import type { ProjectDetail } from '@/library/types/api-v2';
 
 interface LiveTerminalProps {
   project: Pick<ProjectDetail, 'slug' | 'has_demo'>;

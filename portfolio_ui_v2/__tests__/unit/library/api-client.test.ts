@@ -19,15 +19,15 @@ jest.mock('@/library/api-client', () => {
 });
 
 import {
-  api,
-  getExperienceBySlug,
-  getExperiences,
-  getProjectBySlug,
-  getProjectFiles,
-  getProjects,
-  mintTerminalToken,
-  submitContact,
-  toApiError,
+    api,
+    getExperienceBySlug,
+    getExperiences,
+    getProjectBySlug,
+    getProjectFiles,
+    getProjects,
+    mintTerminalToken,
+    submitContact,
+    toApiError,
 } from '@/library/api-client';
 import type { AxiosError } from 'axios';
 
