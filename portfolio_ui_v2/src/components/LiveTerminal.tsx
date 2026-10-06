@@ -32,6 +32,8 @@
 
 import { mintTerminalToken } from '@/library/api-client';
 import type { ProjectDetail } from '@/library/types/api-v2';
+import { useTheme } from '@/theme/ThemeContext';
+import { terminalTheme } from '@/theme/terminal-theme';
 import { FitAddon } from '@xterm/addon-fit';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { WebLinksAddon } from '@xterm/addon-web-links';
@@ -73,6 +75,11 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authToken, setAuthToken] = useState<string | null>(null);
+
+  // F3-06b (brief §7.3): the terminal's colors derive from the SAME
+  // tokens as the site. The mode comes from ThemeContext; terminalTheme()
+  // reads the live CSS custom props (with §2.1 fallbacks for jsdom/SSR).
+  const { theme } = useTheme();
 
   // Fetch auth token when component mounts
   useEffect(() => {
@@ -167,19 +174,22 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 
       try {
         // Initialize terminal with security settings
+        // F3-06b (§7.3): theme comes from terminalTheme(theme) — tokens,
+        // not a hardcoded palette. The theme key in deps re-runs this
+        // effect ONLY on mode change: teardown + re-init is the chosen
+        // strategy (see the F3-06b report) because xterm re-theming a
+        // LIVE session via term.options.theme loses ANSI-mapped text
+        // already painted by the PTY; a fresh mount repaints cleanly.
+        // Font per §7.3: --font-mono stack (IBM Plex Mono), MesloLGS NF
+        // kept as glyph fallback for the prompt theme.
         const term = new Terminal({
           cursorStyle: 'block',
           cursorBlink: true,
           macOptionIsMeta: true,
           fontSize: 14,
-          fontFamily: "'MesloLGS NF', 'Fira Code', 'Cascadia Code', monospace",
-          theme: {
-            background: '#1e1e1e',
-            foreground: '#d4d4d4',
-            cursor: '#a0a0a0',
-            cursorAccent: '#000000',
-            selectionBackground: '#4d4d4d',
-          },
+          fontFamily:
+            "var(--font-plex-mono), 'MesloLGS NF', ui-monospace, 'SF Mono', Menlo, monospace",
+          theme: terminalTheme(theme),
           disableStdin: false,
           allowTransparency: true,
           convertEol: true,
@@ -361,8 +371,8 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
         terminalRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- v1 parity: resizeTerminal deliberately excluded to prevent the effect re-running (and tearing down the socket) when `connected` flips its identity. Capture suite depends on this lifecycle.
-  }, [slug, authToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- v1 parity: resizeTerminal deliberately excluded to prevent the effect re-running (and tearing down the socket) when `connected` flips its identity. Capture suite depends on this lifecycle. `theme` IS a real dep (F3-06b): mode change must re-init with the new token-derived palette.
+  }, [slug, authToken, theme]);
 
   void project; // project fields arrive with the page; slug keys the session
 

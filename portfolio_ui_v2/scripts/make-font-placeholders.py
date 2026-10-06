@@ -4,7 +4,8 @@ make-font-placeholders.py — F3-06a
 
 Generates VALID minimal woff2 placeholder files for next/font/local so
 the Next.js dev server / build pass before the real Inter / Inter
-Display / IBM Plex Mono binaries are fetched (see public/fonts/README.md).
+Display / IBM Plex Mono binaries are fetched (see scripts/fetch-fonts.sh
+for the network path; this script is the offline fallback).
 
 Why: next/font/local parses each woff2 at compile time (size-adjust
 fallback metrics). A 0-byte file fails that parse. A real, minimal,
@@ -43,9 +44,13 @@ SOURCE_CANDIDATES = [
 ]
 
 # The exact files next/font/local expects (src/app/fonts.ts).
+# F3-06b: Inter 4.1 has NO InterDisplayVariable (Display is static-only)
+# — placeholders mirror the fetch-fonts.sh manifest.
 TARGETS = [
     "InterVariable.woff2",
-    "InterDisplayVariable.woff2",
+    "InterDisplay-Regular.woff2",
+    "InterDisplay-Medium.woff2",
+    "InterDisplay-SemiBold.woff2",
     "IBMPlexMono-Regular.woff2",
     "IBMPlexMono-Medium.woff2",
     "IBMPlexMono-Bold.woff2",

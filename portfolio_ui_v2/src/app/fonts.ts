@@ -1,28 +1,26 @@
 /**
- * fonts — next/font/local setup (brief §2.2, F3-06a).
+ * fonts — next/font/local setup (brief §2.2, F3-06a; reworked F3-06b).
  *
  * Exactly two families (the §6 blacklist allows no more): Inter
- * (InterVariable + InterDisplayVariable, weights 400–600) and IBM Plex
- * Mono (400/500/600). Binaries live in public/fonts/ and are NEVER
- * committed (see public/fonts/README.md for official fetch sources).
+ * (InterVariable + Inter Display statics) and IBM Plex Mono (400/500/600).
+ * Binaries live in public/fonts/, are NEVER committed, and are fetched
+ * deterministically (SHA-256-pinned) by scripts/fetch-fonts.sh.
+ *
+ * F3-06b changes:
+ *  - REAL binaries have landed → `preload: true` on all three loaders
+ *    (the placeholder-era `preload: false` is gone).
+ *  - Inter Display is STATIC-ONLY in Inter 4.1 (no InterDisplayVariable
+ *    exists in the official release) → registered as a 3-file weight set
+ *    covering the brief's 400/500/600.
+ *
+ * next/font/local requires its loaders called as bare `const X = localFont(...)`
+ * expressions at module scope — NO conditionals (the SWC loader rewrites
+ * these calls at compile time). Binaries must therefore exist at build
+ * time: run `scripts/fetch-fonts.sh` (network) or
+ * `scripts/make-font-placeholders.py` (offline dev fallback) first.
  */
 
 import localFont from 'next/font/local';
-
-/**
- * next/font/local requires its loaders called as bare `const X = localFont(...)`
- * expressions at module scope — NO conditionals (the SWC loader rewrites
- * these calls at compile time). The missing-binary fallback therefore
- * cannot be conditional registration; instead we ALWAYS register against
- * public/fonts/, and the fonts README documents that the files must be
- * fetched. When a file is absent, Next dev serves a 404 for that asset —
- * harmless (display:'swap', the token stack's system-ui fallback paints
- * instantly and `--font-inter` resolves to the fallback chain), while
- * every gate (type-check, jest, lint, build) passes without binaries.
- * For CI, placeholder files can be dropped into public/fonts/ (the
- * compiled CSS references them lazily; nothing parses them at build
- * time unless `preload` metrics are requested).
- */
 
 export const inter = localFont({
   src: [{ path: '../../public/fonts/InterVariable.woff2', style: 'normal' }],
@@ -30,18 +28,19 @@ export const inter = localFont({
   display: 'swap',
   weight: '100 900',
   fallback: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-  preload: false, // binaries are optional in dev/CI (README); skip preloading
+  preload: true,
 });
 
 export const interDisplay = localFont({
   src: [
-    { path: '../../public/fonts/InterDisplayVariable.woff2', style: 'normal' },
+    { path: '../../public/fonts/InterDisplay-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/InterDisplay-Medium.woff2', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/InterDisplay-SemiBold.woff2', weight: '600', style: 'normal' },
   ],
   variable: '--font-display',
   display: 'swap',
-  weight: '100 900',
   fallback: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-  preload: false,
+  preload: true,
 });
 
 export const plexMono = localFont({
@@ -53,5 +52,5 @@ export const plexMono = localFont({
   variable: '--font-plex-mono',
   display: 'swap',
   fallback: ['ui-monospace', 'SF Mono', 'Menlo', 'Consolas', 'monospace'],
-  preload: false,
+  preload: true,
 });

@@ -22,11 +22,14 @@ jest.mock('@xterm/xterm', () => {
     static instances: FakeTerminal[] = [];
     cols = 80;
     rows = 24;
+    options: Record<string, unknown>;
+    disposed = false;
     written: string[] = [];
     loadedAddons: unknown[] = [];
     dataHandler: ((data: string) => void) | null = null;
     unicode = { activeVersion: '0' };
-    constructor() {
+    constructor(options?: Record<string, unknown>) {
+      this.options = options ?? {};
       FakeTerminal.instances.push(this);
     }
     open(): void {}
@@ -40,7 +43,9 @@ jest.mock('@xterm/xterm', () => {
     loadAddon(addon: unknown): void {
       this.loadedAddons.push(addon);
     }
-    dispose(): void {}
+    dispose(): void {
+      this.disposed = true;
+    }
   }
   return { Terminal: FakeTerminal };
 });
@@ -114,12 +119,16 @@ class FakeWebSocket {
 
 import LiveTerminal from '@/components/LiveTerminal';
 import { mintTerminalToken } from '@/library/api-client';
+import { ThemeProvider, useTheme } from '@/theme/ThemeContext';
+import { terminalTheme } from '@/theme/terminal-theme';
 import { act, render, waitFor } from '@testing-library/react';
 import { Terminal } from '@xterm/xterm';
 
 type FakeTerminalInstance = {
   written: string[];
   dataHandler: ((data: string) => void) | null;
+  options: Record<string, unknown>;
+  disposed: boolean;
 };
 
 const PROJECT = { slug: 'minishell', has_interactive_demo: true } as never;
@@ -445,3 +454,74 @@ describe('LiveTerminal — token mint failure (v2 FIX: surfaces the error)', () 
     errorSpy.mockRestore();
   });
 });
+
+describe('LiveTerminal — theme application (F3-06b, brief §7.3)', () => {
+  // The xterm theme must DERIVE from the design-system tokens via
+  // terminalTheme(mode) — never a hardcoded palette. jsdom has no
+  // stylesheet here, so terminalTheme resolves its §2.1 fallback pairs;
+  // deep-equality against the function output is the point (wiring),
+  // while the spot values pin the actual pair.
+  function lastTerminal(): FakeTerminalInstance {
+    const instances = (Terminal as unknown as { instances: FakeTerminalInstance[] }).instances;
+    const term = instances[instances.length - 1];
+    if (!term) throw new Error('no Terminal created');
+    return term;
+  }
+
+  it('initializes xterm with the token-derived light theme (no hardcoded palette)', async () => {
+    mount();
+    await advanceToConnected();
+    const term = lastTerminal();
+    expect(term.options.theme).toEqual(terminalTheme('light'));
+    // §2.1 light pair spot-check: paper terminal — canvas body, amber cursor.
+    const theme = term.options.theme as Record<string, string>;
+    expect(theme.background?.toLowerCase()).toBe('#ffffff');
+    expect(theme.cursor?.toLowerCase()).toBe('#ad5700');
+    // §7.3: the xterm font is the --font-mono stack (IBM Plex Mono first).
+    expect(term.options.fontFamily).toContain('var(--font-plex-mono)');
+    expect(String(term.options.fontFamily).indexOf('IBM')).toBe(-1); // var() indirection, not a hardcoded face
+  });
+
+  it('re-creates the terminal with the dark palette when the mode changes', async () => {
+    // Mode-reactivity choice (documented in F3-06b report): teardown +
+    // re-init on mode change — re-theming a live xterm loses already-
+    // painted ANSI-mapped text; a fresh mount repaints cleanly.
+    let setTheme: ((t: 'light' | 'dark') => void) | null = null;
+    render(
+      <ThemeProvider>
+        <ProbeTheme onReady={(s) => { setTheme = s; }} />
+        <LiveTerminal project={PROJECT} slug="minishell" />
+      </ThemeProvider>
+    );
+    await advanceToConnected();
+    const first = lastTerminal();
+    expect((first.options.theme as Record<string, string>).background?.toLowerCase()).toBe('#ffffff');
+
+    // Flip to dark → effect re-runs → old terminal disposed, new one dark.
+    await act(async () => {
+      (setTheme as unknown as (t: 'dark') => void)('dark');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(1100);
+      jest.advanceTimersByTime(150);
+    });
+    const instances = (Terminal as unknown as { instances: FakeTerminalInstance[] }).instances;
+    expect(instances.length).toBeGreaterThanOrEqual(2);
+    expect(first.disposed).toBe(true);
+    const second = lastTerminal();
+    expect(second).not.toBe(first);
+    expect(second.options.theme).toEqual(terminalTheme('dark'));
+    const dark = second.options.theme as Record<string, string>;
+    expect(dark.background?.toLowerCase()).toBe('#161719'); // surface
+    expect(dark.cursor?.toLowerCase()).toBe('#ffb224'); // dark amber
+  });
+});
+
+/** Test helper: capture ThemeContext's setter so tests can flip modes. */
+function ProbeTheme({ onReady }: { onReady: (set: (t: 'light' | 'dark') => void) => void }) {
+  const { setTheme } = useTheme();
+  onReady(setTheme);
+  return null;
+}

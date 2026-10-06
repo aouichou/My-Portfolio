@@ -1,37 +1,47 @@
-# Self-hosted fonts — fetch, don't commit
+# Self-hosted fonts — fetched by script, never committed
 
 The design system (visual-identity-brief §2.2) uses exactly two font
 families, both SIL OFL 1.1, both self-hosted via `next/font/local`:
 
-| Family            | Files needed                          | Weights    |
-| ----------------- | ------------------------------------- | ---------- |
-| Inter             | `InterVariable.woff2`                 | 400–600    |
-| Inter Display     | `InterDisplayVariable.woff2`          | 400–600    |
-| IBM Plex Mono     | `IBMPlexMono-Regular.woff2`, `IBMPlexMono-Medium.woff2`, `IBMPlexMono-Bold.woff2` | 400, 500, 600 |
+| Family        | Files (in this dir) | Weights |
+| ------------- | ------------------- | ------- |
+| Inter         | `InterVariable.woff2` (variable, 100–900) | 400/500/600 used |
+| Inter Display | `InterDisplay-Regular/Medium/SemiBold.woff2` (statics) | 400/500/600 |
+| IBM Plex Mono | `IBMPlexMono-Regular/Medium/Bold.woff2` | 400/500/600 |
 
-Font binaries are never committed to git.
+**Inter 4.1 ships no `InterDisplayVariable`** — the Display optical size
+is static-only in the official release, hence the three static weights.
 
-## Fetch (official sources)
+## Fetch (deterministic, checksum-pinned)
 
 ```sh
-# Inter + Inter Display — official repo (Rasmus Antvorskov et al., OFL 1.1)
-# https://github.com/rsms/inter/releases — download the latest zip, then:
-unzip Inter-*.zip -d /tmp/inter
-cp /tmp/inter/extras/ttf/InterVariable.ttf .
-cp /tmp/inter/extras/ttf/InterDisplayVariable.ttf .
-
-# IBM Plex Mono — official repo (IBM, OFL 1.1)
-# https://github.com/IBM/plex/releases — download, then from the unzip:
-cp ibm-plex*/IBM-Plex-Mono/fonts/complete/woff2/IBMPlexMono-*.woff2 .
+./scripts/fetch-fonts.sh
 ```
 
-Convert TTF→WOFF2 if needed: `python3 -m fonttools.ttLib.woff2 compress InterVariable.ttf`
+Downloads from official sources at exact tags and verifies every file
+against a pinned SHA-256 before moving it into place:
 
-## Fallback (until binaries land)
+- Inter + Inter Display: `rsms/inter` release zip `v4.1`
+  (github.com/rsms/inter/releases)
+- IBM Plex Mono: `IBM/plex` repo raw files at tag `v6.4.1`
+  (the `@ibm/plex` npm package exceeds jsdelivr's 150 MB limit —
+  the repo raw path is the stable deterministic alternative)
 
-`src/app/fonts.ts` reads `fs.existsSync` and falls back to the brief's
-system stack when files are absent, so every gate (type-check, jest,
-lint, build) passes without binaries present.
+Font binaries and the fetched LICENSE files are gitignored
+(`*.woff2`, `LICENSE-*.txt` in the root `.gitignore`).
+
+## Offline fallback (placeholder strategy)
+
+Without network access, generate valid minimal woff2 subsets so
+`next/font/local` still compiles (0-byte stubs break the build — see
+LESSONS.md):
+
+```sh
+python3 scripts/make-font-placeholders.py   # needs fonttools + brotli
+```
+
+Placeholders are dev-only; overwrite them with `fetch-fonts.sh` when
+network returns.
 
 ## Manifest
 

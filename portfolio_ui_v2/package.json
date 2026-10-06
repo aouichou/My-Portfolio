@@ -12,8 +12,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false",
-    "test:tokens": "node scripts/check-tokens.mjs"
+    "test:unit-ci": "jest --ci --coverage --watchAll=false",
+    "test:tokens": "node scripts/check-tokens.mjs",
+    "test:ci": "npm run lint && npm run type-check && npm run test:unit-ci && npm run test:tokens && npm run build"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.1",
