@@ -1,3 +1,5 @@
+import SiteFooter from '@/components/SiteFooter';
+import SiteHeader from '@/components/SiteHeader';
 import { ThemeProvider } from '@/theme/ThemeContext';
 import type { Metadata, Viewport } from 'next';
 import { inter, interDisplay, plexMono } from './fonts';
@@ -50,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
-      <body>
+      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink">
         <ThemeProvider>
           <a
             href="#main"
@@ -58,7 +60,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           >
             Skip to content
           </a>
+          <SiteHeader />
           {children}
+          <SiteFooter />
         </ThemeProvider>
       </body>
     </html>

@@ -156,16 +156,19 @@
   --spacing-24: 6rem;     /* 96px */
   --spacing-32: 8rem;     /* 128px */
 
-  /* §2.4 motion — durations × the dial; utilities like dur-fast resolve to
-     calc() so --motion-scale:0 stills everything with zero component edits */
+  /* §2.4 motion — durations × the dial. NOTE the namespace: TW4 generates
+     `duration-*` utilities ONLY from --transition-duration-* keys; the
+     F3-06a name (--duration-*) compiled a dead variable and no utility —
+     the v1 silent-token disease, caught while wiring F3-07. Utilities now
+     resolve to calc() so --motion-scale:0 stills everything. */
   --ease-out: var(--ease-out);
   --ease-standard: var(--ease-standard);
   --ease-in-out: var(--ease-in-out);
-  --duration-instant: calc(var(--dur-instant) * var(--motion-scale));
-  --duration-fast: calc(var(--dur-fast) * var(--motion-scale));
-  --duration-base: calc(var(--dur-base) * var(--motion-scale));
-  --duration-slow: calc(var(--dur-slow) * var(--motion-scale));
-  --duration-ambient: calc(var(--dur-ambient) * var(--motion-scale));
+  --transition-duration-instant: calc(var(--dur-instant) * var(--motion-scale));
+  --transition-duration-fast: calc(var(--dur-fast) * var(--motion-scale));
+  --transition-duration-base: calc(var(--dur-base) * var(--motion-scale));
+  --transition-duration-slow: calc(var(--dur-slow) * var(--motion-scale));
+  --transition-duration-ambient: calc(var(--dur-ambient) * var(--motion-scale));
 }
 
 /* ============================================================================

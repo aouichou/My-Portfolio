@@ -36,15 +36,17 @@ const EXPECTED_TOKENS = [
   '--radius-sm',
   '--radius-md',
   '--radius-lg',
-  // §2.4 motion — durations route through the --motion-scale dial
+  // §2.4 motion — durations route through the --motion-scale dial.
+  // Namespace note: TW4 emits `duration-*` utilities only from
+  // --transition-duration-* keys (F3-07 fix; --duration-* was a dead var).
   '--ease-out',
   '--ease-standard',
   '--ease-in-out',
-  '--duration-instant',
-  '--duration-fast',
-  '--duration-base',
-  '--duration-slow',
-  '--duration-ambient',
+  '--transition-duration-instant',
+  '--transition-duration-fast',
+  '--transition-duration-base',
+  '--transition-duration-slow',
+  '--transition-duration-ambient',
 ];
 
 const cssPath = join(cwd(), 'src', 'app', 'globals.css');
