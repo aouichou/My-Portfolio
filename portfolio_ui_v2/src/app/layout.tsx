@@ -1,3 +1,4 @@
+import QueryProvider from '@/components/QueryProvider';
 import SiteFooter from '@/components/SiteFooter';
 import SiteHeader from '@/components/SiteHeader';
 import { ThemeProvider } from '@/theme/ThemeContext';
@@ -54,15 +55,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink">
         <ThemeProvider>
-          <a
-            href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-surface focus:px-4 focus:py-2 focus:text-ink focus:rounded-md"
-          >
-            Skip to content
-          </a>
-          <SiteHeader />
-          {children}
-          <SiteFooter />
+          <QueryProvider>
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-surface focus:px-4 focus:py-2 focus:text-ink focus:rounded-md"
+            >
+              Skip to content
+            </a>
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
