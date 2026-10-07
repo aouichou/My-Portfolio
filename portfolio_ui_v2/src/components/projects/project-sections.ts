@@ -50,21 +50,27 @@ export const TYPE_OVERLINE: Record<ProjectType, string> = {
 };
 
 /**
- * Group cards into the fixed section order. Within a section: featured
- * leads (is_featured desc), then the API order field, then title for
- * determinism when order ties. Sections with zero projects are omitted —
- * structure encodes truth, and an empty section is not truth.
+ * Card order within any group: featured leads (is_featured desc), then the
+ * API order field, then title for determinism when order ties. Shared by
+ * the work index sections (F3-08) and the experience page's nested
+ * project lists (F3-10) — one card order everywhere.
+ */
+export function sortProjectCards(projects: ProjectCard[]): ProjectCard[] {
+  return [...projects].sort(
+    (a, b) =>
+      Number(b.is_featured) - Number(a.is_featured) ||
+      a.order - b.order ||
+      a.title.localeCompare(b.title)
+  );
+}
+
+/**
+ * Group cards into the fixed section order. Sections with zero projects
+ * are omitted — structure encodes truth, and an empty section is not truth.
  */
 export function groupProjectsByType(projects: ProjectCard[]): ProjectSection[] {
   return SECTION_DEFS.map((def) => ({
     ...def,
-    projects: projects
-      .filter((project) => project.project_type === def.type)
-      .sort(
-        (a, b) =>
-          Number(b.is_featured) - Number(a.is_featured) ||
-          a.order - b.order ||
-          a.title.localeCompare(b.title)
-      ),
+    projects: sortProjectCards(projects.filter((project) => project.project_type === def.type)),
   })).filter((section) => section.projects.length > 0);
 }
