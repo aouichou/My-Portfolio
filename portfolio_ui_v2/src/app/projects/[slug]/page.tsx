@@ -21,7 +21,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { isAxiosError } from 'axios';
 import PageShell from '@/components/PageShell';
+import ArchitectureDiagrams from '@/components/projects/ArchitectureDiagrams';
+import { CodeSamples, CodeSteps, DemoMount } from '@/components/projects/CodeSamples';
 import GalleryPlates from '@/components/projects/GalleryPlates';
+import InternshipFacts from '@/components/projects/InternshipFacts';
 import ProjectDetailError from '@/components/projects/ProjectDetailError';
 import { TYPE_OVERLINE } from '@/components/projects/project-sections';
 import { getProjectBySlug, toApiError } from '@/library/api-client';
@@ -79,7 +82,28 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     video_url: videoUrl,
     galleries,
     score,
+    architecture_description: architectureDescription,
+    architecture_diagrams: architectureDiagrams,
+    code_steps: codeSteps,
+    code_snippets: codeSnippets,
+    has_demo: hasDemo,
+    demo_commands: demoCommands,
+    stats,
+    impact_metrics: impactMetrics,
+    related_documentation: relatedDocumentation,
   } = project;
+
+  // readme DECISION (F3-09b): the API returns an HTML readme, but the
+  // page's structured sections (Overview / Features / Architecture /
+  // Code / Plates / Facts) ARE the readme, superseded — rendering raw
+  // sanitized HTML would duplicate content the structured fields already
+  // carry. Not rendered; migrating readme content into structured fields
+  // is admin work (see the F3-09b report).
+  const hasArchitecture =
+    Boolean(architectureDescription) || architectureDiagrams.length > 0;
+  const hasCode = codeSteps.length > 0 || codeSnippets.length > 0;
+  const hasInternshipFacts =
+    stats.length > 0 || impactMetrics.length > 0 || relatedDocumentation.length > 0;
 
   // The lede already carries `description`; Overview prints the deeper
   // prose the payload holds (challenges / lessons) instead of repeating
@@ -157,7 +181,24 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </section>
         ) : null}
 
-        {/* SLICE-2 SLOT: Architecture (architecture_description + diagrams) */}
+        {hasArchitecture ? (
+          <section aria-label="Architecture" className="max-w-none">
+            <h2
+              className="text-title-2 font-semibold tracking-[-0.01em] leading-[1.25] text-ink"
+              style={{ fontFamily: 'var(--font-display), var(--font-sans)' }}
+            >
+              Architecture
+            </h2>
+            {architectureDescription ? (
+              <p className="mt-4 max-w-[66ch] text-body text-ink">{architectureDescription}</p>
+            ) : null}
+            {architectureDiagrams.length > 0 ? (
+              <div className="mt-12">
+                <ArchitectureDiagrams diagrams={architectureDiagrams} />
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
         {features.length > 0 ? (
           <section aria-label="Features">
@@ -178,7 +219,36 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </section>
         ) : null}
 
-        {/* SLICE-2 SLOT: Code (code_steps + code_snippets) */}
+        {hasCode ? (
+          <section aria-label="Code" className="max-w-none">
+            <h2
+              className="text-title-2 font-semibold tracking-[-0.01em] leading-[1.25] text-ink"
+              style={{ fontFamily: 'var(--font-display), var(--font-sans)' }}
+            >
+              Code
+            </h2>
+            {codeSteps.length > 0 ? (
+              <div className="mt-6">
+                <p className="font-mono text-overline font-medium uppercase tracking-[0.08em] text-muted">
+                  Run steps
+                </p>
+                <div className="mt-4">
+                  <CodeSteps steps={codeSteps} />
+                </div>
+              </div>
+            ) : null}
+            {codeSnippets.length > 0 ? (
+              <div className="mt-12">
+                <p className="font-mono text-overline font-medium uppercase tracking-[0.08em] text-muted">
+                  Snippets
+                </p>
+                <div className="mt-6">
+                  <CodeSamples snippets={codeSnippets} />
+                </div>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
         {galleries.length > 0 ? (
           <section aria-label="Plates" className="max-w-none">
@@ -194,7 +264,43 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </section>
         ) : null}
 
-        {/* SLICE-2 SLOT: Demo (has_demo + demo_commands → terminal entry) */}
+        {/* Demo renders ONLY on has_demo — demo_commands present but
+            has_demo=false (philosophers today) renders NOTHING: no empty
+            states for absent features (dispatch binding). */}
+        {hasDemo ? (
+          <section aria-label="Demo" className="max-w-none">
+            <h2
+              className="text-title-2 font-semibold tracking-[-0.01em] leading-[1.25] text-ink"
+              style={{ fontFamily: 'var(--font-display), var(--font-sans)' }}
+            >
+              Demo
+            </h2>
+            <p className="mt-4 max-w-[66ch] text-body text-muted">
+              Run this project in the browser terminal.
+            </p>
+            <div className="mt-6">
+              <DemoMount commands={demoCommands} />
+            </div>
+          </section>
+        ) : null}
+
+        {hasInternshipFacts ? (
+          <section aria-label="Facts" className="max-w-none">
+            <h2
+              className="text-title-2 font-semibold tracking-[-0.01em] leading-[1.25] text-ink"
+              style={{ fontFamily: 'var(--font-display), var(--font-sans)' }}
+            >
+              Facts
+            </h2>
+            <div className="mt-6">
+              <InternshipFacts
+                stats={stats}
+                impactMetrics={impactMetrics}
+                documentation={relatedDocumentation}
+              />
+            </div>
+          </section>
+        ) : null}
       </div>
     </PageShell>
   );

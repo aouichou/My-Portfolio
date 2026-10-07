@@ -200,3 +200,63 @@
     outline-offset: 2px;
   }
 }
+
+/* ============================================================================
+   §CODE — highlight.js token skin (F3-09b). NO hljs default themes are
+   imported anywhere; the classes below are the entire skin: surface
+   plates, ink text, muted literals, and amber for keywords — the ONE
+   accent voice. Rules live here (not JS) so both modes inherit the
+   [data-mode] runtime swap automatically, like every other token use.
+   ========================================================================== */
+@layer components {
+  .hljs-plate {
+    background-color: var(--surface);
+    color: var(--ink);
+  }
+  .hljs {
+    color: var(--ink);
+  }
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-link {
+    color: var(--accent);
+  }
+  .hljs-built_in,
+  .hljs-type,
+  .hljs-title,
+  .hljs-title.class_,
+  .hljs-title.function_,
+  .hljs-name,
+  .hljs-tag,
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-params,
+  .hljs-operator,
+  .hljs-property {
+    color: var(--ink);
+  }
+  .hljs-string,
+  .hljs-number,
+  .hljs-literal,
+  .hljs-symbol,
+  .hljs-regexp,
+  .hljs-selector-class,
+  .hljs-bullet,
+  .hljs-quote,
+  .hljs-doctag {
+    color: var(--muted);
+  }
+  .hljs-comment,
+  .hljs-meta,
+  .hljs-emphasis {
+    color: var(--muted);
+  }
+  .hljs-addition {
+    color: var(--positive);
+  }
+  .hljs-deletion {
+    color: var(--negative);
+  }
+}

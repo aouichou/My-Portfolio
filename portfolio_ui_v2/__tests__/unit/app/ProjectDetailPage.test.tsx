@@ -221,3 +221,103 @@ describe('/projects/[slug] — failure flows', () => {
     expect(screen.getByText('philosophers')).toBeInTheDocument();
   });
 });
+
+describe('/projects/[slug] — slice-2 sections (F3-09b)', () => {
+  it('renders the Architecture section when a mermaid diagram exists', async () => {
+    getProjectMock.mockResolvedValue(
+      detail({
+        architecture_description: 'Threads, a shared table, and a monitor.',
+        architecture_diagrams: [
+          { title: 'Architecture', type: 'mermaid', content: 'graph TD\n    A --> B', description: '' },
+        ],
+      })
+    );
+    const page = await ProjectDetailPage({ params: Promise.resolve({ slug: 'philosophers' }) });
+    render(page);
+    expect(screen.getByRole('heading', { name: 'Architecture', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Threads, a shared table, and a monitor.')).toBeInTheDocument();
+    expect(screen.getByText('Fig. 1 — Architecture')).toBeInTheDocument();
+  });
+
+  it('renders the Code section: run steps + snippet plates', async () => {
+    getProjectMock.mockResolvedValue(
+      detail({
+        code_steps: ['Clone the repository', 'Run make'],
+        code_snippets: [
+          { title: 'Monitoring', description: 'Death watch', language: 'c', code: 'void *monitor(){}' },
+        ],
+      })
+    );
+    const page = await ProjectDetailPage({ params: Promise.resolve({ slug: 'philosophers' }) });
+    render(page);
+    expect(screen.getByRole('heading', { name: 'Code', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Run steps')).toBeInTheDocument();
+    expect(screen.getByText('Clone the repository')).toBeInTheDocument();
+    expect(screen.getByText('Snippets')).toBeInTheDocument();
+    expect(screen.getByText('Monitoring')).toBeInTheDocument();
+  });
+
+  it('omits Architecture and Code when the data is absent', async () => {
+    getProjectMock.mockResolvedValue(detail());
+    const page = await ProjectDetailPage({ params: Promise.resolve({ slug: 'philosophers' }) });
+    render(page);
+    expect(screen.queryByRole('heading', { name: 'Architecture' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Code' })).not.toBeInTheDocument();
+  });
+
+  it('renders NOTHING demo-related when has_demo=false despite demo_commands', async () => {
+    getProjectMock.mockResolvedValue(
+      detail({
+        has_demo: false,
+        demo_commands: [{ label: 'Run', command: './philo 5 800 200 200' }],
+      })
+    );
+    const page = await ProjectDetailPage({ params: Promise.resolve({ slug: 'philosophers' }) });
+    render(page);
+    expect(screen.queryByRole('heading', { name: 'Demo' })).not.toBeInTheDocument();
+    expect(screen.queryByText('./philo 5 800 200 200')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Live terminal arrives/i)).not.toBeInTheDocument();
+  });
+
+  it('renders the Demo section + mount box when has_demo=true', async () => {
+    getProjectMock.mockResolvedValue(
+      detail({
+        has_demo: true,
+        demo_commands: [{ label: 'Run', command: './philo 5 800 200 200' }],
+      })
+    );
+    const page = await ProjectDetailPage({ params: Promise.resolve({ slug: 'philosophers' }) });
+    render(page);
+    expect(screen.getByRole('heading', { name: 'Demo', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('./philo 5 800 200 200')).toBeInTheDocument();
+    expect(screen.getByText(/Live terminal arrives with the demo system/i)).toBeInTheDocument();
+  });
+
+  it('renders the Facts section for internship-rich payloads (stats + impact + docs)', async () => {
+    getProjectMock.mockResolvedValue(
+      detail({
+        project_type: 'internship',
+        stats: [{ label: 'Coverage', value: '85%' }],
+        impact_metrics: [{ label: 'Reusability Score', value: '85%' }],
+        related_documentation: [{ title: 'QA Internship Report' }],
+      })
+    );
+    const page = await ProjectDetailPage({
+      params: Promise.resolve({ slug: 'clinical-analytics-platform' }),
+    });
+    render(page);
+    expect(screen.getByRole('heading', { name: 'Facts', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Coverage')).toBeInTheDocument();
+    expect(screen.getByText('Reusability Score')).toBeInTheDocument();
+    expect(screen.getByText('QA Internship Report')).toBeInTheDocument();
+  });
+
+  it('renders no readme content anywhere (structured sections supersede it)', async () => {
+    getProjectMock.mockResolvedValue(
+      detail({ readme: '<p>raw readme html that must never print</p>' })
+    );
+    const page = await ProjectDetailPage({ params: Promise.resolve({ slug: 'philosophers' }) });
+    render(page);
+    expect(screen.queryByText(/raw readme html/i)).not.toBeInTheDocument();
+  });
+});
