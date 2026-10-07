@@ -14,9 +14,9 @@
  * - empty array → renders nothing
  */
 
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import ArchitectureDiagrams from '@/components/projects/ArchitectureDiagrams';
 import type { ArchitectureDiagram } from '@/library/types/api-v2';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 
 afterEach(cleanup);
 

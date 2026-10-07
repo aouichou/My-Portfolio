@@ -11,9 +11,9 @@
  * - DemoMount: empty commands → nothing
  */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { CodeSamples, CodeSteps, DemoMount } from '@/components/projects/CodeSamples';
 import type { CodeSnippet, DemoCommand } from '@/library/types/api-v2';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 afterEach(cleanup);
 

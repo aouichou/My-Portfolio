@@ -21,8 +21,8 @@
 
 'use client';
 
-import { useState } from 'react';
 import type { Gallery } from '@/library/types/api-v2';
+import { useState } from 'react';
 import Lightbox, { type LightboxItem } from './Lightbox';
 
 export interface GalleryPlatesProps {

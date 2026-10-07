@@ -17,9 +17,6 @@
  * 404 surface; other failures → the detail error surface with retry.
  */
 
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { isAxiosError } from 'axios';
 import PageShell from '@/components/PageShell';
 import ArchitectureDiagrams from '@/components/projects/ArchitectureDiagrams';
 import { CodeSamples, CodeSteps, DemoMount } from '@/components/projects/CodeSamples';
@@ -29,6 +26,9 @@ import ProjectDetailError from '@/components/projects/ProjectDetailError';
 import { TYPE_OVERLINE } from '@/components/projects/project-sections';
 import { getProjectBySlug, toApiError } from '@/library/api-client';
 import type { ProjectDetail } from '@/library/types/api-v2';
+import { isAxiosError } from 'axios';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 

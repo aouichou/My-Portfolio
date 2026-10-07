@@ -20,8 +20,8 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /** One printable image in the page's flattened plate sequence. */
 export interface LightboxItem {

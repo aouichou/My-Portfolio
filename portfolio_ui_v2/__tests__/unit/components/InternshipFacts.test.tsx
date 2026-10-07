@@ -8,9 +8,9 @@
  * - all-empty → renders nothing
  */
 
-import { cleanup, render, screen } from '@testing-library/react';
 import InternshipFacts from '@/components/projects/InternshipFacts';
 import type { DocRef, ImpactMetric, Stat } from '@/library/types/api-v2';
+import { cleanup, render, screen } from '@testing-library/react';
 
 afterEach(cleanup);
 

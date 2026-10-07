@@ -17,11 +17,11 @@
  */
 
 import PageShell from '@/components/PageShell';
-import ProjectsError from '@/components/projects/ProjectsError';
+import { groupProjectsByType } from '@/components/projects/project-sections';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ProjectSectionHeader from '@/components/projects/ProjectSectionHeader';
+import ProjectsError from '@/components/projects/ProjectsError';
 import { getProjects, toApiError } from '@/library/api-client';
-import { groupProjectsByType } from '@/components/projects/project-sections';
 
 export const dynamic = 'force-dynamic';
 

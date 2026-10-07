@@ -16,8 +16,8 @@
  * boundary), same pattern as ProjectsPage.test.tsx.
  */
 
-import ProjectDetailPage from '@/app/projects/[slug]/page';
 import NotFound from '@/app/not-found';
+import ProjectDetailPage from '@/app/projects/[slug]/page';
 import { getProjectBySlug } from '@/library/api-client';
 import type { ProjectDetail } from '@/library/types/api-v2';
 import { cleanup, render, screen } from '@testing-library/react';

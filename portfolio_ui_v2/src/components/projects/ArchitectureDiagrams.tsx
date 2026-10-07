@@ -23,8 +23,8 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import type { ArchitectureDiagram } from '@/library/types/api-v2';
+import { useEffect, useRef, useState } from 'react';
 import { readDiagramPalette, toMermaidThemeVariables } from './diagram-theme';
 
 /** Quiet reserved box pre-mount — no layout shift, no fake diagram. */

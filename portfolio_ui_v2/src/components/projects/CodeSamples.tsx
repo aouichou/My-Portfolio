@@ -22,9 +22,9 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { LanguageFn } from 'highlight.js';
 import type { CodeSnippet, DemoCommand } from '@/library/types/api-v2';
+import type { LanguageFn } from 'highlight.js';
+import { useEffect, useState } from 'react';
 
 /** The languages our payloads actually carry (philosophers/minishell: c;
  *  ft_transcendence/clinical: javascript + python). Others fall back to

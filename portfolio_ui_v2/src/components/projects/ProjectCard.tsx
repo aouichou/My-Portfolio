@@ -13,8 +13,8 @@
  */
 
 import type { ProjectCard as ProjectCardData } from '@/library/types/api-v2';
-import { TYPE_OVERLINE } from './project-sections';
 import Link from 'next/link';
+import { TYPE_OVERLINE } from './project-sections';
 
 /** 16/10 media box reserved before load — no layout shift when the image lands. */
 const THUMB_ASPECT = 'aspect-[16/10]';
