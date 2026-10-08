@@ -189,6 +189,15 @@ CORS_ALLOWED_ORIGINS = [
 	"https://portfolio-frontend-9fc822c2f19a.herokuapp.com",
 	"https://portfolio-backend-dytv.onrender.com",
 ]
+# F3-14: dev-only local origins (the v2 dev server on :3100, the compose
+# v1 UI on :3000). Appended — never replacing — the frozen prod allowlist
+# above; unreachable in production because DEBUG is False there and the
+# env var is unset. The hygiene suite pins the single assignment above.
+if DEBUG and os.environ.get('CORS_ALLOWED_ORIGINS'):
+	CORS_ALLOWED_ORIGINS += [
+		o for o in os.environ['CORS_ALLOWED_ORIGINS'].split(',')
+		if o and o not in CORS_ALLOWED_ORIGINS
+	]
 # Wildcard-patterned herokuapp dynos (review apps / renamed apps serving the
 # old UI) — matched via regex since CORS_ALLOWED_ORIGINS is exact-match.
 # FLIP-TIME CLEANUP: delete with the herokuapp entries above.

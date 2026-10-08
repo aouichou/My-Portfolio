@@ -379,24 +379,26 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
   return (
     <div className="terminal-wrapper relative h-full">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-10">
-          <div className="text-white text-center p-6">
-            <div className="w-12 h-12 border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin mx-auto mb-4"></div>
-            <p>Initializing secure terminal...</p>
-          </div>
+        /* F3-14 token reskin: v1's black scrim + blue spinner → surface
+           plate + muted mono line. Copy string unchanged (capture-pinned). */
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-b-lg bg-surface">
+          <p className="font-mono text-mono-sm text-muted">Initializing secure terminal...</p>
         </div>
       )}
 
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-20">
-          <div className="bg-red-900/80 text-white p-6 rounded-lg max-w-md text-center">
-            <h3 className="text-xl font-bold mb-2">Terminal Error</h3>
-            <p className="mb-4">{error}</p>
+        /* F3-14 token reskin: v1's red-900 panel → surface plate, ink
+           heading, muted detail. Security-critical feedback stays CALM and
+           INSTANT (brief §4.5): full opacity, no entrance motion. */
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-b-lg bg-surface">
+          <div className="max-w-md p-6 text-center">
+            <h3 className="text-title-3 font-semibold tracking-[-0.005em] text-ink">Terminal Error</h3>
+            <p className="mt-2 text-body text-muted">{error}</p>
             <button
               onClick={() => {
                 window.location.reload();
               }}
-              className="px-6 py-2 bg-white text-red-900 rounded hover:bg-gray-200 transition-colors"
+              className="mt-4 rounded-md border border-line bg-canvas px-4 py-2 text-body font-medium text-ink transition-colors duration-fast ease-standard hover:border-ink"
             >
               Reload Terminal
             </button>

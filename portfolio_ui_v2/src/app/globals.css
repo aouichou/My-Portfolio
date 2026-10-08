@@ -260,3 +260,68 @@
     color: var(--negative);
   }
 }
+
+/* ============================================================================
+   §4.4 FIRST CONTACT — the ONE orchestrated moment (F3-14, homepage only).
+   Brief: nameplate sets (400ms) → terminal pane rises 16px (400ms) → caret
+   blinks 530ms → one muted line types itself ("type 'help' to look
+   around"). Total ≤ 1.2s, runs once, fully skipped at --motion-scale: 0
+   (elements render at final state — keyframe durations scale to 0, and the
+   typed line simply renders, brief §4.4 verbatim).
+
+   Discipline (§4.7): this is the ONLY keyframe block in the codebase; it
+   lives here in the token layer, not per-component. The caret blink is
+   xterm's own (the system's only other loop — 530ms, not redefined here).
+   ========================================================================== */
+@keyframes fc-set {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fc-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes fc-type {
+  from {
+    max-width: 0;
+  }
+  to {
+    max-width: 26ch;
+  }
+}
+
+/* The hero elements: each enters with the §2.4 ease-out, durations scaled
+   by the dial. Elements OUTSIDE the hero never carry these classes. */
+.fc-name,
+.fc-pane {
+  animation: fc-set calc(var(--dur-slow) * var(--motion-scale)) var(--ease-out) both;
+}
+.fc-rule {
+  transform-origin: left center;
+  animation: fc-rule calc(var(--dur-slow) * var(--motion-scale)) var(--ease-out) both;
+  /* CUE: the rule draws only AFTER the name has set (400ms in) — the
+     sequence reads name → line → pane, not everything at once. */
+  animation-delay: calc(var(--dur-slow) * var(--motion-scale));
+}
+.fc-pane {
+  /* The pane rises 16px into place as the rule finishes drawing. */
+  animation-delay: calc(var(--dur-slow) * var(--motion-scale) * 1.5);
+}
+.fc-type {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: fc-type calc(var(--dur-base) * var(--motion-scale)) steps(26) both;
+  /* Hint types LAST, after the pane has landed (400 + 600ms in) — total
+     sequence ≤ 1.0s at scale 1, inside the brief's 1.2s budget. */
+  animation-delay: calc((var(--dur-slow) * 1.5 + var(--dur-base)) * var(--motion-scale));
+}
