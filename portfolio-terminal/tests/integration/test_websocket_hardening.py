@@ -187,11 +187,21 @@ class TestSessionCap:
         assert len(main.active_terminals) == 0, "slot must be released on cancel"
 
     async def test_spawn_env_is_the_allowlist(self, stub_env):
-        """Wire check: the env handed to spawn is exactly build_child_env()."""
+        """Wire check: the env handed to spawn is the allowlist with the
+        F4-03 per-session HOME/TMPDIR overrides bound to a fresh scratch
+        dir under the session scratch root."""
         ws = StubWebSocket(incoming=[CLOSE])
         await run_endpoint(ws)
-        assert stub_env.spawn_env == main.build_child_env()
-        for key in stub_env.spawn_env:
+        env = stub_env.spawn_env
+        home = env['HOME']
+        assert home.startswith(
+            main.SESSION_SCRATCH_ROOT.rstrip('/') + '/session-'), home
+        assert env['TMPDIR'] == home
+        allow = main.build_child_env()
+        for key, value in allow.items():
+            if key not in ('HOME', 'TMPDIR'):
+                assert env[key] == value, f'{key} diverged from allowlist'
+        for key in env:
             assert not key.startswith('AWS'), f"AWS var reached bash: {key}"
 
 

@@ -90,6 +90,14 @@ services:
       # equal the backend's SECRET_KEY (set in root .env or shell; unset +
       # DEBUG off = terminal rejects every WS connection, fail closed)
       - TERMINAL_JWT_SECRET=${SECRET_KEY:-}
+      # F4-03: kernel rlimits per session tree — defaults in code (CPU 120s,
+      # AS 512MiB, NPROC 0=off, FSIZE 20MiB, core 0); 0 disables a dimension.
+      # NPROC: per-UID across the whole HOST kernel — enable only on
+      # dedicated-uid hosts (D9 target); all optional, uncomment to tune:
+      # - TERMINAL_RLIMIT_CPU=120
+      # - TERMINAL_RLIMIT_AS=536870912
+      # - TERMINAL_RLIMIT_NPROC=0
+      # - TERMINAL_RLIMIT_FSIZE=20971520
     depends_on: [redis]
 
   db:

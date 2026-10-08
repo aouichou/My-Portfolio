@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import resource
 import shutil
 import tempfile
 import time
@@ -289,7 +290,7 @@ CHILD_ENV_ALLOWLIST = {
 
 _LANG_RE = re.compile(r'^[A-Za-z0-9_.@+-]+$')
 
-def build_child_env():
+def build_child_env(home=None, tmpdir=None):
 	"""Return the exact environment dict for the bash child process.
 
 	Hotfix (C2/N1): the previous code copied os.environ into the child and ran
@@ -298,17 +299,277 @@ def build_child_env():
 	above. LANG is the single value read from the service environment --
 	sanitized to a locale-shaped string -- because bash needs it for sane
 	behavior; it cannot carry credentials.
+
+	F4-03: per-session HOME/TMPDIR overrides. Each session's shell gets a
+	private scratch dir as HOME and TMPDIR, so visitor creations in ~/ or
+	/tmp land in that dir -- which is deleted on disconnect (see the F4-03
+	block below). Without overrides the closed allowlist applies as before.
 	"""
 	env = dict(CHILD_ENV_ALLOWLIST)
+	if home is not None:
+		env['HOME'] = home
+	if tmpdir is not None:
+		env['TMPDIR'] = tmpdir
 	lang = os.environ.get('LANG', '')
 	if lang and _LANG_RE.match(lang):
 		env['LANG'] = lang
 	return env
 
+# ─── F4-03: shared-container session hardening (decision D8 = "A+") ─────────
+# Instead of Docker-per-session (→ Backlog, hosting-dependent), every bash
+# child is hardened inside the shared container:
+#   1. KERNEL rlimits, applied via preexec_fn between fork and exec — the
+#      kernel polices the whole session process tree, independent of the
+#      command validator (which a compiled demo binary does not go through).
+#   2. A PRIVATE scratch dir per session, bound as the shell's HOME and
+#      TMPDIR: visitor creations in ~/ or /tmp land there and are deleted
+#      on disconnect. Bash history dies with the dir (the plan's
+#      HISTFILE=/dev/null goal, achieved structurally).
+#   3. GUARANTEED post-session cleanup (Batman's ask: anything a visitor
+#      creates is erased when they leave): the shared project dir is
+#      restored to its post-download state via a path manifest — anything
+#      NOT in the manifest is swept on disconnect, and a boot-time sweep
+#      backstops sessions killed by a crash/restart.
+#
+# Residual (documented, accepted): visitors CAN still write into the shared
+# project dir (cwd) — the sweep erases it on disconnect; concurrent sessions
+# on the same project may sweep each other's non-manifested creations.
+# Manifest is path-based: content EDITS to manifested files are not reverted
+# (re-extract/re-download is the F4-05 small-zip option to revisit).
+
+PROJECTS_BASE_DIR = os.getenv('TERMINAL_PROJECTS_DIR', '/home/coder/projects')
+SESSION_SCRATCH_ROOT = os.getenv('TERMINAL_SESSION_SCRATCH_ROOT', '/tmp/terminal-sessions')
+SESSION_MANIFEST_NAME = '.session_manifest'
+CACHE_MARKER_NAME = '.cached_download'
+# Root-level names the sweep must never delete: the manifest protects the
+# baseline itself; the cache marker prevents re-downloading the demo zip
+# on every session (24h cache semantics in download_project_files).
+_PRESERVED_ROOT_NAMES = {SESSION_MANIFEST_NAME, CACHE_MARKER_NAME}
+
+def _env_int(name: str, default: int) -> int:
+	"""Parse a non-negative int env var. Invalid/missing → default (loud)."""
+	raw = os.getenv(name)
+	if raw is None or raw == '':
+		return default
+	try:
+		value = int(raw)
+	except ValueError:
+		logger.error('%s=%r is not an integer — using default %d', name, raw, default)
+		return default
+	if value < 0:
+		logger.error('%s=%r is negative — using default %d', name, raw, default)
+		return default
+	return value
+
+# Kernel rlimits per session tree, env-tunable; 0 = unlimited for that
+# dimension. RLIMIT_CORE is always 0 — no core dumps, ever.
+#
+# RLIMIT_NPROC is accounted per real-UID across the WHOLE HOST KERNEL —
+# not per container/process tree. On shared-uid hosts (Docker Desktop's
+# WSL VM, multi-tenant clouds) the uid already exceeds any useful finite
+# value, so the limit breaks innocent forks (live-proven on the dev stack:
+# `touch`/`ls` hit 'fork: retry' at 64 AND 256) — hence default 0 (off).
+# Set a finite TERMINAL_RLIMIT_NPROC only on dedicated-uid hosts (the D9
+# DO-droplet target: compose + own uid — there it is a real fork-bomb
+# brake). The always-on defense stack meanwhile: TERMINAL_MAX_SESSIONS
+# (10) + RLIMIT_CPU (120s) + RLIMIT_AS (512M) + validator, with cgroup
+# pids.max as the F4-07 platform option.
+TERMINAL_RLIMIT_CPU = _env_int('TERMINAL_RLIMIT_CPU', 120)                   # CPU seconds (not wall clock)
+TERMINAL_RLIMIT_AS = _env_int('TERMINAL_RLIMIT_AS', 512 * 1024 * 1024)       # address space bytes
+TERMINAL_RLIMIT_NPROC = _env_int('TERMINAL_RLIMIT_NPROC', 0)                 # 0=off (see note); finite only on dedicated-uid hosts
+TERMINAL_RLIMIT_FSIZE = _env_int('TERMINAL_RLIMIT_FSIZE', 20 * 1024 * 1024)  # max file-write bytes
+
+def session_rlimits():
+	"""The (resource, (soft, hard)) pairs applied to every session child.
+
+	A dimension configured 0 (disabled) is OMITTED — never set to
+	RLIM_INFINITY: setrlimit can never RAISE past the inherited hard limit
+	(e.g. WSL hosts pin a finite RLIMIT_NPROC hard cap), and a failed
+	setrlimit inside preexec_fn kills the spawn entirely.
+
+	RLIMIT_NPROC (when enabled via env) counts processes per real UID
+	across the WHOLE HOST KERNEL — a collective brake, not a per-session
+	tree cap; default 0 (off) because shared-uid hosts make finite values
+	harmful (see the constants block above). Fork-bomb defense otherwise:
+	session cap + CPU/AS limits + validator, cgroup pids.max at F4-07.
+	Note for demo curation: valgrind needs several GB of address space —
+	raise TERMINAL_RLIMIT_AS (or set 0) for such demos.
+	"""
+	def pair(value):
+		return (value, value)
+	limits = []
+	for res, value in (
+		(resource.RLIMIT_CPU, TERMINAL_RLIMIT_CPU),
+		(resource.RLIMIT_AS, TERMINAL_RLIMIT_AS),
+		(resource.RLIMIT_FSIZE, TERMINAL_RLIMIT_FSIZE),
+		(resource.RLIMIT_NPROC, TERMINAL_RLIMIT_NPROC),
+	):
+		if value > 0:
+			limits.append((res, pair(value)))
+	limits.append((resource.RLIMIT_CORE, (0, 0)))  # always: no core dumps
+	return tuple(limits)
+
+def apply_session_rlimits():
+	"""preexec_fn body: runs inside the forked child between fork and exec,
+	BEFORE bash exists — so the limits bind the whole session process tree
+	and cannot be shed by anything typed into the shell. Only performs
+	setrlimit syscalls (safe in a freshly forked child: no allocations, no
+	locks held). ptyprocess propagates any exception here back to the
+	parent, failing the spawn loudly instead of continuing unprotected.
+	"""
+	for res, (soft, hard) in session_rlimits():
+		resource.setrlimit(res, (soft, hard))
+
+def create_session_scratch(session_id: str) -> str:
+	"""Create this session's private scratch dir (the shell's HOME+TMPDIR).
+	session_id is a service-generated uuid4 string — never client input."""
+	path = os.path.join(SESSION_SCRATCH_ROOT, f'session-{session_id}')
+	os.makedirs(path, mode=0o700, exist_ok=True)
+	return path
+
+def remove_session_scratch(scratch_dir: str) -> bool:
+	"""Delete a session scratch dir. Best-effort BY DESIGN: this runs in the
+	session's finally path and must not raise there — failures are logged
+	loudly and the boot-time sweep is the backstop."""
+	try:
+		shutil.rmtree(scratch_dir)
+		return True
+	except FileNotFoundError:
+		return True
+	except OSError as exc:
+		logger.error('Failed to remove session scratch %s: %s', scratch_dir, exc)
+		return False
+
+def _relative_entries(project_dir: str) -> 'set[str]':
+	"""Every file/dir under project_dir, as root-relative POSIX paths."""
+	entries = set()
+	for dirpath, dirnames, filenames in os.walk(project_dir):
+		for name in dirnames + filenames:
+			full = os.path.join(dirpath, name)
+			entries.add(os.path.relpath(full, project_dir).replace(os.sep, '/'))
+	return entries
+
+def snapshot_project_dir(project_dir: str, force: bool = False) -> bool:
+	"""Write the post-download baseline manifest: the sorted set of
+	root-relative paths defining "clean state". The post-session sweep
+	deletes anything NOT listed here.
+
+	Written on fresh download (force=True) or on first session when the
+	manifest is missing (legacy dirs self-heal on their next session).
+	NEVER refreshed per session — that would bless the previous visitor's
+	leftovers as baseline. Atomic via tmp+rename; a crash cannot leave a
+	half-written manifest (a stale .tmp is non-manifested and gets swept).
+	"""
+	manifest_path = os.path.join(project_dir, SESSION_MANIFEST_NAME)
+	if not force and os.path.exists(manifest_path):
+		return False
+	entries = sorted(_relative_entries(project_dir) - _PRESERVED_ROOT_NAMES)
+	payload = {'version': 1, 'created': time.time(), 'entries': entries}
+	tmp_path = manifest_path + '.tmp'
+	with open(tmp_path, 'w', encoding='utf-8') as fh:
+		json.dump(payload, fh)
+	os.replace(tmp_path, manifest_path)
+	logger.info('Session manifest written for %s (%d entries%s)',
+	            project_dir, len(entries), ', forced' if force else '')
+	return True
+
+def _load_manifest(project_dir: str) -> 'set[str] | None':
+	"""Read manifest entries; None when no manifest exists. Raises on
+	unreadable/corrupt payloads — the caller decides fail-safe."""
+	manifest_path = os.path.join(project_dir, SESSION_MANIFEST_NAME)
+	if not os.path.exists(manifest_path):
+		return None
+	with open(manifest_path, encoding='utf-8') as fh:
+		payload = json.load(fh)
+	entries = payload.get('entries') if isinstance(payload, dict) else None
+	if not isinstance(entries, list) or not all(isinstance(e, str) for e in entries):
+		raise ValueError('manifest entries malformed')
+	return set(entries)
+
+def restore_project_dir(project_dir: str) -> int:
+	"""Restore a project dir to its manifest baseline: delete every file
+	and dir NOT listed (visitor creations). Root-level manifest + cache
+	marker are always preserved. Returns the count of entries removed.
+
+	Fail-safe BY DESIGN (runs in the session finally path): missing
+	manifest → no-op (nothing was ever baselined here); unreadable/corrupt
+	manifest → NO deletion — never wipe a dir we cannot prove a baseline
+	for. Path-based: content edits to manifested files are NOT reverted
+	(documented residual; re-download is the F4-05 option to revisit).
+	"""
+	try:
+		entries = _load_manifest(project_dir)
+	except FileNotFoundError:
+		logger.warning('Cleanup: no manifest for %s — skipping sweep', project_dir)
+		return 0
+	except (OSError, ValueError) as exc:
+		logger.error('Cleanup: unusable manifest for %s — NOT sweeping: %s', project_dir, exc)
+		return 0
+	if entries is None:
+		logger.warning('Cleanup: no manifest for %s — skipping sweep', project_dir)
+		return 0
+	removed = 0
+	root = os.path.abspath(project_dir)
+	for dirpath, dirnames, filenames in os.walk(project_dir, topdown=False):
+		at_root = os.path.abspath(dirpath) == root
+		for name in filenames:
+			rel = os.path.relpath(os.path.join(dirpath, name), project_dir).replace(os.sep, '/')
+			if rel in entries or (at_root and name in _PRESERVED_ROOT_NAMES):
+				continue
+			try:
+				os.remove(os.path.join(dirpath, name))
+				removed += 1
+			except OSError as exc:
+				logger.error('Cleanup: failed to remove file %s: %s', rel, exc)
+		for name in dirnames:
+			rel = os.path.relpath(os.path.join(dirpath, name), project_dir).replace(os.sep, '/')
+			if rel in entries or (at_root and name in _PRESERVED_ROOT_NAMES):
+				continue
+			try:
+				os.rmdir(os.path.join(dirpath, name))
+				removed += 1
+			except OSError as exc:
+				logger.debug('Cleanup: dir %s not removed (%s)', rel, exc)
+	if removed:
+		logger.info('Cleanup: swept %d visitor entr%s from %s',
+		            removed, 'y' if removed == 1 else 'ies', project_dir)
+	return removed
+
+def sweep_orphaned_projects() -> 'dict[str, int]':
+	"""Boot-time orphan sweep (lifespan, before serving traffic): restore
+	every project dir against its manifest and delete ALL session scratch
+	dirs (none can be alive before the first connect). Backstops sessions
+	whose finally-path cleanup was skipped by a crash or restart."""
+	stats = {'projects': 0, 'entries_removed': 0, 'scratch_dirs_removed': 0}
+	if os.path.isdir(PROJECTS_BASE_DIR):
+		for name in sorted(os.listdir(PROJECTS_BASE_DIR)):
+			pdir = os.path.join(PROJECTS_BASE_DIR, name)
+			if not os.path.isdir(pdir):
+				continue
+			stats['projects'] += 1
+			stats['entries_removed'] += restore_project_dir(pdir)
+	if os.path.isdir(SESSION_SCRATCH_ROOT):
+		for name in sorted(os.listdir(SESSION_SCRATCH_ROOT)):
+			sdir = os.path.join(SESSION_SCRATCH_ROOT, name)
+			if os.path.isdir(sdir) and remove_session_scratch(sdir):
+				stats['scratch_dirs_removed'] += 1
+	if stats['entries_removed'] or stats['scratch_dirs_removed']:
+		logger.warning(
+			'Boot sweep: removed %d orphaned entries and %d scratch dirs (crash recovery)',
+			stats['entries_removed'], stats['scratch_dirs_removed'])
+	else:
+		logger.info('Boot sweep: clean (no orphans)')
+	return stats
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	# Startup code
 	print("Starting terminal service...")
+
+	# F4-03: boot-time orphan sweep — restore every project dir against its
+	# manifest and clear leftover session scratch dirs (a crash may have
+	# skipped the per-session finally cleanup). Off-loop: disk I/O.
+	await asyncio.to_thread(sweep_orphaned_projects)
 
 	# Start health check task
 	health_check_task = asyncio.create_task(periodic_health_checks())
@@ -599,11 +860,17 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	session_id = str(uuid.uuid4())
 	logger.info("Generated session ID: %s", session_id)
 	active_terminals[session_id] = None
-	
+
+	# F4-03: cleanup targets for the finally path. None until assigned in
+	# the try below; the finally guards on truthiness so early exits (e.g.
+	# a download failure path that raises) clean up only what exists.
+	scratch_dir = None
+	project_dir = None
+
 	try:
 		# Check for project directory and download files if needed
 		# Use safe_join_path to prevent path traversal
-		base_projects_dir = "/home/coder/projects"
+		base_projects_dir = PROJECTS_BASE_DIR
 		project_dir = safe_join_path(base_projects_dir, project_slug)
 		should_download = False
 		
@@ -640,17 +907,39 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				})
 		else:
 			logger.info("Using existing project directory: %s, contains: %s", project_dir, os.listdir(project_dir))
-		
-		# Explicit env allowlist -- the child must NOT inherit service secrets
-		env = build_child_env()
+
+		# F4-03: baseline the project dir at its post-download state. Forced
+		# after a fresh download; self-heals legacy dirs with no manifest yet
+		# (their CURRENT state becomes the baseline). Off-loop (disk walk) and
+		# must not fail the session — a snapshot failure logs loudly and the
+		# sweep then no-ops (no manifest → skip).
+		try:
+			await asyncio.to_thread(
+				snapshot_project_dir, project_dir, force=should_download)
+		except Exception as manifest_error:
+			logger.error(
+				"Manifest snapshot failed for %s (sweep will skip): %s",
+				project_dir, manifest_error)
+
+		# F4-03: per-session private scratch dir = the shell's HOME + TMPDIR.
+		# Visitor creations in ~/ or /tmp land in this dir, which the finally
+		# path deletes — anything a visitor creates is erased when they leave.
+		scratch_dir = await asyncio.to_thread(create_session_scratch, session_id)
+
+		# Explicit env allowlist -- the child must NOT inherit service secrets;
+		# F4-03: HOME/TMPDIR point at the private scratch dir
+		env = build_child_env(home=scratch_dir, tmpdir=scratch_dir)
 
 		# Initialize terminal with bash instead of zsh - more reliable
 		await websocket.send_json({
 			'output': "\r\n🚀 Spawning terminal session...\r\n"
 		})
 		
-		# Use bash instead of zsh for more reliable prompt detection
-		child = spawn('/bin/bash', ['--login'], cwd=project_dir, env=env, encoding='utf-8', timeout=300)
+		# Use bash instead of zsh for more reliable prompt detection.
+		# F4-03: preexec_fn applies kernel rlimits in the forked child between
+		# fork and exec — the limits bind the whole session process tree and
+		# cannot be shed by anything typed into the shell.
+		child = spawn('/bin/bash', ['--login'], cwd=project_dir, env=env, encoding='utf-8', timeout=300, preexec_fn=apply_session_rlimits)
 		child.setwinsize(40, 120)  # Initial size
 
 		
@@ -809,6 +1098,28 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 				logger.error("Failed to terminate session %s: %s", session_id, cleanup_error)
 		else:
 			logger.info("Released reserved session slot %s", session_id)
+
+		# F4-03: guaranteed post-session cleanup (Batman's ask — anything a
+		# visitor creates is erased when they leave). Runs in EVERY exit path
+		# of this session (disconnect, timeout, error, cancel) because it
+		# lives here in finally. Both steps are best-effort by design — the
+		# boot sweep backstops whatever a crash skips. Off-loop (disk I/O).
+		#
+		# (a) private scratch dir — deleted whole (HOME+TMPDIR contents)
+		# (b) shared project dir — restored to its manifest baseline: every
+		#     visitor-created file/dir NOT in the manifest is swept
+		try:
+			if scratch_dir:
+				await asyncio.to_thread(remove_session_scratch, scratch_dir)
+			if project_dir:
+				await asyncio.to_thread(restore_project_dir, project_dir)
+		except Exception as cleanup_error:
+			# Belt-and-braces: both helpers already swallow their own errors;
+			# this guards the finally path itself from ANY unexpected raise
+			# (e.g. to_thread shutdown) so cleanup can never mask the original
+			# exception or crash the handler twice.
+			logger.error(
+				"Post-session cleanup error for %s: %s", session_id, cleanup_error)
 
 async def read_terminal_output(websocket, child):
 	while True:

@@ -64,7 +64,9 @@ class TestChildEnvAllowlist:
 		import inspect
 		src = inspect.getsource(main.terminal_endpoint)
 		assert 'os.environ.copy' not in src
-		assert 'build_child_env()' in src
+		# F4-03: env is per-session now (HOME/TMPDIR → private scratch dir);
+		# the allowlist helper is still the single source of the env.
+		assert 'build_child_env(' in src
 
 
 # ═════════════════════════════════════════════════════════════════════════════

@@ -133,6 +133,21 @@ services:
       - TERMINAL_JWT_SECRET=dev-secret-key-change-in-production
       # F3-14: allow the v2 dev-server origin (:3100) to open the hero WS.
       - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3100,http://127.0.0.1:3100
+      # F4-03: kernel rlimits per session tree (defaults shown; unset = same
+      # values). 0 disables a dimension (valgrind demos want a big
+      # TERMINAL_RLIMIT_AS — 0 is fine there). CPU = CPU-seconds, not wall.
+      # NPROC defaults to 0 (off): it is accounted per-UID across the whole
+      # HOST kernel — finite values break innocent forks on shared-uid
+      # hosts like this Docker Desktop VM. Set it only on dedicated-uid
+      # hosts (D9 DO-droplet target).
+      # - TERMINAL_RLIMIT_CPU=120            # RLIMIT_CPU seconds
+      # - TERMINAL_RLIMIT_AS=536870912       # RLIMIT_AS bytes (512 MiB)
+      # - TERMINAL_RLIMIT_NPROC=0            # off (see note above)
+      # - TERMINAL_RLIMIT_FSIZE=20971520     # RLIMIT_FSIZE bytes (20 MiB)
+      # F4-03 scratch/projects roots (defaults shown; tests pin these under
+      # temp dirs via the same env vars):
+      # - TERMINAL_SESSION_SCRATCH_ROOT=/tmp/terminal-sessions
+      # - TERMINAL_PROJECTS_DIR=/home/coder/projects
     ports:
       - "8001:8000"
     volumes:

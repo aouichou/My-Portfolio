@@ -4,14 +4,38 @@
 The service no longer connects to Redis (session keys were written but never
 read); DEBUG=True keeps the service in dev mode for tests (security
 self-checks skipped, proxy-secret gate permissive like docker-compose.dev).
+
+F4-03: the suite runs hermetically — PROJECTS_BASE_DIR / SESSION_SCRATCH_ROOT
+are pinned under a temp dir BEFORE main is imported anywhere, so no test
+(including the lifespan boot sweep inside TestClient contexts) can touch the
+real /home/coder/projects or /tmp/terminal-sessions.
 """
 
+import atexit
 import os
+import shutil
+import tempfile
 
 import pytest
 from fastapi.testclient import TestClient
 
 os.environ.setdefault('DEBUG', 'True')
+
+# Hermetic FS roots — set before any `import main` (module constants read
+# the env at import time). A real dir is required: TestClient contexts run
+# the lifespan boot sweep, which lists/walks these paths.
+_HERMETIC_ROOT = tempfile.mkdtemp(prefix='terminal-tests-fs-')
+os.environ.setdefault('TERMINAL_PROJECTS_DIR', os.path.join(_HERMETIC_ROOT, 'projects'))
+os.environ.setdefault('TERMINAL_SESSION_SCRATCH_ROOT', os.path.join(_HERMETIC_ROOT, 'scratch'))
+os.makedirs(os.environ['TERMINAL_PROJECTS_DIR'], exist_ok=True)
+os.makedirs(os.environ['TERMINAL_SESSION_SCRATCH_ROOT'], exist_ok=True)
+
+
+@atexit.register
+def _cleanup_hermetic_root():
+	"""Best-effort teardown of the temp dir (session-scoped, after all
+	tests — atexit because pytest has no after-session hook)."""
+	shutil.rmtree(_HERMETIC_ROOT, ignore_errors=True)
 
 
 @pytest.fixture(scope='session')
