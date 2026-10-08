@@ -28,8 +28,8 @@
 import { submitContact, toApiError } from '@/library/api-client';
 import type { ContactPayload } from '@/library/types/api-v2';
 import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type FieldName = 'name' | 'email' | 'message';
 type FieldErrors = Partial<Record<FieldName, string>>;
