@@ -15,13 +15,15 @@ import unittest.mock as m
 
 import pytest
 from fastapi import HTTPException
-from main import sanitize_project_slug, validate_command
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 os.environ.setdefault('REDIS_URL', 'redis://localhost:6379')
 for mod in ['redis', 'pexpect', 'boto3', 'psutil', 'aiohttp']:
     if mod not in sys.modules:
         sys.modules[mod] = m.MagicMock()
+
+import main
+from main import sanitize_project_slug, validate_command
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Injection attack surface
@@ -88,8 +90,19 @@ MALICIOUS_SLUGS = [
     "root",
 ]
 
+@pytest.fixture
+def demo_set():
+    """F4-01: seed the DB-driven whitelist snapshot (no network in tests)."""
+    saved = (main.demo_whitelist.slugs, main.demo_whitelist.last_sync)
+    main.demo_whitelist.slugs = {'minishell', 'push_swap', 'philosophers'}
+    try:
+        yield main.demo_whitelist.slugs
+    finally:
+        main.demo_whitelist.slugs, main.demo_whitelist.last_sync = saved
+
+
 @pytest.mark.parametrize("slug", MALICIOUS_SLUGS)
-def test_malicious_slug_rejected(slug):
+def test_malicious_slug_rejected(slug, demo_set):
     with pytest.raises(HTTPException):
         sanitize_project_slug(slug)
 
@@ -99,11 +112,10 @@ def test_malicious_slug_rejected(slug):
 # ─────────────────────────────────────────────────────────────────────────────
 
 ALLOWED_SLUGS = [
-    'minishell', 'push_swap', 'philosophers', 'minitalk',
-    'fdf', 'ft_irc', 'minirt', 'cub3d', 'ft_transcendence',
+    'minishell', 'push_swap', 'philosophers',
 ]
 
 @pytest.mark.parametrize("slug", ALLOWED_SLUGS)
-def test_allowed_slug_passes(slug):
+def test_allowed_slug_passes(slug, demo_set):
     result = sanitize_project_slug(slug)
     assert result == slug

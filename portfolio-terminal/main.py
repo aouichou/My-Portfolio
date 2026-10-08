@@ -23,11 +23,180 @@ from pexpect import EOF, spawn
 
 logger = logging.getLogger(__name__)
 
-# Security: Allowed project slugs (whitelist approach)
-ALLOWED_PROJECTS = {
-	'minishell', 'push_swap', 'philosophers', 'minitalk', 
-	'fdf', 'ft_irc', 'minirt', 'cub3d', 'ft_transcendence'
-}
+# ─── DB-driven demo whitelist (F4-01) ────────────────────────────────────────
+# The API's has_demo flag is the single source of truth for which demos are
+# enabled. This service syncs the frozen feed (contract §1 #3 + §6):
+#   GET {API_BASE_URL}/api/projects/?has_demo=true&limit=100
+# and keeps the slug set in memory. Enabling a demo = admin toggle + zip
+# upload — zero code changes on this side (Batman's crown-jewel note).
+#
+# Env (§ comments inline below): API_BASE_URL, TERMINAL_WHITELIST_REFRESH_SECS.
+API_BASE_URL = (
+	os.getenv('API_BASE_URL')
+	or os.getenv('BACKEND_URL')
+	or 'https://api.aouichou.me'
+).rstrip('/')
+DEMO_FEED_PATH = '/api/projects/?has_demo=true&limit=100'
+
+# Refresh cadence floor: a smaller configured value would hot-loop the API.
+_WHITELIST_REFRESH_SECS_MIN = 10.0
+_raw_refresh_secs = float(os.getenv('TERMINAL_WHITELIST_REFRESH_SECS', '300'))
+if _raw_refresh_secs < _WHITELIST_REFRESH_SECS_MIN:
+	logger.warning(
+		'TERMINAL_WHITELIST_REFRESH_SECS=%s below floor %.0f — clamped',
+		_raw_refresh_secs, _WHITELIST_REFRESH_SECS_MIN)
+TERMINAL_WHITELIST_REFRESH_SECS = max(_raw_refresh_secs, _WHITELIST_REFRESH_SECS_MIN)
+WHITELIST_RETRY_BACKOFF_SECS = 5.0       # sync-failure retry start, doubles…
+WHITELIST_RETRY_BACKOFF_MAX_SECS = 60.0  # …up to this cap
+WHITELIST_FORCED_DEBOUNCE_SECS = 2.0     # min spacing between forced refreshes
+DEMO_NOT_ENABLED_MESSAGE = (
+	'Project not found — this demo may not be enabled yet.'
+)
+_SLUG_RE = re.compile(r'^[a-zA-Z0-9_-]+$')
+
+
+def parse_demo_feed(body: object) -> 'set[str] | None':
+	"""Parse the contract §3.1 list envelope ({"count", "next", "previous",
+	"results"}) into the set of demo-enabled slugs.
+
+	Returns None when the envelope is malformed — the caller treats that as a
+	failed sync (stale-keep on refresh, empty on first sync). A feed whose
+	count exceeds the page also yields None: a truncated whitelist would
+	silently reject demos the admin enabled.
+	"""
+	if not isinstance(body, dict):
+		return None
+	results = body.get('results')
+	if not isinstance(results, list):
+		return None
+	slugs: set = set()
+	for item in results:
+		if not isinstance(item, dict):
+			return None
+		slug = item.get('slug')
+		if not isinstance(slug, str) or not _SLUG_RE.match(slug):
+			return None
+		slugs.add(slug.lower())
+	count = body.get('count')
+	if isinstance(count, int) and count > len(results):
+		logger.error(
+			'Demo feed truncated: count=%d > page=%d — refusing partial whitelist',
+			count, len(results))
+		return None
+	return slugs
+
+
+class DemoWhitelist:
+	"""In-memory snapshot of demo-enabled slugs synced from the API.
+
+	Failure semantics (documented tradeoffs, F4-01):
+	- first-sync failure  -> EMPTY set (fail-closed: nothing is enabled until
+	  the API proves otherwise; startup retries with backoff, loudly)
+	- refresh failure     -> keep serving the STALE set (stale-yes beats a
+	  false-negative rejection of a demo the admin just enabled)
+	"""
+
+	def __init__(self) -> None:
+		self.slugs: set = set()          # replaced wholesale on each sync
+		self.last_sync: 'float | None' = None   # time.monotonic() of last SUCCESS
+		self.last_attempt: float = 0.0   # time.monotonic() of last refresh attempt
+		self._lock = asyncio.Lock()
+
+	@property
+	def synced(self) -> bool:
+		return self.last_sync is not None
+
+	def contains(self, slug: str) -> bool:
+		return slug.lower() in self.slugs
+
+	async def _fetch_slugs(self) -> 'set[str] | None':
+		"""One HTTP GET against the demo feed. Returns the slug set, or None
+		on any failure (transport, status, payload)."""
+		url = f'{API_BASE_URL}{DEMO_FEED_PATH}'
+		timeout = aiohttp.ClientTimeout(total=10)
+		async with aiohttp.ClientSession(timeout=timeout) as session:
+			async with session.get(url) as response:
+				if response.status != 200:
+					logger.error('Demo feed %s returned HTTP %d', url, response.status)
+					return None
+				body = await response.json(content_type=None)
+		return parse_demo_feed(body)
+
+	async def refresh(self, reason: str) -> bool:
+		"""Sync from the API; True on success. Never raises for transport or
+		parse failures (graceful degradation — see class docstring); task
+		cancellation still propagates."""
+		async with self._lock:
+			self.last_attempt = time.monotonic()
+			try:
+				slugs = await self._fetch_slugs()
+			except asyncio.CancelledError:
+				raise
+			except Exception as exc:
+				# Any transport failure is a sync failure: stale-keep (or
+				# stay empty before first sync). Logged loudly, never silent.
+				logger.error('Whitelist sync (%s) failed: %s', reason, exc)
+				return False
+			if slugs is None:
+				logger.error('Whitelist sync (%s): unusable feed payload', reason)
+				return False
+			self.slugs = slugs
+			self.last_sync = time.monotonic()
+			logger.info(
+				'Whitelist sync (%s): %d demo slugs %s',
+				reason, len(slugs), sorted(slugs))
+			return True
+
+	async def refresh_on_miss(self, slug: str) -> bool:
+		"""One forced sync before rejecting a cache-miss (the just-enabled
+		case: admin flips has_demo, a visitor connects before the cadence
+		fires). Debounced so a flood of misses cannot stampede the API."""
+		if time.monotonic() - self.last_attempt < WHITELIST_FORCED_DEBOUNCE_SECS:
+			return self.contains(slug)
+		await self.refresh(reason=f'cache-miss:{slug}')
+		return self.contains(slug)
+
+
+demo_whitelist = DemoWhitelist()
+
+def is_demo_enabled(slug: str) -> bool:
+	"""Sync membership test against the in-memory snapshot (no network).
+	The forced refresh-on-miss lives in resolve_enabled_slug (endpoint path)."""
+	return demo_whitelist.contains(slug)
+
+async def whitelist_sync_loop(sleep=asyncio.sleep) -> None:
+	"""Keep demo_whitelist fresh: sync at startup (backoff-retrying until the
+	first success — EMPTY list until then, fail-closed), then refresh every
+	TERMINAL_WHITELIST_REFRESH_SECS. Post-first-success failures keep the
+	stale set and retry on the backoff schedule instead of the full cadence."""
+	backoff = WHITELIST_RETRY_BACKOFF_SECS
+	while True:
+		reason = 'startup' if not demo_whitelist.synced else 'periodic'
+		if await demo_whitelist.refresh(reason=reason):
+			backoff = WHITELIST_RETRY_BACKOFF_SECS
+			await sleep(TERMINAL_WHITELIST_REFRESH_SECS)
+		else:
+			logger.error(
+				'Whitelist sync (%s) failed — %s; retrying in %.0fs',
+				reason,
+				'EMPTY whitelist, failing closed' if not demo_whitelist.synced
+				else 'serving STALE whitelist',
+				backoff)
+			await sleep(backoff)
+			backoff = min(backoff * 2, WHITELIST_RETRY_BACKOFF_MAX_SECS)
+
+async def resolve_enabled_slug(raw_slug: str) -> str:
+	"""sanitize_project_slug + one forced whitelist refresh on a 403
+	cache-miss (the just-enabled case) before rejecting for good.
+	Raises HTTPException (400 format / 403 not-enabled)."""
+	try:
+		return sanitize_project_slug(raw_slug)
+	except HTTPException as exc:
+		if exc.status_code != 403:
+			raise
+		if await demo_whitelist.refresh_on_miss(raw_slug.strip().lower()):
+			return sanitize_project_slug(raw_slug)
+		raise
 
 # Service mode (env-driven; tests and docker-compose.dev run with DEBUG=True)
 DEBUG_MODE = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
@@ -62,9 +231,11 @@ def sanitize_project_slug(project_slug: str) -> str:
 	if not re.match(r'^[a-zA-Z0-9_-]+$', project_slug):
 		raise HTTPException(status_code=400, detail="Invalid project slug format")
 	
-	# Check against whitelist
-	if project_slug.lower() not in ALLOWED_PROJECTS:
-		raise HTTPException(status_code=403, detail="Project not found")
+	# Check against the DB-driven whitelist (in-memory snapshot synced from
+	# the API's has_demo feed). The forced refresh-on-miss for the
+	# just-enabled case happens in resolve_enabled_slug().
+	if project_slug.lower() not in demo_whitelist.slugs:
+		raise HTTPException(status_code=403, detail=DEMO_NOT_ENABLED_MESSAGE)
 	
 	# Prevent path traversal attempts
 	if '..' in project_slug or '/' in project_slug or '\\' in project_slug:
@@ -131,6 +302,10 @@ async def lifespan(app: FastAPI):
 	# Start health check task
 	health_check_task = asyncio.create_task(periodic_health_checks())
 
+	# F4-01: keep the DB-driven demo whitelist in sync (starts EMPTY —
+	# fail-closed — until the first successful feed fetch)
+	whitelist_task = asyncio.create_task(whitelist_sync_loop())
+
 	# Check terminal security (skip in development mode)
 	if not DEBUG_MODE and not check_terminal_security():
 		print("Security check failed. Shutting down...")
@@ -148,6 +323,13 @@ async def lifespan(app: FastAPI):
 	health_check_task.cancel()
 	try:
 		await health_check_task
+	except asyncio.CancelledError:
+		pass
+
+	# Cancel whitelist sync task
+	whitelist_task.cancel()
+	try:
+		await whitelist_task
 	except asyncio.CancelledError:
 		pass
 
@@ -342,8 +524,9 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		return
 
 	try:
-		# Validate and sanitize project slug
-		project_slug = sanitize_project_slug(project_slug)
+		# Validate, sanitize and enforce DB-driven demo enablement (one
+		# forced whitelist refresh on a cache-miss before rejecting)
+		project_slug = await resolve_enabled_slug(project_slug)
 	except HTTPException as e:
 		await websocket.send_json({'error': e.detail})
 		await websocket.close()

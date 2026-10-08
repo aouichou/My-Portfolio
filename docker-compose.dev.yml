@@ -122,6 +122,9 @@ services:
       - DEBUG=True
       - REDIS_URL=redis://redis:6379/1
       - S3_BUCKET_URL=http://backend:8000/media
+      # F4-01: DB-driven demo whitelist — the terminal service syncs
+      # has_demo slugs from this API base (contract §6 feed).
+      - API_BASE_URL=http://backend:8000
       # F3-14: allow the v2 dev-server origin (:3100) to open the hero WS.
       - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3100,http://127.0.0.1:3100
     ports:

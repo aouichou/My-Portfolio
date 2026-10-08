@@ -78,6 +78,11 @@ services:
     restart: unless-stopped
     environment:
       - PORT=8000
+      # F4-01: DB-driven demo whitelist — the terminal service syncs has_demo
+      # slugs from this API base (contract §6 feed). This legacy compose talks
+      # to its own backend container on :8080; prod (DO App Platform) sets
+      # https://api.aouichou.me instead (deploy step, not code).
+      - API_BASE_URL=http://backend:8080
       # Must match the backend's TERMINAL_PROXY_SECRET; unset + DEBUG off
       # = terminal rejects every WS connection (fail closed)
       - TERMINAL_PROXY_SECRET=${TERMINAL_PROXY_SECRET:-}

@@ -132,9 +132,14 @@ def stub_env():
          m.patch.object(main.os.path, 'exists', return_value=True), \
          m.patch.object(main.os, 'listdir', return_value=['Makefile']), \
          m.patch.object(main.os, 'makedirs'):
+        # F4-01: seed the DB-driven whitelist snapshot so 'minishell'
+        # resolves as demo-enabled without any network sync.
+        saved = (main.demo_whitelist.slugs, main.demo_whitelist.last_sync)
+        main.demo_whitelist.slugs = {'minishell', 'push_swap', 'philosophers'}
         main.active_terminals.clear()
         yield child
         main.active_terminals.clear()
+        main.demo_whitelist.slugs, main.demo_whitelist.last_sync = saved
 
 
 # ───────────────────────────── session cap ───────────────────────────────────
