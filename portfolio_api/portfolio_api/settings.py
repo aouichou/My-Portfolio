@@ -145,6 +145,7 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	'rest_framework',
 	'corsheaders',
+	'channels',  # ASGI runserver override + channel layers — required for WS routing in dev (dropped in F2-04 purge; F4-02 smoke caught it)
 	'projects',
 ]
 
