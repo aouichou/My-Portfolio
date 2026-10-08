@@ -46,7 +46,9 @@ services:
       context: ./portfolio_api
       dockerfile: Dockerfile.dev
     container_name: portfolio-backend-dev
-    command: python manage.py runserver 0.0.0.0:8000
+    # Django 6 runserver has no ASGI mode (Channels' runserver override was
+    # removed upstream) — serve daphne directly, matching prod exactly.
+    command: daphne -b 0.0.0.0 -p 8000 portfolio_api.asgi:application
     environment:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=portfolio_api.settings
