@@ -724,12 +724,15 @@ class TestContactEndpoint:
 class TestTerminalTokenEndpoint:
 
     def test_mint_200_token_only(self, api_client):
-        response = api_client.get('/api/auth/terminal-token/')
+        make_project(title='Minishell', has_demo=True)
+        response = api_client.get('/api/auth/terminal-token/?slug=minishell')
         assert response.status_code == 200
         assert set(response.json()) == {'token'}
 
     def test_token_is_hs256_guest_jwt_purpose_scoped(self, api_client):
-        token = api_client.get('/api/auth/terminal-token/').json()['token']
+        make_project(title='Minishell', has_demo=True)
+        token = api_client.get(
+            '/api/auth/terminal-token/?slug=minishell').json()['token']
         payload = pyjwt.decode(token, settings.SECRET_KEY,
                                algorithms=['HS256'])
         assert payload['purpose'] == 'terminal_access'
@@ -741,22 +744,60 @@ class TestTerminalTokenEndpoint:
         assert datetime.timedelta(0) < exp - now <= datetime.timedelta(
             minutes=5, seconds=30)
 
+    def test_token_binds_the_requested_slug_f402(self, api_client):
+        """F4-02: the mint embeds the slug — a token may only open ITS
+        OWN project's terminal."""
+        make_project(title='Minishell', has_demo=True)
+        token = api_client.get(
+            '/api/auth/terminal-token/?slug=minishell').json()['token']
+        payload = pyjwt.decode(token, settings.SECRET_KEY,
+                               algorithms=['HS256'])
+        assert payload['slug'] == 'minishell'
+
+    def test_mint_without_slug_400_param_shape(self, api_client):
+        """§4.1/§4.2: missing query param → 400 with the param as key."""
+        make_project(title='Minishell', has_demo=True)
+        response = api_client.get('/api/auth/terminal-token/')
+        assert response.status_code == 400
+        assert set(response.json()) == {'slug'}
+        assert isinstance(response.json()['slug'], list)
+
+    def test_mint_unknown_slug_400_param_shape(self, api_client):
+        """§4.2 strict values: an unknown slug is a loud 400, not a silent
+        mint."""
+        make_project(title='Minishell', has_demo=True)
+        response = api_client.get('/api/auth/terminal-token/?slug=who-knows')
+        assert response.status_code == 400
+        assert set(response.json()) == {'slug'}
+
+    def test_mint_has_demo_false_slug_403_detail(self, api_client):
+        """F4-02: no token for demos that are not enabled — mint-time
+        half of the whitelist (the terminal service owns the other half)."""
+        make_project(title='Philosophers', has_demo=False)
+        response = api_client.get(
+            '/api/auth/terminal-token/?slug=philosophers')
+        assert response.status_code == 403
+        assert set(response.json()) == {'detail'}
+
     def test_throttle_engages_429_detail_shape(self, api_client):
         """§3.7 NEW requirement: 30/min/IP (security review C7 — the mint is
         currently unthrottled). The throttle must engage and answer with the
         §4.1 429 shape."""
+        make_project(title='Minishell', has_demo=True)
         with override_settings(RATELIMIT_ENABLE=True), \
              mock.patch('django_ratelimit.core.get_usage',
                         return_value={'should_limit': True}):
-            response = api_client.get('/api/auth/terminal-token/')
+            response = api_client.get(
+                '/api/auth/terminal-token/?slug=minishell')
         assert response.status_code == 429
         body = response.json()
         assert set(body) == {'detail'}
         assert 'error' not in body
 
     def test_mint_does_not_require_authentication(self, api_client):
+        make_project(title='Minishell', has_demo=True)
         api_client.credentials()
-        response = api_client.get('/api/auth/terminal-token/')
+        response = api_client.get('/api/auth/terminal-token/?slug=minishell')
         assert response.status_code == 200
 
 

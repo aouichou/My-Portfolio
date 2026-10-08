@@ -21,7 +21,7 @@ machine check for that contract is the test suite
 | `GET /api/projects/{slug}/files/` | R2 demo-zip URL |
 | `GET /api/experiences/` · `/{slug}/` | light list / hero detail with nested project cards |
 | `POST /api/contact/` | anonymous write, 5/min/IP, fire-and-forget SMTP (never 500s on SMTP failure) |
-| `GET /api/auth/terminal-token/` | guest JWT mint (HS256, 5-min, purpose-scoped), 30/min/IP |
+| `GET /api/auth/terminal-token/?slug=` | guest JWT mint (HS256, 5-min, purpose-scoped, **slug-bound** — F4-02: requires an existing `has_demo=true` slug; 400 unknown/missing, 403 not-enabled), 30/min/IP |
 | `WS /ws/terminal/{slug}/` · `/ws/health/` | terminal proxy + liveness (wire frozen; Phase 4 owns changes) |
 
 The deprecated `/api/internships*` routes were deleted (F1-06/F2-03);

@@ -19,15 +19,15 @@ jest.mock('@/library/api-client', () => {
 });
 
 import {
-    api,
-    getExperienceBySlug,
-    getExperiences,
-    getProjectBySlug,
-    getProjectFiles,
-    getProjects,
-    mintTerminalToken,
-    submitContact,
-    toApiError,
+  api,
+  getExperienceBySlug,
+  getExperiences,
+  getProjectBySlug,
+  getProjectFiles,
+  getProjects,
+  mintTerminalToken,
+  submitContact,
+  toApiError,
 } from '@/library/api-client';
 import type { AxiosError } from 'axios';
 
@@ -168,11 +168,13 @@ describe('#8 POST /contact/ — §3.6', () => {
   });
 });
 
-describe('#9 GET /auth/terminal-token/ — §3.7', () => {
-  it('mints the guest token via the typed client', async () => {
+describe('#9 GET /auth/terminal-token/ — §3.7 + F4-02', () => {
+  it('mints the slug-bound guest token via the typed client', async () => {
     apiGetSpy.mockResolvedValueOnce({ data: { token: 'jwt-abc' } });
-    const { token } = await mintTerminalToken();
-    expect(apiGetSpy).toHaveBeenCalledWith('/auth/terminal-token/');
+    const { token } = await mintTerminalToken('minishell');
+    expect(apiGetSpy).toHaveBeenCalledWith('/auth/terminal-token/', {
+      params: { slug: 'minishell' },
+    });
     expect(token).toBe('jwt-abc');
   });
 });

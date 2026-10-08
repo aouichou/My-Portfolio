@@ -125,6 +125,10 @@ services:
       # F4-01: DB-driven demo whitelist — the terminal service syncs
       # has_demo slugs from this API base (contract §6 feed).
       - API_BASE_URL=http://backend:8000
+      # F4-02: slug-bound guest tokens — the terminal service verifies the
+      # token Django forwards. Must equal the backend's SECRET_KEY (shared
+      # secret; the literal here is the dev-compose key, not a real secret).
+      - TERMINAL_JWT_SECRET=dev-secret-key-change-in-production
       # F3-14: allow the v2 dev-server origin (:3100) to open the hero WS.
       - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3100,http://127.0.0.1:3100
     ports:

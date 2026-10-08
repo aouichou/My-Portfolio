@@ -145,9 +145,13 @@ export async function submitContact(payload: ContactPayload): Promise<ContactCre
   return response.data;
 }
 
-/** #9 — GET /api/auth/terminal-token/ (§3.7) — guest JWT, 30/min/IP. */
-export async function mintTerminalToken(): Promise<TerminalTokenResponse> {
-  const response = await api.get<TerminalTokenResponse>('/auth/terminal-token/');
+/** #9 — GET /api/auth/terminal-token/?slug=… (§3.7 + F4-02 amendment) —
+ * slug-bound guest JWT, 30/min/IP. The slug is REQUIRED server-side: the
+ * mint rejects unknown slugs (400) and demos that are not enabled (403). */
+export async function mintTerminalToken(slug: string): Promise<TerminalTokenResponse> {
+  const response = await api.get<TerminalTokenResponse>('/auth/terminal-token/', {
+    params: { slug },
+  });
   return response.data;
 }
 

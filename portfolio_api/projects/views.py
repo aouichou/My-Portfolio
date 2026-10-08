@@ -257,12 +257,17 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 @permission_classes([AllowAny])  # Allow anonymous access for demo terminal
 @ratelimit(key='ip', rate='30/m', method=['GET'], block=False)
 def generate_terminal_token(request):
-	"""Contract §3.7 — guest JWT mint (HS256, 5-min, purpose-scoped).
+	"""Contract §3.7 (+ F4-02 amendment) — guest JWT mint (HS256, 5-min).
 
-	30/min/IP is NEW (security review C7 — previously unthrottled).
-	block=False: the manual check below returns the §4.1 429 shape
-	({detail: ...}) instead of raising Ratelimited (which the middleware
-	would route through RATELIMIT_VIEW with the legacy error shape).
+	Purpose-scoped AND slug-bound: the mint REQUIRES ?slug=<project slug>
+	and only binds projects with has_demo=True, so the token can open
+	exactly ONE project's terminal (enforced again at Django connect and
+	at the terminal service — defense in depth).
+
+	30/min/IP is the C7 throttle. block=False: the manual check below
+	returns the §4.1 429 shape ({detail: ...}) instead of raising
+	Ratelimited (which the middleware would route through RATELIMIT_VIEW
+	with the legacy error shape).
 	"""
 	was_limited = getattr(request, 'limited', False)
 	if was_limited:
@@ -270,34 +275,61 @@ def generate_terminal_token(request):
 			{'detail': 'Too many requests, please try again later.'},
 			status=status.HTTP_429_TOO_MANY_REQUESTS
 		)
-	
+
+	# F4-02 slug binding — §4.1/§4.2 contract shapes: missing or unknown
+	# slug → 400 param-keyed (the contract's loud query-param validation);
+	# known slug without an enabled demo → 403 {detail}.
+	slug = request.query_params.get('slug', '').strip()
+	if not slug:
+		return Response(
+			{'slug': ['This query parameter is required.']},
+			status=status.HTTP_400_BAD_REQUEST
+		)
+	project = Project.objects.filter(slug=slug).only('slug', 'has_demo').first()
+	if project is None:
+		return Response(
+			{'slug': [f"unknown project: '{slug}'"]},
+			status=status.HTTP_400_BAD_REQUEST
+		)
+	if not project.has_demo:
+		return Response(
+			{'detail': 'Demo is not enabled for this project.'},
+			status=status.HTTP_403_FORBIDDEN
+		)
+
 	# Set expiration time (5 minutes)
 	expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-	
+
+	# Claims shared by authenticated and anonymous callers; `slug` is the
+	# F4-02 binding (verified at connect against the route's project_slug).
+	bound_claims = {
+		'purpose': 'terminal_access',
+		'slug': project.slug,
+		'exp': expiration,
+	}
+
 	# Create payload for both authenticated and anonymous users
 	if request.user.is_authenticated:
 		payload = {
 			'user_id': request.user.id,
 			'username': request.user.username,
-			'purpose': 'terminal_access',
-			'exp': expiration
+			**bound_claims,
 		}
 	else:
 		# Anonymous user - generate a guest token
 		payload = {
 			'user_id': None,
 			'username': 'guest',
-			'purpose': 'terminal_access',
-			'exp': expiration
+			**bound_claims,
 		}
-	
+
 	# Create token
 	token = jwt.encode(
 		payload,
 		settings.SECRET_KEY,
 		algorithm="HS256"
 	)
-	
+
 	return Response({'token': token})
 
 

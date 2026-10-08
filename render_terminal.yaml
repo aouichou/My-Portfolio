@@ -15,3 +15,8 @@ services:
       # never committed. sync: false keeps blueprint sync from managing it.
       - key: TERMINAL_PROXY_SECRET
         sync: false
+      # F4-02 slug-bound guest tokens: must equal the Django API's
+      # SECRET_KEY (the mint signs with it). Same rule as above —
+      # dashboard/CLI-set only, sync: false keeps blueprint sync away.
+      - key: TERMINAL_JWT_SECRET
+        sync: false

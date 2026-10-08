@@ -16,6 +16,7 @@ from pathlib import Path
 
 import aiohttp
 import boto3
+import jwt
 import psutil
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
@@ -215,6 +216,16 @@ TERMINAL_MAX_LIFETIME = float(os.getenv('TERMINAL_MAX_LIFETIME', '900'))
 PROXY_SECRET = os.getenv('TERMINAL_PROXY_SECRET')
 PROXY_SECRET_HEADER = 'x-proxy-secret'
 
+# F4-02 slug-bound guest tokens. The mint (Django) embeds the project slug
+# in the HS256 guest JWT and Django now forwards the token on this hop
+# (fixes the old "hop drops the token" audit finding). TERMINAL_JWT_SECRET
+# must be the API's SECRET_KEY (shared secret, dashboard/CLI-set — never
+# committed). Same posture as the proxy secret: unset + DEBUG allows with a
+# loud warning (dev direct-connect has no Django in front to mint); unset
+# in production fails closed.
+TERMINAL_JWT_SECRET = os.getenv('TERMINAL_JWT_SECRET')
+TOKEN_QUERY_PARAM = 'token'
+
 def sanitize_project_slug(project_slug: str) -> str:
 	"""
 	Validate and sanitize project slug to prevent path traversal attacks.
@@ -412,6 +423,47 @@ def proxy_authorized(websocket: WebSocket) -> bool:
 	logger.error("TERMINAL_PROXY_SECRET is not set and DEBUG is off -- failing closed")
 	return False
 
+def verify_guest_token(token, project_slug):
+	"""Verify the slug-bound guest JWT forwarded by Django (F4-02).
+
+	Checks signature (TERMINAL_JWT_SECRET = the API's SECRET_KEY), exp,
+	purpose, and that the token's slug claim matches the requested project
+	-- a minted token may only open ITS OWN project's terminal.
+
+	Returns (ok, error_message): error_message is None when ok. Mirror of
+	the proxy-secret posture: no secret configured + DEBUG allows (dev
+	direct-connect mints nothing); no secret + production fails closed.
+	"""
+	if not TERMINAL_JWT_SECRET:
+		if DEBUG_MODE:
+			logger.warning(
+				"TERMINAL_JWT_SECRET is not set -- accepting connections "
+				"without token verification (DEBUG mode only). Set "
+				"TERMINAL_JWT_SECRET (the API SECRET_KEY) in production."
+			)
+			return True, None
+		logger.error(
+			"TERMINAL_JWT_SECRET is not set and DEBUG is off -- failing closed"
+		)
+		return False, 'terminal auth is not configured'
+
+	if not token:
+		return False, 'missing terminal token'
+	try:
+		payload = jwt.decode(token, TERMINAL_JWT_SECRET, algorithms=['HS256'])
+	except jwt.ExpiredSignatureError:
+		return False, 'terminal token has expired'
+	except jwt.InvalidTokenError:
+		return False, 'invalid terminal token'
+	if payload.get('purpose') != 'terminal_access':
+		return False, 'invalid terminal token'
+	if payload.get('slug') != project_slug:
+		logger.warning(
+			"Token slug %r does not match requested project %r",
+			payload.get('slug'), project_slug)
+		return False, 'terminal token is not valid for this project'
+	return True, None
+
 class InputLineBuffer:
 	"""Accumulate per-session keystrokes into logical lines for validation.
 
@@ -508,6 +560,15 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 	# Proxy shared secret gate -- cheapest check first
 	if not proxy_authorized(websocket):
 		await websocket.send_json({'error': 'unauthorized: missing or invalid proxy secret'})
+		await websocket.close(code=4401)
+		return
+
+	# F4-02 slug-bound guest token gate (Django forwards the verified token
+	# on this hop). Kept after the proxy gate, before any session work.
+	token = websocket.query_params.get(TOKEN_QUERY_PARAM)
+	token_ok, token_error = verify_guest_token(token, project_slug)
+	if not token_ok:
+		await websocket.send_json({'error': f'unauthorized: {token_error}'})
 		await websocket.close(code=4401)
 		return
 

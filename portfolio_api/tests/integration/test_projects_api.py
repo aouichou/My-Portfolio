@@ -122,26 +122,31 @@ class TestProjectDetailEndpoint:
 
 @pytest.mark.django_db
 class TestTerminalTokenEndpoint:
+    """F4-02: the mint requires ?slug= bound to a has_demo=True project."""
 
     def test_returns_200_for_anonymous_user(self, api_client):
+        make_project(title='Minishell', has_demo=True)
         url = reverse('terminal_token')
-        response = api_client.get(url)
+        response = api_client.get(url, {'slug': 'minishell'})
         assert response.status_code == 200
 
     def test_response_contains_token(self, api_client):
+        make_project(title='Minishell', has_demo=True)
         url = reverse('terminal_token')
-        response = api_client.get(url)
+        response = api_client.get(url, {'slug': 'minishell'})
         data = response.json()
         assert 'token' in data
 
     def test_token_is_non_empty_string(self, api_client):
+        make_project(title='Minishell', has_demo=True)
         url = reverse('terminal_token')
-        response = api_client.get(url)
+        response = api_client.get(url, {'slug': 'minishell'})
         token = response.json().get('token', '')
         assert isinstance(token, str) and len(token) > 10
 
     def test_token_contains_three_jwt_segments(self, api_client):
         """A JWT always has exactly three base64url segments separated by dots."""
+        make_project(title='Minishell', has_demo=True)
         url = reverse('terminal_token')
-        token = api_client.get(url).json()['token']
+        token = api_client.get(url, {'slug': 'minishell'}).json()['token']
         assert len(token.split('.')) == 3

@@ -69,8 +69,11 @@ CLOSE = object()  # sentinel frame: behave as a client disconnect
 class StubWebSocket:
     """Minimal async stand-in for starlette's WebSocket (server side)."""
 
-    def __init__(self, incoming=(), headers=None):
+    def __init__(self, incoming=(), headers=None, query_params=None):
         self.headers = headers or {}
+        # F4-02: starlette exposes parsed query params; a plain dict
+        # suffices for the endpoint's .get(TOKEN_QUERY_PARAM).
+        self.query_params = query_params or {}
         self.client = m.MagicMock()
         self.client.host = '127.0.0.1'
         self.queue_in = asyncio.Queue()
@@ -326,3 +329,61 @@ class TestProxySecretOnWS:
             ws = StubWebSocket(headers={'x-proxy-secret': 'nope'})
             await run_endpoint(ws)
             assert ws.closed == 4401
+
+
+# ─────────────────────── F4-02 slug-bound guest tokens ───────────────────────
+
+import time
+
+import jwt as _pyjwt
+
+_JWT_SECRET = 'shared-api-secret-key'
+
+
+def _mint(slug='minishell', expires_in=300, secret=_JWT_SECRET):
+    now = time.time()
+    payload = {
+        'user_id': None,
+        'username': 'guest',
+        'purpose': 'terminal_access',
+        'slug': slug,
+        'exp': now + expires_in,
+        'iat': now,
+    }
+    return _pyjwt.encode(payload, secret, algorithm='HS256')
+
+
+class TestGuestTokenGate:
+
+    async def test_valid_token_passes_to_spawn(self, stub_env):
+        """Valid slug-bound token (proxy posture permissive like dev) —
+        the session proceeds to the shell."""
+        ws = StubWebSocket(incoming=char_frames('pwd') +
+                           [json.dumps({'input': '\r'}), CLOSE],
+                           query_params={'token': _mint()})
+        await run_endpoint(ws)
+        assert ''.join(stub_env.writes) == 'pwd\r'
+
+    async def test_wrong_slug_token_rejected_4401(self, stub_env):
+        """F4-02: a token minted for another project must not open this
+        terminal — rejected before any session work."""
+        with m.patch.object(main, 'TERMINAL_JWT_SECRET', _JWT_SECRET):
+            ws = StubWebSocket(query_params={'token': _mint(slug='push-swap')})
+            await run_endpoint(ws)
+            assert ws.closed == 4401
+            assert 'not valid for this project' in ws.sent_messages()[0]['error']
+            assert stub_env.writes == []
+
+    async def test_expired_token_rejected_4401(self, stub_env):
+        with m.patch.object(main, 'TERMINAL_JWT_SECRET', _JWT_SECRET):
+            ws = StubWebSocket(query_params={'token': _mint(expires_in=-60)})
+            await run_endpoint(ws)
+            assert ws.closed == 4401
+            assert 'expired' in ws.sent_messages()[0]['error']
+
+    async def test_missing_token_rejected_when_secret_set(self, stub_env):
+        with m.patch.object(main, 'TERMINAL_JWT_SECRET', _JWT_SECRET):
+            ws = StubWebSocket()  # no token param at all
+            await run_endpoint(ws)
+            assert ws.closed == 4401
+            assert 'missing terminal token' in ws.sent_messages()[0]['error']

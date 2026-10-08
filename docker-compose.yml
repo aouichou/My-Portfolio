@@ -86,6 +86,10 @@ services:
       # Must match the backend's TERMINAL_PROXY_SECRET; unset + DEBUG off
       # = terminal rejects every WS connection (fail closed)
       - TERMINAL_PROXY_SECRET=${TERMINAL_PROXY_SECRET:-}
+      # F4-02: slug-bound guest tokens — same shared-secret posture: must
+      # equal the backend's SECRET_KEY (set in root .env or shell; unset +
+      # DEBUG off = terminal rejects every WS connection, fail closed)
+      - TERMINAL_JWT_SECRET=${SECRET_KEY:-}
     depends_on: [redis]
 
   db:

@@ -48,9 +48,11 @@ interface LiveTerminalProps {
 
 // Function to get an auth token — v2 FIX: throws on failure (v1 returned
 // null and the component sat on the loading screen forever).
-async function fetchAuthToken(): Promise<string> {
+// F4-02: the mint is slug-bound — the token can only open this project's
+// terminal (enforced again at Django connect and at the terminal service).
+async function fetchAuthToken(slug: string): Promise<string> {
   try {
-    const { token } = await mintTerminalToken();
+    const { token } = await mintTerminalToken(slug);
     return token;
   } catch (error) {
     console.error('Failed to fetch auth token:', error);
@@ -87,7 +89,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
 
     async function getToken() {
       try {
-        const token = await fetchAuthToken();
+        const token = await fetchAuthToken(slug);
         if (isMountedRef.current) {
           setAuthToken(token);
         }
@@ -104,7 +106,7 @@ export default function LiveTerminal({ project, slug }: LiveTerminalProps) {
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [slug]);
 
   // Terminal resize function
   // F3-06a FIX: no `connected` state read (stale-closure source) — the

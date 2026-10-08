@@ -124,8 +124,13 @@ class TestGenerateTerminalTokenBranches:
 
     def _mint_for(self, user):
         from rest_framework.test import APIRequestFactory
+        # F4-02: the mint is slug-bound — factory requests carry ?slug=
+        if not Project.objects.filter(slug='minishell').exists():
+            Project.objects.create(
+                slug='minishell', title='Minishell',
+                description='d', project_type='school', has_demo=True)
         factory = APIRequestFactory()
-        request = factory.get('/api/auth/terminal-token/')
+        request = factory.get('/api/auth/terminal-token/?slug=minishell')
         request.user = user
         response = generate_terminal_token(request)
         assert response.status_code == 200
@@ -139,6 +144,7 @@ class TestGenerateTerminalTokenBranches:
         assert payload['user_id'] is None
         assert payload['username'] == 'guest'
         assert payload['purpose'] == 'terminal_access'
+        assert payload['slug'] == 'minishell'
         assert 'exp' in payload
 
     def test_authenticated_mints_user_payload(self):
@@ -148,6 +154,7 @@ class TestGenerateTerminalTokenBranches:
         assert payload['user_id'] == user.id
         assert payload['username'] == 'batman'
         assert payload['purpose'] == 'terminal_access'
+        assert payload['slug'] == 'minishell'
 
 
 # ═════════════════════════════════════════════════════════════════════════════

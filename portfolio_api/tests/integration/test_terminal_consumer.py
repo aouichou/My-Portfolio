@@ -46,11 +46,13 @@ def run(coro):
 
 
 def mint_token(**overrides):
-    """A guest JWT exactly as generate_terminal_token mints it."""
+    """A guest JWT exactly as generate_terminal_token mints it (F4-02:
+    slug-bound; default matches make_consumer's route slug 'minishell')."""
     payload = {
         'user_id': None,
         'username': 'guest',
         'purpose': 'terminal_access',
+        'slug': 'minishell',
         'exp': datetime.datetime.now(datetime.timezone.utc)
         + datetime.timedelta(minutes=5),
     }
@@ -219,14 +221,34 @@ class TestConnectAuthGate:
         wrong = mint_token(purpose='not_terminal_access')
         self._assert_rejected(f'token={wrong}'.encode())
 
+    def test_slug_claim_mismatch_closes_4003(self):
+        """F4-02: a token minted for another project may not open this
+        route's terminal — close 4003, upstream never dialed."""
+        other = mint_token(slug='push-swap')
+        self._assert_rejected(f'token={other}'.encode())
+
+    def test_missing_slug_claim_closes_4003(self):
+        """F4-02: pre-F4-02 tokens (no slug claim) are rejected — v2 UI is
+        the only client and mints with ?slug= in lockstep."""
+        payload = {
+            'user_id': None,
+            'username': 'guest',
+            'purpose': 'terminal_access',
+            'exp': datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(minutes=5),
+        }
+        legacy = pyjwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        self._assert_rejected(f'token={legacy}'.encode())
+
 
 # ═════════════════════════════════════════════════════════════════════════════
-# connect — upstream URL construction
+# connect — upstream URL construction + F4-02 token forwarding
 # ═════════════════════════════════════════════════════════════════════════════
 
 class TestConnectUpstreamUrl:
 
-    def _dialed_url(self, base_url):
+    def _dialed(self, base_url):
+        """Returns (url, headers) the consumer dialed the upstream with."""
         async def scenario():
             consumer, _, _ = make_consumer(
                 f'token={mint_token()}'.encode())
@@ -234,6 +256,7 @@ class TestConnectUpstreamUrl:
 
             async def fake_connect(url, **kwargs):
                 dialed['url'] = url
+                dialed['headers'] = kwargs.get('additional_headers')
                 return FakeUpstream()
 
             with override_settings(TERMINAL_SERVICE_URL=base_url,
@@ -242,24 +265,39 @@ class TestConnectUpstreamUrl:
                  mock.patch.object(consumers.websockets, 'connect',
                                    fake_connect):
                 await consumer.connect()
-            return dialed['url']
+            return dialed['url'], dialed['headers']
 
         return run(scenario())
 
+    def _dialed_url(self, base_url):
+        return self._dialed(base_url)[0]
+
     def test_ws_scheme_passthrough(self):
-        assert self._dialed_url('ws://terminal:8000') == \
-            'ws://terminal:8000/terminal/minishell/'
+        # F4-02: the dial URL carries the forwarded token — split it off
+        url = self._dialed_url('ws://terminal:8000').split('?')[0]
+        assert url == 'ws://terminal:8000/terminal/minishell/'
 
     def test_wss_scheme_passthrough(self):
-        assert self._dialed_url('wss://terminal.example.com') == \
-            'wss://terminal.example.com/terminal/minishell/'
+        url = self._dialed_url('wss://terminal.example.com').split('?')[0]
+        assert url == 'wss://terminal.example.com/terminal/minishell/'
 
     def test_schemeless_base_url_gets_wss_prefix(self):
-        assert self._dialed_url('terminal.example.com') == \
-            'wss://terminal.example.com/terminal/minishell/'
+        url = self._dialed_url('terminal.example.com').split('?')[0]
+        assert url == 'wss://terminal.example.com/terminal/minishell/'
 
     def test_slug_is_taken_from_the_route(self):
-        assert self._dialed_url('ws://t:1').endswith('/terminal/minishell/')
+        url = self._dialed_url('ws://t:1').split('?')[0]
+        assert url.endswith('/terminal/minishell/')
+
+    def test_token_forwarded_upstream_as_query_param(self):
+        """F4-02: the verified guest token rides the Django→terminal dial
+        (fixes the old 'hop drops the token' audit finding) — the terminal
+        service re-verifies signature+exp+slug."""
+        token = mint_token()
+        url, headers = self._dialed('ws://terminal:8000')
+        assert url == f'ws://terminal:8000/terminal/minishell/?token={token}'
+        # the proxy secret still rides the header, unchanged
+        assert headers == {'X-Proxy-Secret': 'topsecret'}
 
 
 # ═════════════════════════════════════════════════════════════════════════════

@@ -289,6 +289,8 @@ class TestTerminalServiceUrlHasNoDefault:
 		       if k != 'TERMINAL_SERVICE_URL'}
 		with mock.patch.object(consumers_mod, 'validate_jwt',
 		                       return_value=True), \
+			mock.patch.object(consumers_mod, 'token_slug',
+		                       return_value='minishell'), \
 			override_settings(TERMINAL_SERVICE_URL=None), \
 			mock.patch.dict(os.environ, env, clear=True), \
 			mock.patch.object(consumers_mod.websockets, 'connect',

@@ -192,9 +192,10 @@ async function advanceToConnected(): Promise<FakeWebSocket> {
 }
 
 describe('LiveTerminal — token mint', () => {
-  it('fetches the guest token from /auth/terminal-token/ on mount', async () => {
+  it('fetches the slug-bound guest token on mount (F4-02)', async () => {
     mount();
-    await waitFor(() => expect(mintTerminalToken).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(mintTerminalToken).toHaveBeenCalledWith('minishell'));
   });
 
   it('does not open a socket before the token resolves', async () => {

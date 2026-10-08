@@ -118,6 +118,8 @@ class TestTerminalProxySecret:
                 'user_id': None,
                 'username': 'guest',
                 'purpose': 'terminal_access',
+                # F4-02: tokens are slug-bound; the factory route is minishell
+                'slug': 'minishell',
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=5),
             },
             settings.SECRET_KEY,

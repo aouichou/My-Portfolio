@@ -15,7 +15,12 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 def validate_jwt(token):
-	"""Validate JWT token for terminal access"""
+	"""Validate JWT token for terminal access.
+
+	F4-02: tokens are slug-bound at mint time; the slug↔route match is
+	checked separately in connect() (validate_jwt stays shape-only so its
+	unit tests remain purpose/exp-focused).
+	"""
 	try:
 		payload = jwt.decode(
 			token, 
@@ -44,6 +49,22 @@ def validate_jwt(token):
 		logger.error("Token validation error")
 		return False
 
+def token_slug(token):
+	"""Return the decoded slug claim of a terminal token (None if absent).
+
+	Only called AFTER validate_jwt() proved signature and exp — the decode
+	here cannot fail for cryptographic reasons, so the claim lookup is the
+	only branch.
+	"""
+	try:
+		return jwt.decode(
+			token, settings.SECRET_KEY, algorithms=["HS256"]
+		).get('slug')
+	except jwt.InvalidTokenError:
+		# Defensive: validate_jwt already accepted this exact token, so a
+		# decode failure here means a race (key rotation) — treat as unbound.
+		logger.warning("Token re-decode failed while reading slug claim")
+		return None
 class TerminalConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
 		# Extract token from query string
@@ -57,6 +78,18 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			return
 
 		self.project_slug = self.scope['url_route']['kwargs']['project_slug']
+
+		# F4-02 slug binding: the mint embeds the project slug and the token
+		# may only open ITS OWN project's terminal. A token without a slug
+		# claim is a pre-F4-02 token — rejected (v2 UI is the only client and
+		# mints with ?slug= in lockstep; no compat window needed).
+		if token_slug(token) != self.project_slug:
+			logger.warning(
+				"Terminal access denied - token slug does not match route "
+				"(route=%s)", self.project_slug
+			)
+			await self.close(code=4003)
+			return
 
 		# Accept WebSocket connection from browser
 		await self.accept()
@@ -112,6 +145,12 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 		upstream_headers = {'X-Proxy-Secret': proxy_secret} if proxy_secret else None
 		
 		try:
+			# F4-02: forward the verified guest token upstream — the old hop
+			# dropped it (audit finding), so the terminal service could not
+			# verify anything but the proxy secret. Query param, not header:
+			# the terminal service's dev direct-connect path (browser → :8001,
+			# no custom WS headers possible) reuses the same param.
+			dial_url = f"{self.terminal_url}?token={token}"
 			# Connect to terminal service with increased timeout for S3 downloads
 			# Timeout increased to account for:
 			# - Render free tier cold start (10-30s)
@@ -119,7 +158,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 			# - ZIP extraction and bash initialization (10-20s)
 			self.terminal_ws = await asyncio.wait_for(
 				websockets.connect(
-					self.terminal_url,
+					dial_url,
 					ping_interval=30,
 					ping_timeout=120,
 					additional_headers=upstream_headers,

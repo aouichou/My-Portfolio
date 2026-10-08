@@ -6,3 +6,6 @@ pexpect==4.9.0
 psutil==7.2.2
 boto3==1.43.82
 aiohttp==3.14.3
+# F4-02: verify the slug-bound guest JWT forwarded by Django (same scheme
+# the API mints with — shared-secret HS256, see TERMINAL_JWT_SECRET).
+PyJWT==2.10.1
