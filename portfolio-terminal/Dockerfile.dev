@@ -6,6 +6,7 @@ FROM python:3.14-slim
 WORKDIR /app
 
 # Install system dependencies
+# libacl1-dev: ft_ls links -lacl and includes <sys/acl.h> (F4-05b demo)
 RUN apt-get update && apt-get install -y \
     build-essential \
     gcc g++ make \
@@ -14,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     vim \
     libreadline-dev libreadline8 \
     valgrind \
+    libacl1-dev \
     redis-tools \
     && rm -rf /var/lib/apt/lists/*
 

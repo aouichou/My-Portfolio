@@ -61,6 +61,42 @@ docker run --rm \
    in seconds (the minishell slim zip went 74 MB → 65 KB; fresh-session
    download+extract is instant).
 
+## F4-05b — one-shot upload of all staged zips (needs WRITE token)
+
+Batman: once a write-scoped R2 token is in `portfolio_api/.env`
+(replacing the read-only one), this single command uploads every staged
+demo zip (minishell + the four F4-05b projects) and verifies each:
+
+```bash
+cd /home/amine/Code/My-Portfolio
+for slug in minishell ft-ls ft-select ft-ping ft-linear-regression; do
+  docker run --rm \
+    -v "$PWD/.demo-zip-staging:/work" \
+    -v "$PWD/portfolio_api/scripts:/scripts:ro" \
+    --env-file portfolio_api/.env \
+    my-portfolio-backend:latest \
+    python /scripts/r2_demo_zip.py upload /work/$slug.zip $slug || break
+done
+docker run --rm -v "$PWD/portfolio_api/scripts:/scripts:ro" \
+  --env-file portfolio_api/.env my-portfolio-backend:latest \
+  python /scripts/r2_demo_zip.py ls
+```
+
+Expected sha256s after upload (deterministic builds, 2026-10-09):
+
+| slug | size | sha256 |
+|---|---|---|
+| minishell | 65,127 B | `5c5b85672773c3b0211d017bf73d2975661e8ab4d4bc522937d1790c464f8a5` |
+| ft-ls | 53,571 B | `fe4ef19a2002094c698ae807c1dc69194bba0b448f1e2e6638459c240b2bd2e4` |
+| ft-select | 55,127 B | `f0a58dbfd39a7e37951c9649a7e293692af3fa29201c534f9db9f08050ff17dc` |
+| ft-ping | 16,636 B | `788ac3f6a4cb221873dd30c6924befaa96fa9df2cdd9007739126d4ecef77ba4` |
+| ft-linear-regression | 49,699 B | `2ba9a5302a295344f10163a74377f29c389d8423884bce8f5afa993dfff609a2` |
+
+After upload: enable per-project via Django admin (has_demo +
+demo_files_path) — the F4-05b dev rows carry the exact demo_commands to
+copy; the prod fixture `projects/fixtures/demos_f405b.json` ships with
+has_demo=false for exactly this reason.
+
 ## Available Scripts
 
 

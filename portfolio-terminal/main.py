@@ -1146,15 +1146,115 @@ async def read_terminal_output(websocket, child):
 			# Timeout or other error, just continue
 			await asyncio.sleep(0.1)
 
+# ── F4-05b: command-line grammar helpers ─────────────────────────────────────
+#
+# The four new demos (ft_ls, ft_select, ft_ping, ft_linear_regression) need
+# `make && ./ft_ls -la`-style build-and-run flows, `./binary <args>`, and a
+# way to answer a foreground program's numeric stdin prompt (./predict's
+# "Enter a mileage:"). The helpers below express that as a strict grammar.
+
+# A chain segment: a single command with NO shell operators inside. The
+# `&&` split happens on the RAW line first; every segment then runs the
+# FULL single-command pipeline (pre-allowlist deny checks + allowlist).
+_CHAIN_OPERATOR_RE = re.compile(r'\s*&&\s*')
+
+# Conservative argument charset for `./binary` (and only `./binary`):
+# word chars, path/flag punctuation, key=value assignments, and decimal
+# separators. No quotes, no whitespace, no metacharacters — expansion
+# never applies because such bytes are rejected before bash sees them.
+_BINARY_ARG_RE = re.compile(r'^[\w./=:,-]+$')
+
+# Bare decimal number — the ONLY thing accepted when a line matches no
+# command pattern. Exists so ./predict's "Enter a mileage:" prompt can be
+# answered. Grants no shell capability: a bare number as a bash command
+# is a not-found error. Strictly optional-sign + digits + single optional
+# decimal part; no hex, no exponent, no separators.
+_NUMERIC_STDIN_RE = re.compile(r'^-?\d+(\.\d+)?$')
+
+def _segment_denied(segment):
+	"""Deny checks that must run BEFORE any allowlist pattern can match.
+
+	Historically the allowlist ran first, which let a few permissive
+	patterns (echo's `.*`, cat's traversal-tolerant token charset) shadow
+	the escape/traversal/danger checks — the documented known gaps. The
+	allowlist stays permissive for ITS commands, but nothing can clear it
+	while carrying `../`, `/dev/`, a blocked escape sequence, or a
+	redirect/substitution operator.
+	"""
+	# Container escape checks - CRITICAL SECURITY
+	blocked_sequences = [
+		'docker', 'kubectl', 'sudo', 'su ', 'ssh',
+		'--privileged', '--cap-add', 'nsenter',
+		'unshare', 'mount', 'umount', 'chroot',
+		'pivot_root', 'cgroup', 'setns', 'ptrace',
+		'ld.so', 'proc', '/dev/'
+	]
+	if any(seq in segment for seq in blocked_sequences):
+		logger.warning("Blocked command with suspicious sequence: %s", segment)
+		return True
+
+	# Path traversal protection — before the allowlist so no permissive
+	# pattern (cat, echo) can shadow it
+	if '../' in segment:
+		logger.warning("Blocked command with path traversal: %s", segment)
+		return True
+
+	# Protect against command chaining/injection on the raw segment.
+	# `&&` was already split out; every other operator is denied.
+	segment_operators = [';', '||', '`', '$(', '|', '>', '<']
+	if any(op in segment for op in segment_operators):
+		logger.warning("Blocked command with operator: %s", segment)
+		return True
+
+	# Additional deny list for extra security
+	dangerous_commands = [
+		'rm -rf', 'chmod 777', ':(){', 'curl | bash',
+		'wget | bash', '> /dev', '> /proc', '> /sys'
+	]
+	if any(cmd in segment for cmd in dangerous_commands):
+		logger.warning("Blocked dangerous command: %s", segment)
+		return True
+
+	return False
+
 def validate_command(command):
-	"""Validate terminal commands with improved security"""
+	"""Validate terminal commands with improved security
+
+	F4-05b: `&&` chains are supported by splitting the line and running
+	every segment through the SAME single-command pipeline. One bad
+	segment blocks the whole line. All other operators (`;`, `||`, `|`,
+	`>`, `<`, backtick, `$(...)`) remain denied outright.
+	"""
 	# Strip whitespace for cleaner matching
 	command = command.strip()
-	
+
 	# Allow empty commands (just pressing enter)
 	if not command:
 		return True
-	
+
+	# F4-05b: split `&&` chains; validate every segment independently
+	segments = _CHAIN_OPERATOR_RE.split(command)
+	if not segments or any(not seg.strip() for seg in segments):
+		# empty segment = trailing/leading/doubled `&&` — malformed, deny
+		logger.warning("Command denied (malformed chain): %s", command)
+		return False
+	for segment in segments:
+		if not validate_single_command(segment.strip()):
+			return False
+	return True
+
+def validate_single_command(command):
+	"""Validate ONE command (no `&&`): pre-allowlist deny checks, then
+	the allowlist. Split out from validate_command by F4-05b so chain
+	segments run the exact same pipeline as bare lines."""
+	if not command:
+		return False
+
+	# Deny checks FIRST (F4-05b): escape sequences, traversal, operators,
+	# danger list — nothing clears the allowlist while carrying these.
+	if _segment_denied(command):
+		return False
+
 	# Allowlist approach for basic commands
 	allowed_patterns = [
 		# Basic navigation and file inspection
@@ -1168,7 +1268,11 @@ def validate_command(command):
 		# Development commands
 		r'^make(\s+[\w-]+)?$',
 		r'^gcc(\s+-[a-zA-Z]+)*(\s+[\w\./-]+)+$',
-		r'^./[\w-]+$',  # Run executables in current directory
+		# F4-05b: run a built demo executable WITH arguments
+		# (`./ft_ls -la`, `./train 0.1 1000 0.0000001`): binary name is
+		# word-chars only; each argument must match the conservative
+		# _BINARY_ARG_RE charset. No shell metacharacters in any position.
+		r'^\./[\w-]+(\s+' + _BINARY_ARG_RE.pattern[1:-1] + ')*$',
 		
 		# Basic file manipulation
 		r'^touch\s+[\w\./-]+$',
@@ -1185,43 +1289,12 @@ def validate_command(command):
 		if re.match(pattern, command):
 			logger.info("Command allowed by pattern: %s", command)
 			return True
-		
-	# Container escape checks - CRITICAL SECURITY
-	blocked_sequences = [
-		'docker', 'kubectl', 'sudo', 'su ', 'ssh',
-		'--privileged', '--cap-add', 'nsenter', 
-		'unshare', 'mount', 'umount', 'chroot',
-		'pivot_root', 'cgroup', 'setns', 'ptrace',
-		'ld.so', 'proc', '/dev/'
-	]
-	
-	if any(seq in command for seq in blocked_sequences):
-		logger.warning("Blocked command with suspicious sequence: %s", command)
-		return False
-		
-	# Path traversal protection
-	if any('../' in part for part in command.split()):
-		logger.warning("Blocked command with path traversal: %s", command)
-		return False
-		
-	# Protect against command chaining/injection
-	command_operators = [';', '&&', '||', '`', '$(',  '|', '>', '<']
-	if any(op in command for op in command_operators):
-		logger.warning("Blocked command with operator: %s", command)
-		return False
-		
-	# Additional deny list for extra security
-	dangerous_commands = [
-		'rm -rf', 'chmod 777', ':(){', 'curl | bash',
-		'wget | bash', '> /dev', '> /proc', '> /sys'
-	]
-	
-	if any(cmd in command for cmd in dangerous_commands):
-		logger.warning("Blocked dangerous command: %s", command)
-		return False
 
-	# If nothing matched, deny by default (security first)
-	logger.warning("Command denied (no matching pattern): %s", command)
+	# F4-05b numeric stdin: a foreground program (./predict) asked for a
+	# number; a bare decimal line grants no shell capability (bash would
+	# just report command-not-found for it).
+	if _NUMERIC_STDIN_RE.match(command):
+		return True
 	return False
 
 @app.get("/error-stats")

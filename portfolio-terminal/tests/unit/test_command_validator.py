@@ -225,49 +225,50 @@ class TestDefaultDeny:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# Security observations — known behaviour that warrants review
+# Security observations — gaps CLOSED by F4-05b
 # ═════════════════════════════════════════════════════════════════════════════
 
 class TestSecurityObservations:
     """
-    Tests that document *currently-observed* behaviour for commands where the
-    allowlist pattern fires before the blocklist can reject them.  These tests
-    are intentionally written to PASS against the existing code so CI stays
-    green; they exist as a living record of the known attack surface.
-
-    Each method includes a comment explaining why the behaviour is surprising
-    and what a strict fix would look like.
+    Historical record: these were ALLOWED because the allowlist fired before
+    the blocklist (documented known gaps). F4-05b moved the escape/traversal/
+    operator/danger deny checks BEFORE the allowlist — the gaps are closed
+    and these tests now pin the blocked behaviour.
     """
 
-    def test_echo_allows_redirect_known_gap(self):
+    def test_echo_redirect_blocked_gap_closed(self):
         """
-        KNOWN GAP: r'^echo\\s+.*$' matches 'echo x > /tmp/x'.
-        The '>' redirect operator check never runs because the allowlist returns
-        True first.  Fix: tighten the echo pattern to r'^echo\\s+[^;|&<>`$!]+$'.
+        WAS GAP: r'^echo\\s+.*$' matched 'echo x > /tmp/x' because the
+        allowlist returned True before the '>' operator check ran.
+        F4-05b: operators are denied pre-allowlist — blocked.
         """
-        # Current behaviour — expect True (not blocked)
-        assert validate_command('echo x > /tmp/x') is True
+        assert validate_command('echo x > /tmp/x') is False
 
-    def test_echo_allows_backtick_subshell_known_gap(self):
+    def test_echo_backtick_blocked_gap_closed(self):
         """
-        KNOWN GAP: r'^echo\\s+.*$' allows backtick subshell injection.
-        Fix: restrict echo pattern to safe characters only.
+        WAS GAP: r'^echo\\s+.*$' allowed backtick subshell injection.
+        F4-05b: pre-allowlist operator check — blocked.
         """
-        assert validate_command('echo `id`') is True
+        assert validate_command('echo `id`') is False
 
-    def test_echo_allows_dollar_paren_subshell_known_gap(self):
+    def test_echo_dollar_paren_blocked_gap_closed(self):
         """
-        KNOWN GAP: r'^echo\\s+.*$' allows $() subshell injection.
-        Fix: restrict echo pattern to safe characters only.
+        WAS GAP: r'^echo\\s+.*$' allowed $() subshell injection.
+        F4-05b: pre-allowlist operator check — blocked.
         """
-        assert validate_command('echo $(whoami)') is True
+        assert validate_command('echo $(whoami)') is False
 
-    def test_cat_allows_any_path_known_gap(self):
+    def test_cat_traversal_and_dev_blocked_gap_closed(self):
         """
-        KNOWN GAP: r'^cat(\\s+[\\w\\./-]+)+$' allows cat /dev/sda and
-        cat ../../etc/passwd because '/', '.' and '-' are in the char class and
-        the allowlist fires before the blocklist.
-        Fix: add a negative lookahead for /dev/ and ban '../' in the cat pattern.
+        WAS GAP: r'^cat(\\s+[\\w\\./-]+)+$' allowed cat /dev/sda and
+        cat ../../etc/passwd because the allowlist fired before the
+        blocklist.
+        F4-05b: '/dev/' and '../' are denied pre-allowlist — blocked.
+        NOTE: `cat /etc/passwd` (absolute path, no traversal) is still
+        allowlisted by the cat pattern — accepted surface: in-container
+        non-root open() of system files fails, and the child env is
+        scrubbed (no secrets). Tightening the cat charset to relative
+        paths only is a future option.
         """
-        assert validate_command('cat /dev/sda') is True
-        assert validate_command('cat ../../etc/passwd') is True
+        assert validate_command('cat /dev/sda') is False
+        assert validate_command('cat ../../etc/passwd') is False

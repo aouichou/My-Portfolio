@@ -140,8 +140,14 @@ services:
       # HOST kernel — finite values break innocent forks on shared-uid
       # hosts like this Docker Desktop VM. Set it only on dedicated-uid
       # hosts (D9 DO-droplet target).
+      # F4-05b: AS=0 for the ft_linear_regression demo — its Makefile builds
+      # with -fsanitize=address, and ASAN reserves ~14TB of shadow address
+      # space, which aborts instantly under any finite RLIMIT_AS (proven in
+      # the dev container: exit 134 under the 512MB default). The F4-03
+      # note already sanctioned raising/disabling AS for sanitizer demos;
+      # CPU/FSIZE/NPROC limits + session cap still bound the session.
+      - TERMINAL_RLIMIT_AS=0
       # - TERMINAL_RLIMIT_CPU=120            # RLIMIT_CPU seconds
-      # - TERMINAL_RLIMIT_AS=536870912       # RLIMIT_AS bytes (512 MiB)
       # - TERMINAL_RLIMIT_NPROC=0            # off (see note above)
       # - TERMINAL_RLIMIT_FSIZE=20971520     # RLIMIT_FSIZE bytes (20 MiB)
       # F4-03 scratch/projects roots (defaults shown; tests pin these under

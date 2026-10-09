@@ -1,6 +1,7 @@
 FROM ubuntu:26.04
 
 # Install necessary packages
+# libacl1-dev: ft_ls links -lacl and includes <sys/acl.h> (F4-05b demo)
 RUN apt-get update && apt-get install -y \
 	python3 python3-pip \
 	build-essential gcc g++ make \
@@ -10,6 +11,7 @@ RUN apt-get update && apt-get install -y \
 	vim nano \
 	libreadline-dev libreadline8 \
 	valgrind \
+	libacl1-dev \
 	libx11-dev \
 	libxext-dev \
 	libxrandr-dev \

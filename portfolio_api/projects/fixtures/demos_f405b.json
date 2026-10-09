@@ -1,0 +1,273 @@
+[
+  {
+    "model": "projects.project",
+    "pk": 18,
+    "fields": {
+      "project_type": "school",
+      "experience": null,
+      "title": "ft_ls",
+      "slug": "ft-ls",
+      "description": "A from-scratch reimplementation of ls in C \u2014 long listings, ACL and xattr columns, sorting, recursion and the classic -l/-a/-R/-r/-t flag set, on top of my own libft.",
+      "thumbnail": null,
+      "thumbnail_url": null,
+      "is_featured": false,
+      "score": null,
+      "readme": null,
+      "tech_stack": [
+        {
+          "name": "C"
+        },
+        {
+          "name": "libft"
+        },
+        {
+          "name": "Unix filesystem APIs"
+        },
+        {
+          "name": "ACL / xattr"
+        }
+      ],
+      "features": [
+        "Long listing (-l) with permissions, links, sizes and dates",
+        "ACL (+) and extended-attributes (@) column markers",
+        "Sort by name, time (-t) and reverse (-r)",
+        "Recursive directory listing (-R)",
+        "Major/minor device numbers for block and char devices"
+      ],
+      "challenges": null,
+      "lessons": null,
+      "live_url": null,
+      "code_url": "https://framagit.org/am/ft_ls",
+      "video_url": null,
+      "architecture_description": null,
+      "architecture_diagrams": [],
+      "related_documentation": [],
+      "has_demo": false,
+      "demo_commands": [
+        {
+          "label": "Build & list",
+          "command": "make && ./ft_ls -la"
+        },
+        {
+          "label": "Sort by time",
+          "command": "./ft_ls -lat"
+        },
+        {
+          "label": "Recursive",
+          "command": "./ft_ls -R libft"
+        }
+      ],
+      "demo_files_path": null,
+      "code_steps": [],
+      "code_snippets": [],
+      "role_description": null,
+      "stats": [],
+      "badges": [],
+      "impact_metrics": [],
+      "order": 0,
+      "created_at": "2026-10-09T15:23:28.472Z",
+      "updated_at": "2026-10-09T15:23:28.472Z"
+    }
+  },
+  {
+    "model": "projects.project",
+    "pk": 19,
+    "fields": {
+      "project_type": "school",
+      "experience": null,
+      "title": "ft_select",
+      "slug": "ft-select",
+      "description": "An interactive TUI argument picker in C \u2014 renders the argument list with termcaps, supports live dynamic search, selection with space, deletion and arrow navigation.",
+      "thumbnail": null,
+      "thumbnail_url": null,
+      "is_featured": false,
+      "score": null,
+      "readme": null,
+      "tech_stack": [
+        {
+          "name": "C"
+        },
+        {
+          "name": "libft"
+        },
+        {
+          "name": "termcaps"
+        },
+        {
+          "name": "Signals"
+        },
+        {
+          "name": "tty raw mode"
+        }
+      ],
+      "features": [
+        "Termcaps-rendered argument list with cursor highlighting",
+        "Space to select/deselect, Tab/arrows to move",
+        "Dynamic incremental search across arguments",
+        "Signal-safe window resize handling"
+      ],
+      "challenges": null,
+      "lessons": null,
+      "live_url": null,
+      "code_url": "https://framagit.org/am/ft_select",
+      "video_url": null,
+      "architecture_description": null,
+      "architecture_diagrams": [],
+      "related_documentation": [],
+      "has_demo": false,
+      "demo_commands": [
+        {
+          "label": "Build & pick",
+          "command": "make && ./ft_select README.md Makefile"
+        }
+      ],
+      "demo_files_path": null,
+      "code_steps": [],
+      "code_snippets": [],
+      "role_description": null,
+      "stats": [],
+      "badges": [],
+      "impact_metrics": [],
+      "order": 0,
+      "created_at": "2026-10-09T15:23:28.498Z",
+      "updated_at": "2026-10-09T15:23:28.498Z"
+    }
+  },
+  {
+    "model": "projects.project",
+    "pk": 20,
+    "fields": {
+      "project_type": "school",
+      "experience": null,
+      "title": "ft_ping",
+      "slug": "ft-ping",
+      "description": "A C reimplementation of the ping utility \u2014 ICMP echo requests/replies over raw sockets, DNS resolution, RTT statistics and the GNU inetutils option surface (-c, -i, -v, -w, --ttl ...).",
+      "thumbnail": null,
+      "thumbnail_url": null,
+      "is_featured": false,
+      "score": null,
+      "readme": null,
+      "tech_stack": [
+        {
+          "name": "C"
+        },
+        {
+          "name": "Raw sockets"
+        },
+        {
+          "name": "ICMP"
+        },
+        {
+          "name": "DNS"
+        },
+        {
+          "name": "Signals"
+        }
+      ],
+      "features": [
+        "ICMP echo request/reply with checksum validation",
+        "DNS hostname resolution",
+        "RTT statistics: min/avg/max/mdev",
+        "Bonus options: -c, -i, -v, -w, -W, --ttl, -s, -q"
+      ],
+      "challenges": null,
+      "lessons": null,
+      "live_url": null,
+      "code_url": "https://github.com/aouichou/ft_ping",
+      "video_url": null,
+      "architecture_description": null,
+      "architecture_diagrams": [],
+      "related_documentation": [],
+      "has_demo": false,
+      "demo_commands": [
+        {
+          "label": "Build & help",
+          "command": "make && ./ft_ping --help"
+        },
+        {
+          "label": "Usage",
+          "command": "./ft_ping --usage"
+        }
+      ],
+      "demo_files_path": null,
+      "code_steps": [],
+      "code_snippets": [],
+      "role_description": null,
+      "stats": [],
+      "badges": [],
+      "impact_metrics": [],
+      "order": 0,
+      "created_at": "2026-10-09T15:23:28.502Z",
+      "updated_at": "2026-10-09T15:23:28.502Z"
+    }
+  },
+  {
+    "model": "projects.project",
+    "pk": 21,
+    "fields": {
+      "project_type": "school",
+      "experience": null,
+      "title": "ft_linear_regression",
+      "slug": "ft-linear-regression",
+      "description": "Gradient-descent linear regression from scratch in C \u2014 a hand-rolled matrix layer, dataset normalization, train/predict/precision programs and theta persistence, built with AddressSanitizer on.",
+      "thumbnail": null,
+      "thumbnail_url": null,
+      "is_featured": false,
+      "score": null,
+      "readme": null,
+      "tech_stack": [
+        {
+          "name": "C"
+        },
+        {
+          "name": "Gradient descent"
+        },
+        {
+          "name": "Matrix library"
+        },
+        {
+          "name": "ASAN"
+        }
+      ],
+      "features": [
+        "From-scratch matrix arithmetic (no external math beyond libm)",
+        "Gradient descent with learning-rate/iteration/tolerance knobs",
+        "theta.txt model persistence between train and predict",
+        "R\u00b2 precision scoring against the dataset"
+      ],
+      "challenges": null,
+      "lessons": null,
+      "live_url": null,
+      "code_url": "https://github.com/aouichou/linear_regression",
+      "video_url": null,
+      "architecture_description": null,
+      "architecture_diagrams": [],
+      "related_documentation": [],
+      "has_demo": false,
+      "demo_commands": [
+        {
+          "label": "Build & train",
+          "command": "make && ./train 0.1 100000 0.000000001"
+        },
+        {
+          "label": "Predict price",
+          "command": "./predict"
+        },
+        {
+          "label": "Precision (R\u00b2)",
+          "command": "./precision"
+        }
+      ],
+      "demo_files_path": null,
+      "code_steps": [],
+      "code_snippets": [],
+      "role_description": null,
+      "stats": [],
+      "badges": [],
+      "impact_metrics": [],
+      "order": 0,
+      "created_at": "2026-10-09T15:23:28.506Z",
+      "updated_at": "2026-10-09T15:23:28.506Z"
+    }
+  }
+]
