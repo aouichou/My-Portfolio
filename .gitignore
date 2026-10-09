@@ -31,6 +31,9 @@ var/
 static/
 local_settings.py
 
+# Demo-zip pipeline staging (F4-05a) — local build artifacts, never committed
+.demo-zip-staging/
+
 # Next.js
 .next/
 out/

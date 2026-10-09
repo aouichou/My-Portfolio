@@ -2,7 +2,67 @@
 
 This directory contains helper scripts for local development.
 
+## Demo-Zip Pipeline (terminal demos — F4-05a)
+
+The terminal service serves per-project demos from a zip in R2:
+visitors' sessions download `project-files/<slug>.zip` on first connect.
+The pipeline has three deliberate steps — build, upload, enable — so
+nothing reaches production storage by accident.
+
+### 1. Build the zip (local, deterministic, never uploads)
+
+```bash
+scripts/make_demo_zip.sh <src_dir> <slug>
+# e.g. scripts/make_demo_zip.sh ~/Code/minishell minishell
+```
+
+- Applies the standard exclusions (`.git`, `__pycache__`, `node_modules`,
+  `*.o`, hidden junk, `media/` demo GIFs...) — see the script header for
+  the full list; `--extra-exclude GLOB` adds one-offs.
+- Deterministic: sorted entries + fixed timestamps ⇒ same tree, same
+  bytes (sha256 printed for the report).
+- Writes `.demo-zip-staging/<slug>.zip` (git-ignored) and prints size +
+  file count + sha256.
+- **Layout is load-bearing**: zip root = the session's landing dir, so
+  `demo_commands` like `./minishell` must resolve at that root. Build
+  from the source dir whose layout matches the commands.
+- Self-test: `scripts/make_demo_zip.sh --check` (exclusion + determinism
+  assertions; also pinned by `portfolio-terminal/tests/test_demo_zip_pipeline.py`).
+
+### 2. Upload to R2 (explicit, separate)
+
+```bash
+docker run --rm \
+  -v "$PWD/.demo-zip-staging:/work" \
+  -v "$PWD/portfolio_api/scripts:/scripts:ro" \
+  --env-file portfolio_api/.env \
+  my-portfolio-backend:latest \
+  python /scripts/r2_demo_zip.py upload /work/<slug>.zip <slug>
+```
+
+- `r2_demo_zip.py` also has `info <slug>`, `ls`, `download <slug> <dest>`
+  for verification. Credentials come from the env file and are never
+  printed. Overwriting a demo zip is the intended update path (R2 has no
+  versioning).
+- ⚠️ The token in `portfolio_api/.env` is READ-ONLY (verified 2026-10-09:
+  PutObject denied on every prefix). Uploading requires a write-scoped
+  R2 token — set it in the env-file pass (or rotate `AWS_*` temporarily).
+
+### 3. Enable the demo (Django admin)
+
+1. Project row: check `has_demo`, set `demo_files_path` =
+   `project-files/<slug>.zip`, curate `demo_commands` (run relative to
+   the zip root — verify with a live session).
+2. The terminal service picks the slug up via the has_demo feed
+   (F4-01 DB-driven whitelist; refresh-on-miss means just-enabled demos
+   work without a restart).
+3. Fresh session check: mint `GET /api/auth/terminal-token/?slug=<slug>`
+   → open `ws…/ws/terminal/<slug>/?token=…` → first prompt should appear
+   in seconds (the minishell slim zip went 74 MB → 65 KB; fresh-session
+   download+extract is instant).
+
 ## Available Scripts
+
 
 ### `dev-setup.sh`
 **Purpose**: First-time setup of local development environment
@@ -25,6 +85,22 @@ This directory contains helper scripts for local development.
 - First time setting up the project locally
 - After cloning the repository
 - When you want a fresh start
+
+---
+
+### `make_demo_zip.sh`
+**Purpose**: Build a deterministic, exclusion-filtered demo zip for a
+terminal-demo project (see "Demo-Zip Pipeline" above for the full
+build → upload → enable recipe)
+
+**Usage**:
+```bash
+scripts/make_demo_zip.sh <src_dir> <slug> [--extra-exclude GLOB]
+scripts/make_demo_zip.sh --check   # self-test
+```
+
+**When to use**: adding or refreshing a project's terminal demo zip.
+
 
 ---
 
