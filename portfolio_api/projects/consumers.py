@@ -66,6 +66,25 @@ def token_slug(token):
 		logger.warning("Token re-decode failed while reading slug claim")
 		return None
 class TerminalConsumer(AsyncWebsocketConsumer):
+	# F4-04: this consumer opts OUT of the channel layer entirely.
+	#
+	# Rationale (verified against channels 4.3.2 + channels-redis 4.3.0):
+	# the terminal data plane never touches the layer — browser frames
+	# arrive via the raw ASGI receive queue and upstream frames via this
+	# consumer's OWN `websockets` connection; nothing here calls
+	# group_send/group_add. The layer's only role was AsyncConsumer's
+	# background BRPOP poll (every 5s), so when Render's free-tier Redis
+	# idled out and evicted connections, that poll raised
+	# redis.exceptions.TimeoutError and Daphne tore down LIVE sessions.
+	# With channel_layer_alias = None, get_channel_layer(None) returns
+	# None and channels runs the consumer without the layer — Redis is
+	# structurally out of the terminal path (a full Redis outage can no
+	# longer kill a session). If a future feature genuinely needs groups,
+	# remove this AND re-read the F4-04 report: settings.CHANNEL_LAYERS is
+	# pre-hardened (keepalive/health-check/retry_on_timeout) precisely so
+	# that day is safe — but sessions then carry the poll again.
+	channel_layer_alias = None
+
 	async def connect(self):
 		# Extract token from query string
 		query_string = self.scope['query_string'].decode()
@@ -263,6 +282,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 				}))
 
 class HealthCheckConsumer(AsyncWebsocketConsumer):
+	# F4-04: same layer opt-out as TerminalConsumer — the handshake is a
+	# single send+close over raw ASGI; the layer was pure crash surface
+	# (see TerminalConsumer's note for the full rationale).
+	channel_layer_alias = None
+
 	async def connect(self):
 		await self.accept()
 		await self.send(text_data=json.dumps({

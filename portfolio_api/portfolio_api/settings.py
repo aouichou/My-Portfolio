@@ -378,15 +378,46 @@ if not DEBUG:
 
 
 # Channel layers for WebSocket
+#
+# F4-04: the terminal + health WS consumers opt OUT of the layer entirely
+# (consumers.py, channel_layer_alias = None) — their data flows over raw
+# ASGI plus the consumer's own upstream `websockets` connection, so the
+# layer could only ever crash them: Render's free-tier Redis evicts idle
+# connections, and the layer's 5s BRPOP poll then raised
+# redis.exceptions.TimeoutError inside AsyncConsumer.__call__, killing
+# LIVE TerminalConsumer sessions. The config below stays and is HARDENED
+# for any future consumer that genuinely needs groups: idle evictions
+# must self-heal (detected + retried + reconnected), never raise into
+# consumers.
 ASGI_APPLICATION = 'portfolio_api.asgi.application'
 CHANNEL_LAYERS = {
 	'default': {
-		## Use Redis in development
-		# 'BACKEND': 'channels.layers.InMemoryChannelLayer',
-		## Use Redis in production
 		'BACKEND': 'channels_redis.core.RedisChannelLayer',
 		'CONFIG': {
-			'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+			# NOTE: the channels-redis 4.x constructor takes NO resilience
+			# kwargs — hosts entries given as dicts are forwarded verbatim
+			# to redis-py's ConnectionPool (create_pool → from_url), which
+			# is where these knobs live. Keys verified against the
+			# installed channels-redis 4.3.0 / redis-py 7.1.0.
+			'hosts': [{
+				'address': os.environ.get('REDIS_URL', 'redis://localhost:6379'),
+				# TCP keepalive: keep the poll path warm across
+				# intermediaries so idle connections aren't silently reaped
+				'socket_keepalive': True,
+				# PING connections idle >25s before reuse — a server-side
+				# eviction is detected and the connection REPLACED,
+				# instead of surfacing as a read error in the poll
+				'health_check_interval': 25,
+				# A poll read-timeout becomes ONE retry, not an exception
+				# tearing the consumer's await_many_dispatch loop down
+				'retry_on_timeout': True,
+				# Fail fast on unreachable addresses
+				'socket_connect_timeout': 5,
+				# Must exceed channels-redis's brpop_timeout (5s) with
+				# headroom — a smaller value would time out every
+				# HEALTHY idle poll
+				'socket_timeout': 30,
+			}],
 		}
 	}
 }
