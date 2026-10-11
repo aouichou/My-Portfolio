@@ -652,9 +652,6 @@ async def periodic_health_checks():
 		await asyncio.sleep(600)  # 600 seconds = 10 minutes
 
 active_terminals = {}
-error_counter = 0
-last_error_message = ""
-last_error_timestamp = None
 
 @app.get("/metrics")
 async def metrics():
@@ -1358,14 +1355,6 @@ def validate_single_command(command):
 	if _NUMERIC_STDIN_RE.match(command):
 		return True
 	return False
-
-@app.get("/error-stats")
-async def error_statistics():
-	return {
-		"errors": error_counter,
-		"last_error": last_error_message,
-		"last_error_time": last_error_timestamp
-	}
 
 def download_project_files(project_slug, project_dir):
 	"""Download project files from S3 if they exist, or copy from local backend in DEBUG mode"""
