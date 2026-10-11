@@ -171,6 +171,13 @@ services:
       - ALL
     cap_add:
       - NET_BIND_SERVICE
+    security_opt:
+      # F4-06: the SAME default-DENY profile as prod (canonical copy at
+      # portfolio-terminal/seccomp-profile.json) — dev must run what prod
+      # runs, or the empirical verification loop proves nothing. Includes
+      # no-new-privileges matching the prod compose posture.
+      - seccomp:./portfolio-terminal/seccomp-profile.json
+      - no-new-privileges:true
 
   # Nginx (optional - for testing production-like routing)
   # Uncomment if you want to test with nginx locally

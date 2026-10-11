@@ -1,18 +1,386 @@
 {
-  "defaultAction": "SCMP_ACT_ALLOW",
-  "architectures": ["SCMP_ARCH_X86_64"],
+  "comment": [
+    "F4-06 default-DENY seccomp profile for the portfolio-terminal service.",
+    "Every syscall the container may make is an explicit ALLOW below, each with a",
+    "one-line justification. Everything not listed returns EPERM (SCMP_ACT_ERRNO).",
+    "",
+    "Methodology (empirical, 2026-10-09): syscalls were collected via strace -f -qc",
+    "inside a debian:trixie-slim sandbox while driving, per demo (minishell, ft-ls,",
+    "ft-select, ft-linear-regression): an interactive login bash on a pty (mirroring",
+    "the service's pexpect spawn), `make` (full gcc/ld pipeline), and the built demo",
+    "binary; plus a full trace of the service itself (python/uvicorn/pexpect/boto3)",
+    "running one real WS session end-to-end. Union of traces = the base allow list;",
+    "near-certain needs of paths not exercised in the traces (ASAN shadow mapping,",
+    "bash builtins, timer syscalls) are added and marked [expected] in the why.",
+    "",
+    "Verification: live-verified 2026-10-11 (dev compose stack mounts this file",
+    "in docker-compose.dev.yml): all four demos compile and run under it through",
+    "the real proxy chain (mint token -> WS -> make -> run -> post-session sweep),",
+    "and a denied-syscall probe (unshare/ptrace/bpf/kcmp) returns EPERM without",
+    "SIGSYS. Two gaps the original traces missed were found and fixed empirically:",
+    "fchdir (coreutils rm -rf safe directory walking) and the utimensat family",
+    "(touch / gcc -o timestamps). Transcripts:",
+    ".github/agent-reports/senior-dev/f4-06-seccomp-default-deny.md. Drift guard:",
+    "tests/security/test_seccomp_profile.py pins the structure (default DENY,",
+    "allow-list only, documented entries).",
+    "",
+    "EXPLICITLY DENIED (by omission, default EPERM): unshare, setns, mount, umount2,",
+    "pivot_root, chroot, ptrace, process_vm_(read|write)v, bpf, keyctl, add_key,",
+    "request_key, kexec_*, reboot, (f)init_module/delete_module, iopl, ioperm,",
+    "swapon/swapoff, sethostname/setdomainname, capset, perf_event_open,",
+    "userfaultfd, io_uring_setup, open_by_handle_at, fanotify_init, quotactl,",
+    "kcmp, uselib, vhangup, clock_settime/settimeofday (time tampering),",
+    "personality (ABI bypass), setuid/setgid family (privilege change),",
+    "sched_setscheduler (scheduler control), memfd_secret, landlock_* .",
+    "This is the structural improvement over the pre-F4-06 profile (default-ALLOW",
+    "with ~24 deny entries): an unknown or dangerous syscall now fails CLOSED by",
+    "construction \u2014 the old deny list cannot drift out of date."
+  ],
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "defaultErrnoRet": 1,
+  "architectures": [
+    "SCMP_ARCH_X86_64"
+  ],
   "syscalls": [
     {
       "names": [
-        "unshare", "keyctl", "add_key", "request_key",
-        "mount", "umount", "umount2", "pivot_root",
-        "ptrace", "process_vm_readv", "process_vm_writev",
-        "kexec_load", "kexec_file_load", "reboot",
-        "init_module", "finit_module", "delete_module",
-        "iopl", "ioperm", "swapon", "swapoff",
-        "sethostname", "setdomainname", "bpf"
+        "access",
+        "chdir",
+        "chmod",
+        "chown",
+        "close",
+        "close_range",
+        "dup",
+        "dup2",
+        "dup3",
+        "faccessat",
+        "faccessat2",
+        "fchdir",
+        "fchmod",
+        "fchmodat",
+        "fchown",
+        "fchownat",
+        "fcntl",
+        "fcntl64",
+        "fstat",
+        "fstatfs",
+        "ftruncate",
+        "futimesat",
+        "getcwd",
+        "getdents",
+        "getdents64",
+        "ioctl",
+        "lchown",
+        "lseek",
+        "lstat",
+        "lstat64",
+        "mkdir",
+        "mkdirat",
+        "newfstatat",
+        "open",
+        "openat",
+        "pipe",
+        "pipe2",
+        "pread64",
+        "pwrite64",
+        "read",
+        "readlink",
+        "readlinkat",
+        "rename",
+        "renameat",
+        "renameat2",
+        "rmdir",
+        "stat",
+        "stat64",
+        "statfs",
+        "statx",
+        "truncate",
+        "umask",
+        "unlink",
+        "unlinkat",
+        "utime",
+        "utimensat",
+        "utimes",
+        "write"
       ],
-      "action": "SCMP_ACT_ERRNO"
+      "action": "SCMP_ACT_ALLOW",
+      "why": "File I/O core: fchdir for safe directory walking (rm -rf/coreutils openat-safer), bash builtins (ls/cat/cd/pwd), gcc+ld reading sources and writing .o/binary, make's directory scans, the service unzipping demo files, pty ioctls (TIOCGWINSZ winsize, termios), ft_ls's stat family. utimensat/futimesat/utime(s): timestamp updates on own files (touch, coreutils temp-file bookkeeping, gcc -o rewrite; futimens is a glibc wrapper over utimensat) \u2014 DAC limits these to files the session owns. statx: the container RUNTIME (runc) itself calls statx(STATX_MNT_ID) during container setup \u2014 without it no process starts. ioctl stays unfiltered: the pty/winsize/termios paths need varied constants; an args filter breaks legitimate termios values."
+    },
+    {
+      "names": [
+        "mmap",
+        "mmap2",
+        "munmap",
+        "mprotect",
+        "mremap",
+        "madvise",
+        "msync",
+        "mlock",
+        "munlock"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Memory management: dynamic loaders, malloc arenas (brk companion), ASAN shadow reservation for the ft_linear_regression build (-fsanitize=address reserves ~14TB of PROT_NONE shadow \u2014 must mmap), pty buffers. mlock/munlock: [expected] sanitizer/runtime pinning paths."
+    },
+    {
+      "names": [
+        "brk",
+        "sbrk"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Heap growth for bash, gcc, and demo binaries (observed in every trace)."
+    },
+    {
+      "names": [
+        "rt_sigaction",
+        "rt_sigprocmask",
+        "rt_sigreturn",
+        "rt_sigsuspend",
+        "sigaltstack",
+        "signal",
+        "sigaction",
+        "sigprocmask",
+        "kill",
+        "tgkill"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Signal plumbing: bash job control (SIGINT/SIGQUIT handlers), make pipeline signals, pexpect's Ctrl+C forwarding (kill), glibc raise()/pthread_kill (tgkill). sigaltstack: ASAN installs its own alternate signal stack at startup \u2014 without it the ft_linear_regression demo (built -fsanitize=address) aborts with 'CHECK failed ... sigaltstack' (empirically proven under this profile). Legacy signal(2)/sigaction(2) aliases kept for non-glibc demo code paths."
+    },
+    {
+      "names": [
+        "exit",
+        "exit_group",
+        "wait4",
+        "waitid",
+        "waitpid"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Process lifecycle: every exec terminates through exit_group; bash reaps jobs and the service reaps the pty child via wait4 (pexpect close). waitpid is the legacy alias."
+    },
+    {
+      "names": [
+        "clone",
+        "clone3",
+        "fork",
+        "vfork"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Process creation: bash forks every external command, make forks gcc, python's asyncio executor threads use clone(2) (clone+clone3 in the service trace); vfork is bash's optimization for simple commands (observed). clone is NOT args-filtered to block CLONE_NEW* \u2014 libseccomp flag filtering breaks glibc posix_spawn paths; namespace escape is instead denied by this profile refusing unshare/setns AND by the boot self-check probing unshare(CLONE_NEWUSER)."
+    },
+    {
+      "names": [
+        "execve",
+        "execveat"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Executing bash itself, every command typed in the demo shell (ls, make, gcc, ./binary), and python child processes. WHAT is exec'd is restricted by the command VALIDATOR (line-accumulating, deny-first allowlist); seccomp is the layer below, not a duplicate of it."
+    },
+    {
+      "names": [
+        "arch_prctl",
+        "set_tid_address",
+        "set_robust_list",
+        "get_robust_list",
+        "rseq",
+        "restart_syscall",
+        "prctl",
+        "prlimit64",
+        "getrlimit",
+        "setrlimit"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "glibc/runtime thread setup \u2014 every modern ELF (bash, gcc, python) runs arch_prctl(ARCH_SET_FS) + set_tid_address + set_robust_list + rseq at startup (all four in every trace). prlimit64/setrlimit: the service's OWN preexec_fn sets per-session rlimits between fork and exec; getrlimit: bash's ulimit builtin. prctl: glibc/pty setup (in the service trace)."
+    },
+    {
+      "names": [
+        "futex",
+        "futex_time64"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Thread synchronization: python GIL/asyncio (observed in the service trace), gcc/ld link sections. futex_time64: [expected] 32-bit-time fallback path."
+    },
+    {
+      "names": [
+        "getpid",
+        "getppid",
+        "gettid",
+        "getpgrp",
+        "getpgid",
+        "setsid",
+        "setpgid",
+        "getsid"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Process identity + job control: bash computes its prompt, job control calls setpgid per pipeline and setsid when it must detach (both observed in interactive traces); python uses gettid for logging. Identity syscalls return kernel truth about the caller only \u2014 no capability granted."
+    },
+    {
+      "names": [
+        "getuid",
+        "geteuid",
+        "getgid",
+        "getegid",
+        "getgroups",
+        "setgroups",
+        "setgid",
+        "setuid",
+        "setfsgid",
+        "setfsuid",
+        "setresuid",
+        "setresgid",
+        "getresuid",
+        "getresgid"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Credential READS (get*): bash, make, python query them constantly (observed). setgroups/setgid/setuid/setfsuid/setfsgid/setres*: the container RUNTIME (runc) drops to the container user via setgroups+setgid+setuid during setup \u2014 without them no process starts (empirically: container aborts in libcontainer setupUser) \u2014 and bash's own job-control probes call them; all are no-ops privilege-wise for the non-root coder user (uid 1000 \u2014 setting your own uid/gid, raising is impossible without a setuid binary, which the image has none of). No privilege is reachable: container runs non-root with cap_drop ALL."
+    },
+    {
+      "names": [
+        "uname",
+        "sysinfo",
+        "getrandom",
+        "clock_gettime",
+        "clock_gettime64",
+        "clock_getres",
+        "clock_nanosleep",
+        "nanosleep",
+        "gettimeofday",
+        "time",
+        "times"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Time + entropy: python time.monotonic (session idle/lifetime timers), asyncio scheduling, bash prompt timing, getrandom for dict hashing / gcc temp names / ASLR canaries (observed in every trace), nanosleep for the read-pump pacing. Write-side time syscalls (clock_settime, settimeofday) stay DENIED by omission."
+    },
+    {
+      "names": [
+        "select",
+        "pselect6",
+        "poll",
+        "ppoll",
+        "epoll_create",
+        "epoll_create1",
+        "epoll_ctl",
+        "epoll_wait",
+        "epoll_pwait",
+        "epoll_pwait2",
+        "signalfd",
+        "signalfd4"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Event multiplexing: uvicorn's epoll loop (epoll_* in the service trace), bash/readline pselect6 for interactive input (observed), make's poll, signalfd4 from pty/script interactions (observed)."
+    },
+    {
+      "names": [
+        "socket",
+        "socketpair",
+        "connect",
+        "bind",
+        "listen",
+        "accept",
+        "accept4",
+        "shutdown",
+        "getsockname",
+        "getpeername",
+        "getsockopt",
+        "setsockopt",
+        "recv",
+        "recvfrom",
+        "recvmsg",
+        "recvmmsg",
+        "send",
+        "sendto",
+        "sendmsg",
+        "sendmmsg"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Sockets REQUIRED despite no raw-socket demos: (a) the service is a network server \u2014 uvicorn binds :8000 and accepts WS connections (bind/accept in the service trace); (b) outbound sync \u2014 demo-whitelist feed and R2 downloads use HTTPS, and glibc NSS (getaddrinfo, /etc/nsswitch) itself socket()s (connect observed in ALL traces); (c) pty pair allocation via socketpair (observed); (d) bash's own connect: NSS/group lookups. Network EGRESS is contained by the deploy environment (Render private network / compose network), NOT seccomp \u2014 documented in the platform decision note (D9)."
+    },
+    {
+      "names": [
+        "capget",
+        "capset"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "The container RUNTIME (runc) applies the capability bounding set via capset during container setup \u2014 without it no process starts (empirically: 'unable to apply caps: operation not permitted' aborts the container). capget: glibc capability queries during exec. Inside the container this grants nothing: the bounding set is empty (cap_drop ALL) and the user is non-root."
+    },
+    {
+      "names": [
+        "sched_getaffinity",
+        "sched_setaffinity",
+        "sched_yield",
+        "sched_getscheduler",
+        "sched_getparam",
+        "sched_get_priority_max",
+        "sched_get_priority_min"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Scheduler queries + yield: python cpu_count (sched_getaffinity in the service trace), gcc yield under contention. sched_setscheduler stays DENIED by omission."
+    },
+    {
+      "names": [
+        "getrusage",
+        "getcpu"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "getrusage: bash's `time` builtin and make's child accounting (observed). getcpu: [expected] NUMA-aware allocator paths."
+    },
+    {
+      "names": [
+        "membarrier",
+        "get_mempolicy",
+        "set_mempolicy",
+        "mbind"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "membarrier: glibc malloc/rseq synchronization on modern kernels ([expected] python 3.14 runtime). get/set_mempolicy + mbind: [expected] NUMA policy queries; harmless no-ops on non-NUMA hosts."
+    },
+    {
+      "names": [
+        "fsync",
+        "fdatasync",
+        "sync_file_range",
+        "syncfs"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Durability: gcc writing objects, the manifest tmp+rename pattern, bash flushing (fdatasync observed in interactive traces)."
+    },
+    {
+      "names": [
+        "writev",
+        "readv",
+        "preadv",
+        "preadv2",
+        "pwritev",
+        "pwritev2"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "Scatter-gather I/O: python buffered WS-frame writes ([expected] uvicorn path), gcc object writes \u2014 standard glibc stdio path under load."
+    },
+    {
+      "names": [
+        "eventfd",
+        "eventfd2",
+        "timerfd_create",
+        "timerfd_settime",
+        "timerfd_gettime"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "asyncio event-loop primitives ([expected]: uvicorn wakeup fds; timerfd for the health-check and whitelist-sync cadence)."
+    },
+    {
+      "names": [
+        "llistxattr",
+        "lgetxattr",
+        "lsetxattr",
+        "flistxattr",
+        "fgetxattr",
+        "listxattr",
+        "getxattr",
+        "setxattr",
+        "removexattr",
+        "fremovexattr",
+        "lremovexattr"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "why": "ft_ls links -lacl and reads POSIX ACL xattrs (lgetxattr/llistxattr observed in the ft-ls trace); coreutils ls strips the ACL '+' marker via the same calls. Writes/removals included so the demo behaves exactly like a real ls on ACL-bearing files."
     }
   ]
 }

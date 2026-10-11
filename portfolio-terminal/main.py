@@ -8,6 +8,7 @@ import os
 import re
 import resource
 import shutil
+import signal
 import tempfile
 import time
 import uuid
@@ -279,12 +280,22 @@ def safe_join_path(base_dir: str, *paths: str) -> str:
 # Cloudflare R2 credentials (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) and
 # other deploy secrets, and an inherited env leaks them to any
 # `echo $AWS_SECRET_ACCESS_KEY` typed into the demo terminal.
+#
+# F4-06: ASAN_OPTIONS=detect_leaks=0 — LeakSanitizer's exit-time scan uses a
+# stop-the-world thread attach via process_vm_readv, which the seccomp
+# default-DENY profile refuses BY DESIGN (empirically proven: 'Could not
+# attach to thread' errno 1 → 'LeakSanitizer has encountered a fatal error'
+# on the ft_linear_regression demo). process_vm_readv would let one
+# session's binary read ANY same-uid process's memory — including other
+# visitors' sessions. Only the leak SCAN is disabled; ASAN's overflow
+# detection (the point of -fsanitize=address in the demo) is unaffected.
 CHILD_ENV_ALLOWLIST = {
 	'SHELL': '/bin/bash',
 	'HOME': '/home/coder',
 	'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
 	'TERM': 'xterm-256color',
 	'LANG': 'C.UTF-8',
+	'ASAN_OPTIONS': 'detect_leaks=0',
 	'PS1': '\\[\\033[1;32m\\]\\u@\\h:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ ',
 }
 
@@ -1092,7 +1103,26 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		child = active_terminals.pop(session_id, None)
 		if child is not None:
 			try:
-				child.terminate()
+				# F4-06: belt-and-braces tree teardown before the sweep runs.
+				# SIGKILL to bash's own process group is immediate (covers
+				# direct-pgid children — subshell/pipeline setup races);
+				# terminate(force=True) then closes the pty master, and the
+				# KERNEL takes the whole session down: the controlling pty
+				# vanishing SIGHUPs the session's foreground process group
+				# (job-controlled children like make→gcc live in their own
+				# pgids but inherit the pty — pty close is what reaches
+				# them, not signals to bash's pid). Empirically pinned via
+				# pexpect probes: 0 survivors, artifacts never re-written.
+				# (The artifacts that DID survive disconnect pre-fix were
+				# caused by the finally-path cancellation bug fixed below,
+				# not by orphaned gcc processes.)
+				try:
+					os.killpg(os.getpgid(child.pid), signal.SIGKILL)
+				except (ProcessLookupError, PermissionError):
+					# Group already gone (exit/PID-reuse race) — nothing to
+				# signal; the pty close below still SIGHUPs any survivor.
+					pass
+				child.terminate(force=True)
 				logger.info("Terminated session %s", session_id)
 			except Exception as cleanup_error:
 				logger.error("Failed to terminate session %s: %s", session_id, cleanup_error)
@@ -1108,11 +1138,43 @@ async def terminal_endpoint(websocket: WebSocket, project_slug: str):
 		# (a) private scratch dir — deleted whole (HOME+TMPDIR contents)
 		# (b) shared project dir — restored to its manifest baseline: every
 		#     visitor-created file/dir NOT in the manifest is swept
+		#
+		# F4-06 CANCELLATION FIX: starlette cancels this handler task the
+		# moment the client disconnects — and a bare `await to_thread(...)`
+		# in finally is a cancellation point, so the cleanup chain was
+		# being ABORTED mid-way (empirically: the scratch rmtree's thread
+		# completed by luck, but restore_project_dir was never dispatched
+		# and visitor artifacts survived in the shared project dir — caught
+		# by tests/integration/test_ws_session_loop.py). Shield the whole
+		# cleanup as ONE task and keep re-awaiting it through cancellation
+		# until it finishes; only then let the cancellation proceed. If the
+		# loop itself is shutting down (task killed under us), the boot
+		# sweep backstops.
 		try:
-			if scratch_dir:
-				await asyncio.to_thread(remove_session_scratch, scratch_dir)
-			if project_dir:
-				await asyncio.to_thread(restore_project_dir, project_dir)
+			if scratch_dir or project_dir:
+				def _post_session_cleanup() -> None:
+					if scratch_dir:
+						remove_session_scratch(scratch_dir)
+					if project_dir:
+						restore_project_dir(project_dir)
+				cleanup_task = asyncio.create_task(
+					asyncio.to_thread(_post_session_cleanup))
+				while not cleanup_task.done():
+					try:
+						await asyncio.shield(cleanup_task)
+					except asyncio.CancelledError:
+						# Handler is being cancelled (client gone); the
+						# cleanup keeps running — wait for it, don't abort.
+						continue
+				if cleanup_task.cancelled():
+					# Loop shutdown raced us; the underlying thread still
+					# runs to completion (threads can't be cancelled) and
+					# the boot sweep backstops on next start.
+					logger.warning(
+						"Post-session cleanup for %s cancelled at loop shutdown "
+						"(boot sweep will backstop)", session_id)
+				else:
+					cleanup_task.result()  # surface genuine cleanup errors
 		except Exception as cleanup_error:
 			# Belt-and-braces: both helpers already swallow their own errors;
 			# this guards the finally path itself from ANY unexpected raise
